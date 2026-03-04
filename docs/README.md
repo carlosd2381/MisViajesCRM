@@ -90,6 +90,7 @@ CI:
 - El workflow ejecuta `ai-schema-smoke` en matriz `AUTH_MODE=header|token` y locale `es-MX|en-US`.
 - El workflow ejecuta `ai-render-smoke` en matriz `AUTH_MODE=header|token` y locale `es-MX|en-US`.
 - El job `quality` ejecuta también `npm run test:ops` para validar contrato de utilidades compartidas en `tools/ops`.
+- El job `quality` ejecuta también `npm run test:quality` para validar regresiones de quality gates auxiliares.
 - El job `auth-smoke` imprime un resumen de modo/flags para facilitar diagnóstico en logs de CI.
 - El workflow usa `concurrency` (cancelación de runs previos por rama) y `timeout` por job para evitar ejecuciones colgadas/duplicadas.
 - El job `auth-smoke` se ejecuta solo si hay cambios en rutas relevantes de auth/backend/ops/CI.

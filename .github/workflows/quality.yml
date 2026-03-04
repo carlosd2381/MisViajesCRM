@@ -117,6 +117,9 @@ jobs:
       - name: Run ops helper tests
         run: npm run test:ops
 
+      - name: Run quality helper tests
+        run: npm run test:quality
+
   auth-smoke:
     needs: changes
     if: |

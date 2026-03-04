@@ -156,6 +156,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 ## Registro de cambios
 
+- 2026-03-04: Workflow de calidad ahora ejecuta `npm run test:quality` para validar en CI la cobertura de regresión de checks auxiliares.
 - 2026-03-04: Se agregó cobertura de regresión para quality gate de workflows (`tools/quality/check-workflow-yaml.test.mjs`) y comando `npm run test:quality`.
 - 2026-03-04: Se agregó quality gate de workflows (`npm run quality:workflows`) para validar sintaxis YAML y estructura mínima (`on`/`jobs`) en `.github/workflows/*`.
 - 2026-03-04: Workflow de calidad ahora ejecuta `npm run test:ops` para detectar regresiones en helpers operativos compartidos.
