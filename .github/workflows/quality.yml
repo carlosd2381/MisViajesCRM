@@ -152,13 +152,12 @@ jobs:
         locale: [es-MX, en-US]
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Evaluate matrix selection
         id: scope
         run: bash tools/ops/ci-matrix-scope.sh "${{ github.event_name }}" "${{ github.event.inputs.auth_smoke_modes }}" "${{ github.event.inputs.auth_smoke_locales }}" "${{ matrix.auth-mode }}" "${{ matrix.locale }}" >> "$GITHUB_OUTPUT"
-
-      - name: Checkout
-        if: steps.scope.outputs.run_combo == 'true'
-        uses: actions/checkout@v4
 
       - name: Setup Node
         if: steps.scope.outputs.run_combo == 'true'
@@ -224,13 +223,12 @@ jobs:
         locale: [es-MX, en-US]
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Evaluate matrix selection
         id: scope
         run: bash tools/ops/ci-matrix-scope.sh "${{ github.event_name }}" "${{ github.event.inputs.ai_schema_smoke_auth_modes }}" "${{ github.event.inputs.ai_schema_smoke_locales }}" "${{ matrix.auth-mode }}" "${{ matrix.locale }}" >> "$GITHUB_OUTPUT"
-
-      - name: Checkout
-        if: steps.scope.outputs.run_combo == 'true'
-        uses: actions/checkout@v4
 
       - name: Setup Node
         if: steps.scope.outputs.run_combo == 'true'
@@ -297,13 +295,12 @@ jobs:
         locale: [es-MX, en-US]
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Evaluate matrix selection
         id: scope
         run: bash tools/ops/ci-matrix-scope.sh "${{ github.event_name }}" "${{ github.event.inputs.ai_render_smoke_auth_modes }}" "${{ github.event.inputs.ai_render_smoke_locales }}" "${{ matrix.auth-mode }}" "${{ matrix.locale }}" >> "$GITHUB_OUTPUT"
-
-      - name: Checkout
-        if: steps.scope.outputs.run_combo == 'true'
-        uses: actions/checkout@v4
 
       - name: Setup Node
         if: steps.scope.outputs.run_combo == 'true'
