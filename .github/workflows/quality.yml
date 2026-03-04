@@ -118,7 +118,24 @@ jobs:
         run: npm run test:ops
 
       - name: Run quality helper tests
-        run: npm run test:quality
+        run: npm run test:quality | tee quality-helper-tests-output.log
+
+      - name: Quality helper tests summary
+        if: always()
+        run: |
+          PASS_COUNT=$(grep -E 'pass [0-9]+' quality-helper-tests-output.log | tail -n 1 | awk '{print $3}' || true)
+          FAIL_COUNT=$(grep -E 'fail [0-9]+' quality-helper-tests-output.log | tail -n 1 | awk '{print $3}' || true)
+          if [ -z "$PASS_COUNT" ]; then PASS_COUNT=0; fi
+          if [ -z "$FAIL_COUNT" ]; then FAIL_COUNT=0; fi
+
+          SUMMARY_LINE="QUALITY_HELPER_TESTS_SUMMARY {\"pass\":${PASS_COUNT},\"fail\":${FAIL_COUNT}}"
+          echo "$SUMMARY_LINE"
+
+          {
+            echo "### Quality helper tests"
+            echo ""
+            echo "- ${SUMMARY_LINE}"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   auth-smoke:
     needs: changes
