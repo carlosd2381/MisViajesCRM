@@ -222,11 +222,8 @@ jobs:
           AUTH_SMOKE_VERIFY_TOKEN_MODE: ${{ matrix.auth-mode == 'token' }}
           AUTH_SMOKE_BASE_URL: http://127.0.0.1:3000
         run: |
-          SUMMARY_LINE=$(grep 'AUTH_SMOKE_SUMMARY ' auth-smoke-output.log | tail -n 1 || true)
-          if [ -z "$SUMMARY_LINE" ]; then
-            echo "AUTH_SMOKE_SUMMARY line not found in output"
-            exit 1
-          fi
+          SUMMARY_LINE=$(node tools/ops/smoke-summary-cli.mjs extract AUTH_SMOKE_SUMMARY auth-smoke-output.log)
+          PARSED_SUMMARY=$(node tools/ops/smoke-summary-cli.mjs parse AUTH_SMOKE_SUMMARY "$SUMMARY_LINE")
 
           echo "Auth smoke run summary"
           echo "- AUTH_MODE=${AUTH_MODE_VALUE}"
@@ -239,6 +236,7 @@ jobs:
             echo "### Auth smoke (${AUTH_MODE_VALUE}, ${AUTH_SMOKE_LOCALE})"
             echo ""
             echo "- ${SUMMARY_LINE}"
+            echo "- Parsed summary: ${PARSED_SUMMARY}"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Stop API
@@ -337,11 +335,8 @@ jobs:
           AI_SCHEMA_SMOKE_BASE_URL: http://127.0.0.1:3000
           AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION: ai-proposal.v1
         run: |
-          SUMMARY_LINE=$(grep 'AI_SCHEMA_SMOKE_SUMMARY ' ai-schema-smoke-output.log | tail -n 1 || true)
-          if [ -z "$SUMMARY_LINE" ]; then
-            echo "AI_SCHEMA_SMOKE_SUMMARY line not found in output"
-            exit 1
-          fi
+          SUMMARY_LINE=$(node tools/ops/smoke-summary-cli.mjs extract AI_SCHEMA_SMOKE_SUMMARY ai-schema-smoke-output.log)
+          PARSED_SUMMARY=$(node tools/ops/smoke-summary-cli.mjs parse AI_SCHEMA_SMOKE_SUMMARY "$SUMMARY_LINE")
 
           echo "AI schema smoke run summary"
           echo "- AI_SCHEMA_SMOKE_AUTH_MODE=${AI_SCHEMA_SMOKE_AUTH_MODE}"
@@ -354,6 +349,7 @@ jobs:
             echo "### AI schema smoke (${AI_SCHEMA_SMOKE_AUTH_MODE}, ${AI_SCHEMA_SMOKE_LOCALE})"
             echo ""
             echo "- ${SUMMARY_LINE}"
+            echo "- Parsed summary: ${PARSED_SUMMARY}"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Stop API
@@ -450,11 +446,8 @@ jobs:
           AI_RENDER_SMOKE_LOCALE: ${{ matrix.locale }}
           AI_RENDER_SMOKE_BASE_URL: http://127.0.0.1:3000
         run: |
-          SUMMARY_LINE=$(grep 'AI_RENDER_SMOKE_SUMMARY ' ai-render-smoke-output.log | tail -n 1 || true)
-          if [ -z "$SUMMARY_LINE" ]; then
-            echo "AI_RENDER_SMOKE_SUMMARY line not found in output"
-            exit 1
-          fi
+          SUMMARY_LINE=$(node tools/ops/smoke-summary-cli.mjs extract AI_RENDER_SMOKE_SUMMARY ai-render-smoke-output.log)
+          PARSED_SUMMARY=$(node tools/ops/smoke-summary-cli.mjs parse AI_RENDER_SMOKE_SUMMARY "$SUMMARY_LINE")
 
           echo "AI render smoke run summary"
           echo "- AI_RENDER_SMOKE_AUTH_MODE=${AI_RENDER_SMOKE_AUTH_MODE}"
@@ -466,6 +459,7 @@ jobs:
             echo "### AI render smoke (${AI_RENDER_SMOKE_AUTH_MODE}, ${AI_RENDER_SMOKE_LOCALE})"
             echo ""
             echo "- ${SUMMARY_LINE}"
+            echo "- Parsed summary: ${PARSED_SUMMARY}"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Stop API
@@ -510,11 +504,8 @@ jobs:
       - name: Smoke matrix summary
         if: always()
         run: |
-          SUMMARY_LINE=$(grep 'SMOKE_MATRIX_SUMMARY ' smoke-matrix-output.log | tail -n 1 || true)
-          if [ -z "$SUMMARY_LINE" ]; then
-            echo "SMOKE_MATRIX_SUMMARY line not found in output"
-            exit 1
-          fi
+          SUMMARY_LINE=$(node tools/ops/smoke-summary-cli.mjs extract SMOKE_MATRIX_SUMMARY smoke-matrix-output.log)
+          PARSED_SUMMARY=$(node tools/ops/smoke-summary-cli.mjs parse SMOKE_MATRIX_SUMMARY "$SUMMARY_LINE")
 
           echo "Smoke matrix run summary"
           echo "- ${SUMMARY_LINE}"
@@ -523,6 +514,7 @@ jobs:
             echo "### Smoke matrix"
             echo ""
             echo "- ${SUMMARY_LINE}"
+            echo "- Parsed summary: ${PARSED_SUMMARY}"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload smoke matrix summary artifact

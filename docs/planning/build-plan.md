@@ -156,6 +156,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 ## Registro de cambios
 
+- 2026-03-04: Se extrajo CLI reutilizable de summaries smoke (`tools/ops/smoke-summary-cli.mjs`) y se aplicó en workflow CI para extracción/parse homogéneos.
 - 2026-03-04: Se extrajo CLI reutilizable (`tools/quality/quality-helper-summary-cli.mjs`) para formateo/parse de `QUALITY_HELPER_TESTS_SUMMARY` y simplificación de workflow CI.
 - 2026-03-04: Job `quality` ahora valida round-trip parse de `QUALITY_HELPER_TESTS_SUMMARY` antes de publicarlo en `GITHUB_STEP_SUMMARY`.
 - 2026-03-04: Se estandarizó `QUALITY_HELPER_TESTS_SUMMARY` con helper compartido (`tools/quality/quality-summary-helpers.mjs`) y cobertura de contrato dedicada.
