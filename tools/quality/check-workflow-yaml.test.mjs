@@ -59,4 +59,13 @@ test('quality workflow keeps smoke contract preflight and summary steps', () => 
   assert.match(source, /npm run smoke:matrix:contract\s*\|\s*tee\s+smoke-matrix-contract-output\.log/);
   assert.match(source, /- name:\s+Smoke contract preflight summary/);
   assert.match(source, /ci-smoke-summary\.sh\s+"Smoke matrix contract preflight"\s+SMOKE_MATRIX_SUMMARY\s+smoke-matrix-contract-output\.log/);
+
+  const preflightIndex = source.indexOf('- name: Run smoke contract preflight');
+  const qualityChecksIndex = source.indexOf('- name: Run quality checks');
+  assert.notEqual(preflightIndex, -1);
+  assert.notEqual(qualityChecksIndex, -1);
+  assert.ok(
+    preflightIndex < qualityChecksIndex,
+    'Run smoke contract preflight must appear before Run quality checks in quality workflow'
+  );
 });

@@ -156,6 +156,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 ## Registro de cambios
 
+- 2026-03-04: Se reforzó prueba de regresión de workflow para exigir orden en `quality.yml`: `Run smoke contract preflight` debe ejecutarse antes de `Run quality checks`.
 - 2026-03-04: Se agregó prueba de regresión en `tools/quality/check-workflow-yaml.test.mjs` para asegurar que `quality.yml` conserve los pasos `Run smoke contract preflight` y `Smoke contract preflight summary`.
 - 2026-03-04: Job `quality` ahora publica en `GITHUB_STEP_SUMMARY` el `SMOKE_MATRIX_SUMMARY` del preflight `smoke:matrix:contract` usando `ci-smoke-summary.sh` para visibilidad rápida en CI.
 - 2026-03-04: Workflow de calidad (`quality.yml`) ahora ejecuta `npm run smoke:matrix:contract` como preflight temprano en job `quality` para detectar drift de contratos de summary antes de los smoke jobs completos.
