@@ -139,6 +139,7 @@ Construir un CRM de agencia de viajes AI-native con interfaz primaria en `es-MX`
 - Smoke-check AI ahora incluye validaciones negativas de autorización para `/ai/schema/proposal` (sin credenciales y rol inválido).
 - Smoke-check AI ahora valida también método inválido en `/ai/schema/proposal` (`POST` debe responder `405`).
 - Smoke-check AI valida localización de mensajes de error en escenarios negativos (`401` y `405`) según locale activo.
+- Smoke-check AI valida también localización del mensaje exitoso (`200`) en `/ai/schema/proposal` por locale activo.
 
 ## Mantenimiento del documento
 
@@ -213,3 +214,4 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 - 2026-03-04: Se agregaron checks negativos de auth en `ai:schema:smoke` para detectar aperturas accidentales de `/ai/schema/proposal`.
 - 2026-03-04: Se agregó check negativo de método inválido en `ai:schema:smoke` para exigir `405` en `POST /ai/schema/proposal`.
 - 2026-03-04: Se agregaron aserciones de i18n en `ai:schema:smoke` para mensajes de error (`No autenticado/Unauthenticated`, `Método no permitido/Method not allowed`).
+- 2026-03-04: Se agregó aserción de i18n para mensaje de éxito del schema (`Esquema AI disponible/AI schema available`).

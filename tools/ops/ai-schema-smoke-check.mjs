@@ -123,6 +123,10 @@ async function run() {
   assert(schemaResponse.status === 200, `schema endpoint failed: expected 200, got ${schemaResponse.status}`);
   const payload = await schemaResponse.json();
   const data = payload?.data;
+  assert(
+    payload?.message === expectedMessage('Esquema AI disponible', 'AI schema available'),
+    'schema success message localization mismatch'
+  );
 
   assert(data?.schemaVersion === EXPECTED_SCHEMA_VERSION, 'schemaVersion mismatch');
   assert(data?.endpoint === '/ai/proposal', 'endpoint mismatch');
