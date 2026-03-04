@@ -8,6 +8,7 @@ const SUMMARY_FILE = process.env.SMOKE_MATRIX_SUMMARY_FILE;
 const AUTH_MODES_INPUT = process.env.SMOKE_MATRIX_AUTH_MODES ?? 'header,token';
 const LOCALES_INPUT = process.env.SMOKE_MATRIX_LOCALES ?? 'es-MX,en-US';
 const COMMAND_TIMEOUT_MS = Number(process.env.SMOKE_MATRIX_COMMAND_TIMEOUT_MS ?? '180000');
+const REUSE_EXTERNAL_API = (process.env.SMOKE_MATRIX_REUSE_EXTERNAL_API ?? 'false').toLowerCase() === 'true';
 
 const SUPPORTED_AUTH_MODES = ['header', 'token'];
 const SUPPORTED_LOCALES = ['es-MX', 'en-US'];
@@ -135,13 +136,26 @@ async function stopApi(processHandle) {
   }
 }
 
-async function runHeaderMatrix() {
-  console.log('\n▶ Running smoke matrix for AUTH_MODE=header');
-  const api = startApi('header');
+async function withApi(authMode, callback) {
+  if (REUSE_EXTERNAL_API) {
+    console.log(`↪ Reusing external API at ${BASE_URL} for AUTH_MODE=${authMode}`);
+    await waitForApiReady(BASE_URL);
+    return callback();
+  }
+
+  const api = startApi(authMode);
 
   try {
     await waitForApiReady(BASE_URL);
+    return callback();
+  } finally {
+    await stopApi(api);
+  }
+}
 
+async function runHeaderMatrix() {
+  console.log('\n▶ Running smoke matrix for AUTH_MODE=header');
+  return withApi('header', async () => {
     const runs = [];
 
     if (SELECTED_LOCALES.includes('es-MX')) {
@@ -175,18 +189,12 @@ async function runHeaderMatrix() {
     }
 
     return runs;
-  } finally {
-    await stopApi(api);
-  }
+  });
 }
 
 async function runTokenMatrix() {
   console.log('\n▶ Running smoke matrix for AUTH_MODE=token');
-  const api = startApi('token');
-
-  try {
-    await waitForApiReady(BASE_URL);
-
+  return withApi('token', async () => {
     const runs = [];
 
     if (SELECTED_LOCALES.includes('es-MX')) {
@@ -220,13 +228,15 @@ async function runTokenMatrix() {
     }
 
     return runs;
-  } finally {
-    await stopApi(api);
-  }
+  });
 }
 
 async function run() {
   console.log(`Running smoke matrix against ${BASE_URL}`);
+
+  if (REUSE_EXTERNAL_API && SELECTED_AUTH_MODES.length !== 1) {
+    throw new Error('SMOKE_MATRIX_REUSE_EXTERNAL_API=true requires exactly one auth mode in SMOKE_MATRIX_AUTH_MODES');
+  }
 
   const headerRuns = SELECTED_AUTH_MODES.includes('header') ? await runHeaderMatrix() : [];
   const tokenRuns = SELECTED_AUTH_MODES.includes('token') ? await runTokenMatrix() : [];

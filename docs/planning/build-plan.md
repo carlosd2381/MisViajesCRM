@@ -156,6 +156,10 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 ## Registro de cambios
 
+- 2026-03-04: Workflow de calidad ahora ejecuta `npm run test:ops` para detectar regresiones en helpers operativos compartidos.
+- 2026-03-04: Se agregó cobertura de contrato para helpers de summary de smoke (`tools/ops/smoke-summary-helpers.test.mjs`) y comando `npm run test:ops`.
+- 2026-03-04: Se agregaron aliases operativos `smoke:matrix:external:header` y `smoke:matrix:external:token` para ejecutar modo de reutilización de API externa en un solo comando.
+- 2026-03-04: `smoke:matrix` ahora soporta reutilizar API externa con `SMOKE_MATRIX_REUSE_EXTERNAL_API=true` (sin spawn interno) y validación de auth mode único para evitar colisiones locales de puerto.
 - 2026-03-04: Se cerró pendiente de pipeline OTel al documentar perfiles `dev/staging/prod` y se definió siguiente foco en Proposal Experience (render web + borrador PDF).
 - 2026-03-04: Se implementó primer slice de Proposal Experience con endpoints de render `web` (HTML) y `pdf` (borrador) basados en `ai-proposal.v1`.
 - 2026-03-04: Se agregó `ai-render-smoke` (script + CI + documentación) para validar render web/pdf con checks negativos de auth/método y matriz `AUTH_MODE`/locale.

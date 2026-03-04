@@ -73,7 +73,10 @@ Además, si se exceden límites soft de tamaño de archivo/función, el PR debe 
 - Ejecutar matriz completa y persistir resumen JSON: `npm run smoke:matrix:json`
 - Ejecutar matriz solo en `AUTH_MODE=token`: `npm run smoke:matrix:token`
 - Ejecutar matriz solo para locale `en-US`: `npm run smoke:matrix:en`
+- Ejecutar matriz reutilizando API externa en `AUTH_MODE=header`: `npm run smoke:matrix:external:header`
+- Ejecutar matriz reutilizando API externa en `AUTH_MODE=token`: `npm run smoke:matrix:external:token`
 - Ejecutar todas las pruebas: `npm run test`
+- Ejecutar pruebas de utilidades operativas (`tools/ops`): `npm run test:ops`
 - Ejecutar pruebas unitarias: `npm run test:unit`
 - Ejecutar pruebas de integración HTTP: `npm run test:integration`
 - Validar tipos TypeScript: `npm run typecheck`
@@ -84,6 +87,7 @@ CI:
 - Workflow `.github/workflows/quality.yml` ejecuta `quality` y `auth-smoke` en matriz `AUTH_MODE=header|token` y locale `es-MX|en-US`.
 - El workflow ejecuta `ai-schema-smoke` en matriz `AUTH_MODE=header|token` y locale `es-MX|en-US`.
 - El workflow ejecuta `ai-render-smoke` en matriz `AUTH_MODE=header|token` y locale `es-MX|en-US`.
+- El job `quality` ejecuta también `npm run test:ops` para validar contrato de utilidades compartidas en `tools/ops`.
 - El job `auth-smoke` imprime un resumen de modo/flags para facilitar diagnóstico en logs de CI.
 - El workflow usa `concurrency` (cancelación de runs previos por rama) y `timeout` por job para evitar ejecuciones colgadas/duplicadas.
 - El job `auth-smoke` se ejecuta solo si hay cambios en rutas relevantes de auth/backend/ops/CI.
@@ -167,6 +171,8 @@ Si falta la línea summary o cambia su estructura, tratar el run como sospechoso
 Si se define `SMOKE_MATRIX_SUMMARY_FILE`, también escribe ese consolidado en archivo JSON.
 También soporta selección parcial por variables: `SMOKE_MATRIX_AUTH_MODES=header|token` y `SMOKE_MATRIX_LOCALES=es-MX|en-US` (listas separadas por coma).
 Cada comando invocado por la matriz respeta `SMOKE_MATRIX_COMMAND_TIMEOUT_MS` (default `180000`) para evitar bloqueos indefinidos.
+Para reutilizar una API ya levantada (sin spawn interno), usar `SMOKE_MATRIX_REUSE_EXTERNAL_API=true`; en ese modo se requiere un único auth mode (`SMOKE_MATRIX_AUTH_MODES=header` o `token`).
+Aliases disponibles para ese modo: `npm run smoke:matrix:external:header` y `npm run smoke:matrix:external:token`.
 
 ## Persistencia (modo de almacenamiento)
 
