@@ -1,6 +1,9 @@
 import { spawn } from 'node:child_process';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
 
 const BASE_URL = process.env.SMOKE_MATRIX_BASE_URL ?? 'http://127.0.0.1:3000';
+const SUMMARY_FILE = process.env.SMOKE_MATRIX_SUMMARY_FILE;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -168,6 +171,13 @@ async function run() {
   };
 
   console.log(`SMOKE_MATRIX_SUMMARY ${JSON.stringify(summary)}`);
+
+  if (SUMMARY_FILE) {
+    await mkdir(dirname(SUMMARY_FILE), { recursive: true });
+    await writeFile(SUMMARY_FILE, `${JSON.stringify(summary, null, 2)}\n`, 'utf8');
+    console.log(`SMOKE_MATRIX_SUMMARY_FILE ${SUMMARY_FILE}`);
+  }
+
   console.log('\n✅ Smoke matrix check passed.');
 }
 

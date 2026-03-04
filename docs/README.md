@@ -66,6 +66,7 @@ Además, si se exceden límites soft de tamaño de archivo/función, el PR debe 
 - Ejecutar smoke-check de schema AI en `en-US`: `npm run ai:schema:smoke:en`
 - Ejecutar smoke-check de schema AI en token-mode + `en-US`: `npm run ai:schema:smoke:token:en`
 - Ejecutar matriz completa de smoke-checks (auth+AI, `header/token`, `es-MX/en-US`): `npm run smoke:matrix`
+- Ejecutar matriz completa y persistir resumen JSON: `npm run smoke:matrix:json`
 - Ejecutar todas las pruebas: `npm run test`
 - Ejecutar pruebas unitarias: `npm run test:unit`
 - Ejecutar pruebas de integración HTTP: `npm run test:integration`
@@ -136,6 +137,7 @@ Tanto `auth:smoke` como `ai:schema:smoke` imprimen una línea JSON para diagnós
 Si falta la línea summary o cambia su estructura, tratar el run como sospechoso y revisar artifacts/logs del job.
 
 `npm run smoke:matrix` también imprime `SMOKE_MATRIX_SUMMARY {...}` con el consolidado de todas las corridas de smoke ejecutadas.
+Si se define `SMOKE_MATRIX_SUMMARY_FILE`, también escribe ese consolidado en archivo JSON.
 
 ## Persistencia (modo de almacenamiento)
 
