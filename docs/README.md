@@ -98,6 +98,17 @@ Casos recomendados al lanzar `workflow_dispatch` del workflow de calidad:
 	- `auth_smoke_modes=token`
 	- `auth_smoke_locales=en-US`
 
+Casos recomendados para `ai-schema-smoke`:
+
+5. Validar contrato AI en modo token para ambos locales:
+	- `force_ai_schema_smoke=true`
+	- `ai_schema_smoke_auth_modes=token`
+	- `ai_schema_smoke_locales=both`
+6. Validar solo contrato AI en inglés (smoke rápido):
+	- `force_ai_schema_smoke=true`
+	- `ai_schema_smoke_auth_modes=header`
+	- `ai_schema_smoke_locales=en-US`
+
 ### Lectura rápida de summaries (logs CI)
 
 Tanto `auth:smoke` como `ai:schema:smoke` imprimen una línea JSON para diagnóstico rápido:

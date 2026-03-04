@@ -27,6 +27,9 @@
 - [ ] If auth or CI behavior changed, considered manual `workflow_dispatch` with `force_auth_smoke=true`
 - [ ] Selected `auth_smoke_modes` (`header`, `token`, `both`) appropriate for risk
 - [ ] Selected `auth_smoke_locales` (`es-MX`, `en-US`, `both`) appropriate for i18n risk
+- [ ] If AI schema or CI behavior changed, considered manual `workflow_dispatch` with `force_ai_schema_smoke=true`
+- [ ] Selected `ai_schema_smoke_auth_modes` (`header`, `token`, `both`) appropriate for risk
+- [ ] Selected `ai_schema_smoke_locales` (`es-MX`, `en-US`, `both`) appropriate for i18n risk
 
 ## Notes for Reviewers
 
