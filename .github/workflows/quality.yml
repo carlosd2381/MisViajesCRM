@@ -129,12 +129,19 @@ jobs:
           if [ -z "$FAIL_COUNT" ]; then FAIL_COUNT=0; fi
 
           SUMMARY_LINE=$(PASS_COUNT="$PASS_COUNT" FAIL_COUNT="$FAIL_COUNT" node --input-type=module -e "import { QUALITY_HELPER_TESTS_SUMMARY_PREFIX, formatQualitySummaryLine } from './tools/quality/quality-summary-helpers.mjs'; console.log(formatQualitySummaryLine(QUALITY_HELPER_TESTS_SUMMARY_PREFIX, { pass: Number(process.env.PASS_COUNT), fail: Number(process.env.FAIL_COUNT) }));")
+
+          if ! PARSED_SUMMARY=$(SUMMARY_LINE="$SUMMARY_LINE" node --input-type=module -e "import { QUALITY_HELPER_TESTS_SUMMARY_PREFIX, parseQualitySummaryLine } from './tools/quality/quality-summary-helpers.mjs'; const parsed = parseQualitySummaryLine(process.env.SUMMARY_LINE, QUALITY_HELPER_TESTS_SUMMARY_PREFIX); if (!parsed || typeof parsed.pass !== 'number' || typeof parsed.fail !== 'number') process.exit(1); console.log(JSON.stringify(parsed));"); then
+            echo "Invalid QUALITY_HELPER_TESTS_SUMMARY contract output"
+            exit 1
+          fi
+
           echo "$SUMMARY_LINE"
 
           {
             echo "### Quality helper tests"
             echo ""
             echo "- ${SUMMARY_LINE}"
+            echo "- Parsed summary: ${PARSED_SUMMARY}"
           } >> "$GITHUB_STEP_SUMMARY"
 
   auth-smoke:
