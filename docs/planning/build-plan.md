@@ -196,6 +196,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 - 2026-03-03: `smoke:matrix` ahora emite `SMOKE_MATRIX_SUMMARY` con consolidado JSON de todas las corridas ejecutadas.
 - 2026-03-03: `smoke:matrix` ahora soporta exportar consolidado a archivo (`SMOKE_MATRIX_SUMMARY_FILE`) y alias `smoke:matrix:json`.
 - 2026-03-03: Se agregó job manual `smoke-matrix` en CI (`workflow_dispatch` con `force_smoke_matrix=true`) con artifact `smoke-matrix-summary`.
+- 2026-03-03: Se agregó `tmp/` a `.gitignore` para evitar ruido local por artefactos de `smoke:matrix:json`.
 - 2026-03-03: Se documentaron ejemplos de ejecución manual de `auth-smoke` para escenarios de incidente.
 - 2026-03-03: Se agregó plantilla de PR con checklist de validación y recordatorio de `auth-smoke` manual.
 - 2026-03-03: Se agregó plantilla `.github/CODEOWNERS.example` para ownership de rutas críticas (auth/ops/CI).
