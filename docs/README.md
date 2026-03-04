@@ -88,6 +88,8 @@ CI:
 - En ejecución manual, `ai_schema_smoke_auth_modes` permite correr `header`, `token` o `both`.
 - En ejecución manual, `ai_schema_smoke_locales` permite correr `es-MX`, `en-US` o `both`.
 - En ejecución manual, `force_smoke_matrix=true` ejecuta un job consolidado (`smoke:matrix`) y adjunta `tmp/smoke-matrix-summary.json` como artifact.
+- El job `smoke-matrix` valida que exista `SMOKE_MATRIX_SUMMARY` en salida y publica esa línea en `GITHUB_STEP_SUMMARY`.
+- En caso de análisis posterior, el artifact incluye JSON consolidado y `smoke-matrix-output.log`.
 
 ### Ejemplos de ejecución manual (CI)
 

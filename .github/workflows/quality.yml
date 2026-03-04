@@ -318,11 +318,31 @@ jobs:
         run: npm install
 
       - name: Run smoke matrix with JSON export
-        run: npm run smoke:matrix:json
+        run: npm run smoke:matrix:json | tee smoke-matrix-output.log
+
+      - name: Smoke matrix summary
+        if: always()
+        run: |
+          SUMMARY_LINE=$(grep 'SMOKE_MATRIX_SUMMARY ' smoke-matrix-output.log | tail -n 1 || true)
+          if [ -z "$SUMMARY_LINE" ]; then
+            echo "SMOKE_MATRIX_SUMMARY line not found in output"
+            exit 1
+          fi
+
+          echo "Smoke matrix run summary"
+          echo "- ${SUMMARY_LINE}"
+
+          {
+            echo "### Smoke matrix"
+            echo ""
+            echo "- ${SUMMARY_LINE}"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload smoke matrix summary artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: smoke-matrix-summary
-          path: tmp/smoke-matrix-summary.json
+          path: |
+            tmp/smoke-matrix-summary.json
+            smoke-matrix-output.log
