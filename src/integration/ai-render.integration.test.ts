@@ -198,3 +198,63 @@ test('pdf render supports includeWarnings=false and compactMode=true options', a
     await stopIntegrationServer(server);
   }
 });
+
+test('web render rejects invalid renderOptions payload with 400', async () => {
+  const { server, baseUrl } = await startIntegrationServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/ai/proposal/render/web`, {
+      method: 'POST',
+      headers: integrationTestHeaders('agent', 'en-US'),
+      body: JSON.stringify({
+        promptProfile: 'ghost_writer',
+        itinerarySummary: 'Four-day Oaxaca trip with cultural and food focus.',
+        destination: 'Oaxaca',
+        days: 4,
+        renderOptions: {
+          includeWarnings: 'false'
+        }
+      })
+    });
+
+    assert.equal(response.status, 400);
+    const payload = (await response.json()) as {
+      message: string;
+      errors: string[];
+    };
+
+    assert.equal(payload.message, 'Invalid request');
+    assert(payload.errors.includes('renderOptions.includeWarnings inválido'));
+  } finally {
+    await stopIntegrationServer(server);
+  }
+});
+
+test('pdf render rejects invalid renderOptions payload with 400', async () => {
+  const { server, baseUrl } = await startIntegrationServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/ai/proposal/render/pdf`, {
+      method: 'POST',
+      headers: integrationTestHeaders('agent', 'es-MX'),
+      body: JSON.stringify({
+        promptProfile: 'ghost_writer',
+        itinerarySummary: 'Viaje de cuatro días en Oaxaca con enfoque gastronómico y cultural.',
+        destination: 'Oaxaca',
+        days: 4,
+        renderOptions: []
+      })
+    });
+
+    assert.equal(response.status, 400);
+    const payload = (await response.json()) as {
+      message: string;
+      errors: string[];
+    };
+
+    assert.equal(payload.message, 'Solicitud inválida');
+    assert(payload.errors.includes('renderOptions inválido'));
+  } finally {
+    await stopIntegrationServer(server);
+  }
+});

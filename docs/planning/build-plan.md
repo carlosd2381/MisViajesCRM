@@ -156,6 +156,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 ## Registro de cambios
 
+- 2026-03-04: Se endureció contrato de transporte en render AI con pruebas de integración negativas para `renderOptions` inválido en `POST /ai/proposal/render/web` y `POST /ai/proposal/render/pdf` (respuesta `400` + errores de campo).
 - 2026-03-04: Metadata de render AI (`/ai/proposal/render/schema`) ahora expone capacidades explícitas de `renderOptions` por endpoint (`web`/`pdf`: `supported` + `defaults`) y se reforzó `ai:render:smoke` para validar ese contrato.
 - 2026-03-04: Proposal Experience PDF render ahora también aplica `renderOptions` (`includeWarnings`, `compactMode`) en `POST /ai/proposal/render/pdf`, alineado con web render y cubierto con pruebas unitarias/integración.
 - 2026-03-04: Proposal Experience web render ahora soporta `renderOptions` (`includeWarnings`, `compactMode`) en `POST /ai/proposal/render/web`, con validación de contrato, metadata de ejemplo actualizada y cobertura unitaria/integración.
