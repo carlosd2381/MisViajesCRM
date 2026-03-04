@@ -185,6 +185,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 - 2026-03-03: Se agregó filtro por rutas para ejecutar `auth-smoke` solo cuando hay cambios relevantes.
 - 2026-03-03: Se agregó `workflow_dispatch` con `force_auth_smoke` para ejecución manual del smoke-check.
 - 2026-03-03: Se agregó selector manual `auth_smoke_modes` (`header|token|both`) para runs on-demand.
+- 2026-03-03: Se amplió `auth-smoke` en CI para matriz de locale (`es-MX|en-US`) y selector manual `auth_smoke_locales` en `workflow_dispatch`.
 - 2026-03-03: Se documentaron ejemplos de ejecución manual de `auth-smoke` para escenarios de incidente.
 - 2026-03-03: Se agregó plantilla de PR con checklist de validación y recordatorio de `auth-smoke` manual.
 - 2026-03-03: Se agregó plantilla `.github/CODEOWNERS.example` para ownership de rutas críticas (auth/ops/CI).

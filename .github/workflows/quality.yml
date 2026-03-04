@@ -16,6 +16,10 @@ on:
         description: 'Auth smoke mode scope for manual runs'
         required: false
         default: 'both'
+      auth_smoke_locales:
+        description: 'Auth smoke locale scope for manual runs'
+        required: false
+        default: 'both'
       force_ai_schema_smoke:
         description: 'Run ai-schema-smoke even if path filters do not match'
         required: false
@@ -91,6 +95,10 @@ jobs:
         github.event_name != 'workflow_dispatch' ||
         github.event.inputs.auth_smoke_modes == 'both' ||
         github.event.inputs.auth_smoke_modes == matrix.auth-mode
+      ) && (
+        github.event_name != 'workflow_dispatch' ||
+        github.event.inputs.auth_smoke_locales == 'both' ||
+        github.event.inputs.auth_smoke_locales == matrix.locale
       )
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -98,6 +106,7 @@ jobs:
       fail-fast: false
       matrix:
         auth-mode: [header, token]
+        locale: [es-MX, en-US]
 
     steps:
       - name: Checkout
@@ -133,17 +142,20 @@ jobs:
         env:
           AUTH_SMOKE_BASE_URL: http://127.0.0.1:3000
           AUTH_SMOKE_VERIFY_TOKEN_MODE: ${{ matrix.auth-mode == 'token' }}
+          AUTH_SMOKE_LOCALE: ${{ matrix.locale }}
         run: npm run auth:smoke
 
       - name: Auth smoke summary
         if: always()
         env:
           AUTH_MODE_VALUE: ${{ matrix.auth-mode }}
+          AUTH_SMOKE_LOCALE: ${{ matrix.locale }}
           AUTH_SMOKE_VERIFY_TOKEN_MODE: ${{ matrix.auth-mode == 'token' }}
           AUTH_SMOKE_BASE_URL: http://127.0.0.1:3000
         run: |
           echo "Auth smoke run summary"
           echo "- AUTH_MODE=${AUTH_MODE_VALUE}"
+          echo "- AUTH_SMOKE_LOCALE=${AUTH_SMOKE_LOCALE}"
           echo "- AUTH_SMOKE_BASE_URL=${AUTH_SMOKE_BASE_URL}"
           echo "- AUTH_SMOKE_VERIFY_TOKEN_MODE=${AUTH_SMOKE_VERIFY_TOKEN_MODE}"
 
@@ -158,7 +170,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: auth-smoke-server-log-${{ matrix.auth-mode }}
+          name: auth-smoke-server-log-${{ matrix.auth-mode }}-${{ matrix.locale }}
           path: auth-smoke-server.log
 
   ai-schema-smoke:
