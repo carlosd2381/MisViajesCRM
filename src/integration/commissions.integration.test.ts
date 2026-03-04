@@ -8,6 +8,7 @@ import { InMemoryClientRepository } from '../modules/clients/infrastructure/in-m
 import { InMemorySupplierRepository } from '../modules/suppliers/infrastructure/in-memory-supplier-repository';
 import { InMemoryCommissionRepository } from '../modules/commissions/infrastructure/in-memory-commission-repository';
 import { InMemoryFinancialRepository } from '../modules/financials/infrastructure/in-memory-financial-repository';
+import { InMemoryMessagingRepository } from '../modules/messaging/infrastructure/in-memory-messaging-repository';
 import { InMemoryItineraryRepository } from '../modules/itinerary/infrastructure/in-memory-itinerary-repository';
 
 function testHeaders(role = 'manager'): Record<string, string> {
@@ -26,6 +27,7 @@ async function startServer(): Promise<{ server: Server; baseUrl: string }> {
     suppliers: new InMemorySupplierRepository(),
     commissions: new InMemoryCommissionRepository(),
     financials: new InMemoryFinancialRepository(),
+    messaging: new InMemoryMessagingRepository(),
     itineraries: new InMemoryItineraryRepository()
   }, { authMode: 'header' });
 

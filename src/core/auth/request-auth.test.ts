@@ -7,6 +7,7 @@ import {
   permissionForFinancials,
   permissionForItineraries,
   permissionForLeads,
+  permissionForMessaging,
   permissionForSuppliers
 } from './route-permissions';
 
@@ -68,4 +69,11 @@ test('permissionForFinancials maps methods correctly', () => {
   assert.equal(permissionForFinancials('POST'), 'write:financials');
   assert.equal(permissionForFinancials('PATCH'), 'write:financials');
   assert.equal(permissionForFinancials('DELETE'), null);
+});
+
+test('permissionForMessaging maps methods correctly', () => {
+  assert.equal(permissionForMessaging('GET'), 'read:messaging');
+  assert.equal(permissionForMessaging('POST'), 'write:messaging');
+  assert.equal(permissionForMessaging('PATCH'), 'write:messaging');
+  assert.equal(permissionForMessaging('DELETE'), null);
 });

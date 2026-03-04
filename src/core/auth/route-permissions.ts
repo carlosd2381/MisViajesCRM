@@ -30,6 +30,12 @@ export function permissionForFinancials(method: string | undefined): PermissionK
   return null;
 }
 
+export function permissionForMessaging(method: string | undefined): PermissionKey | null {
+  if (method === 'GET') return 'read:messaging';
+  if (method === 'POST' || method === 'PATCH') return 'write:messaging';
+  return null;
+}
+
 export function permissionForItineraries(method: string | undefined): PermissionKey | null {
   if (method === 'GET') return 'read:itineraries';
   if (method === 'POST' || method === 'PATCH') return 'write:itineraries';

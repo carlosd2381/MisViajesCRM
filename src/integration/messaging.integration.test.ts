@@ -11,7 +11,7 @@ import { InMemoryFinancialRepository } from '../modules/financials/infrastructur
 import { InMemoryMessagingRepository } from '../modules/messaging/infrastructure/in-memory-messaging-repository';
 import { InMemoryItineraryRepository } from '../modules/itinerary/infrastructure/in-memory-itinerary-repository';
 
-function testHeaders(role = 'accountant'): Record<string, string> {
+function testHeaders(role = 'agent'): Record<string, string> {
   return {
     'content-type': 'application/json',
     'x-user-id': 'user_test',
@@ -48,34 +48,29 @@ async function stopServer(server: Server): Promise<void> {
   });
 }
 
-test('accountant can create and update financial transaction', async () => {
+test('agent can create and update message log', async () => {
   const { server, baseUrl } = await startServer();
 
   try {
-    const createResponse = await fetch(`${baseUrl}/financials`, {
+    const createResponse = await fetch(`${baseUrl}/messaging`, {
       method: 'POST',
-      headers: testHeaders('accountant'),
+      headers: testHeaders('agent'),
       body: JSON.stringify({
-        itineraryId: 'it_1',
-        type: 'client_receipt',
-        amountOriginal: 1000,
-        currencyOriginal: 'USD',
-        exchangeRate: 17,
-        transactionDate: '2026-04-15'
+        clientId: 'client_1',
+        channel: 'whatsapp',
+        direction: 'outbound',
+        content: 'Hola, te comparto opciones',
+        threadId: 'thread_1'
       })
     });
 
     assert.equal(createResponse.status, 201);
-    const created = (await createResponse.json()) as { data: { id: string; amountMxn: number } };
-    assert.equal(created.data.amountMxn, 17000);
+    const created = (await createResponse.json()) as { data: { id: string } };
 
-    const patchResponse = await fetch(`${baseUrl}/financials/${created.data.id}`, {
+    const patchResponse = await fetch(`${baseUrl}/messaging/${created.data.id}`, {
       method: 'PATCH',
-      headers: testHeaders('accountant'),
-      body: JSON.stringify({
-        exchangeRate: 18,
-        status: 'cleared'
-      })
+      headers: testHeaders('agent'),
+      body: JSON.stringify({ status: 'delivered' })
     });
 
     assert.equal(patchResponse.status, 200);
@@ -84,13 +79,20 @@ test('accountant can create and update financial transaction', async () => {
   }
 });
 
-test('manager cannot read financials', async () => {
+test('external_dmc cannot write messaging', async () => {
   const { server, baseUrl } = await startServer();
 
   try {
-    const response = await fetch(`${baseUrl}/financials`, {
-      method: 'GET',
-      headers: testHeaders('manager')
+    const response = await fetch(`${baseUrl}/messaging`, {
+      method: 'POST',
+      headers: testHeaders('external_dmc'),
+      body: JSON.stringify({
+        clientId: 'client_1',
+        channel: 'email',
+        direction: 'outbound',
+        content: 'Mensaje bloqueado',
+        threadId: 'thread_2'
+      })
     });
 
     assert.equal(response.status, 403);

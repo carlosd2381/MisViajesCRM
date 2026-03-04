@@ -8,6 +8,7 @@ import {
   permissionForFinancials,
   permissionForItineraries,
   permissionForLeads,
+  permissionForMessaging,
   permissionForSuppliers
 } from './core/auth/route-permissions';
 import type { PermissionKey } from './core/auth/permissions';
@@ -32,6 +33,10 @@ import {
   handleFinancialResource,
   handleFinancialsCollection
 } from './modules/financials/api/financial-http-handlers';
+import {
+  handleMessageResource,
+  handleMessagingCollection
+} from './modules/messaging/api/messaging-http-handlers';
 import {
   handleItineraryItemsCollection,
   handleItinerariesCollection,
@@ -223,6 +228,25 @@ function handleFinancialsRoute(
   return Promise.resolve();
 }
 
+function handleMessagingRoute(
+  req: IncomingMessage,
+  res: ServerResponse,
+  pathSegments: string[],
+  locale: string,
+  repositories: RepositoryBundle,
+  authMode: AuthMode
+): Promise<void> | null {
+  if (pathSegments[0] !== 'messaging') return null;
+
+  const permission = permissionForMessaging(req.method);
+  if (!canProceed(req, res, locale, permission, authMode)) return Promise.resolve();
+
+  const context = { req, res, pathSegments, locale };
+  if (pathSegments.length === 1) return handleMessagingCollection(context, repositories.messaging);
+  if (pathSegments.length === 2) return handleMessageResource(context, repositories.messaging);
+  return Promise.resolve();
+}
+
 function handler(repositories: RepositoryBundle, options: AppOptions) {
   const authMode = options.authMode ?? 'header';
   const refreshTokens = options.refreshTokenService ?? buildRefreshTokenService(tokenServiceOptions());
@@ -256,6 +280,9 @@ function handler(repositories: RepositoryBundle, options: AppOptions) {
 
       const financialsRoute = handleFinancialsRoute(req, res, pathSegments, locale, repositories, authMode);
       if (financialsRoute) return financialsRoute;
+
+      const messagingRoute = handleMessagingRoute(req, res, pathSegments, locale, repositories, authMode);
+      if (messagingRoute) return messagingRoute;
 
       const itinerariesRoute = handleItinerariesRoute(req, res, pathSegments, locale, repositories, authMode);
       if (itinerariesRoute) return itinerariesRoute;

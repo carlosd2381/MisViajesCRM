@@ -9,6 +9,7 @@ import { InMemoryItineraryRepository } from '../modules/itinerary/infrastructure
 import { InMemorySupplierRepository } from '../modules/suppliers/infrastructure/in-memory-supplier-repository';
 import { InMemoryCommissionRepository } from '../modules/commissions/infrastructure/in-memory-commission-repository';
 import { InMemoryFinancialRepository } from '../modules/financials/infrastructure/in-memory-financial-repository';
+import { InMemoryMessagingRepository } from '../modules/messaging/infrastructure/in-memory-messaging-repository';
 
 function testHeaders(role = 'agent'): Record<string, string> {
   return {
@@ -26,6 +27,7 @@ async function startServer(): Promise<{ server: Server; baseUrl: string }> {
     suppliers: new InMemorySupplierRepository(),
     commissions: new InMemoryCommissionRepository(),
     financials: new InMemoryFinancialRepository(),
+    messaging: new InMemoryMessagingRepository(),
     itineraries: new InMemoryItineraryRepository()
   }, { authMode: 'header' });
 
