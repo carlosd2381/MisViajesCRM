@@ -95,6 +95,22 @@ Casos recomendados al lanzar `workflow_dispatch` del workflow de calidad:
 	- `auth_smoke_modes=token`
 	- `auth_smoke_locales=en-US`
 
+### Lectura rápida de summaries (logs CI)
+
+Tanto `auth:smoke` como `ai:schema:smoke` imprimen una línea JSON para diagnóstico rápido:
+
+- `AUTH_SMOKE_SUMMARY {...}`
+	- `locale`: locale efectivo del smoke (`es-MX` o `en-US`).
+	- `verifyTokenMode`: `true` cuando valida ruta protegida en modo token.
+	- `checkedNegativeScenarios`: lista de escenarios negativos efectivamente validados en esa corrida.
+- `AI_SCHEMA_SMOKE_SUMMARY {...}`
+	- `locale`: locale efectivo del schema smoke.
+	- `schemaVersion`: versión de contrato validada.
+	- `warningsCatalogCount`: cantidad de warnings esperados en catálogo.
+	- `sectionOrder`: orden estable de secciones para consumidores downstream.
+
+Si falta la línea summary o cambia su estructura, tratar el run como sospechoso y revisar artifacts/logs del job.
+
 ## Persistencia (modo de almacenamiento)
 
 - `STORAGE_MODE=memory` (default) usa repositorios en memoria.
