@@ -77,6 +77,19 @@ async function assertUnauthorizedScenarios() {
   );
 }
 
+async function assertMethodNotAllowedScenario() {
+  const invalidMethodResponse = await request(`/ai/schema/proposal?locale=${encodeURIComponent(LOCALE)}`, {
+    method: 'POST',
+    headers: headers(AGENT_ID, AGENT_ROLE),
+    body: JSON.stringify({})
+  });
+
+  assert(
+    invalidMethodResponse.status === 405,
+    `POST schema request should return 405, got ${invalidMethodResponse.status}`
+  );
+}
+
 async function run() {
   console.log(`Running AI schema smoke-check against ${BASE_URL} (locale=${LOCALE})`);
 
@@ -84,6 +97,7 @@ async function run() {
   assert(health.status === 200, `health failed: expected 200, got ${health.status}`);
 
   await assertUnauthorizedScenarios();
+  await assertMethodNotAllowedScenario();
 
   const schemaResponse = await request(`/ai/schema/proposal?locale=${encodeURIComponent(LOCALE)}`, {
     method: 'GET',
