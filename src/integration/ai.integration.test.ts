@@ -172,3 +172,58 @@ test('ai proposal strict quality gate returns 422 when high severity warnings ex
     await stopServer(server);
   }
 });
+
+test('agent can read AI proposal schema metadata', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/ai/schema/proposal`, {
+      method: 'GET',
+      headers: testHeaders('agent')
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      data: {
+        schemaVersion: string;
+        requiredFields: string[];
+        warningsCatalog: Array<{ code: string; severity: string }>;
+        qualityGate: { blockedStatusCode: number };
+      };
+    };
+
+    assert.equal(payload.data.schemaVersion, 'ai-proposal.v1');
+    assert.ok(payload.data.requiredFields.includes('promptProfile'));
+    assert.ok(payload.data.warningsCatalog.some((warning) => warning.code === 'QUALITY_GATE_BLOCKER'));
+    assert.equal(payload.data.qualityGate.blockedStatusCode, 422);
+  } finally {
+    await stopServer(server);
+  }
+});
+
+test('external_dmc can read AI schema but cannot post proposal', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const schemaResponse = await fetch(`${baseUrl}/ai/schema/proposal`, {
+      method: 'GET',
+      headers: testHeaders('external_dmc')
+    });
+    assert.equal(schemaResponse.status, 200);
+
+    const proposalResponse = await fetch(`${baseUrl}/ai/proposal`, {
+      method: 'POST',
+      headers: testHeaders('external_dmc'),
+      body: JSON.stringify({
+        promptProfile: 'storyteller',
+        itinerarySummary: 'Plan base',
+        destination: 'Oaxaca',
+        days: 3
+      })
+    });
+
+    assert.equal(proposalResponse.status, 403);
+  } finally {
+    await stopServer(server);
+  }
+});

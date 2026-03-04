@@ -48,7 +48,10 @@ import {
   handleManagementCollection,
   handleManagementResource
 } from './modules/management/api/management-http-handlers';
-import { handleAiProposalCollection } from './modules/ai/api/proposal-http-handlers';
+import {
+  handleAiProposalCollection,
+  handleAiProposalSchema
+} from './modules/ai/api/proposal-http-handlers';
 import {
   handleItineraryItemsCollection,
   handleItinerariesCollection,
@@ -312,6 +315,9 @@ function handleAiRoute(
   const context = { req, res, pathSegments, locale };
   if (pathSegments.length === 2 && pathSegments[1] === 'proposal') {
     return handleAiProposalCollection(context);
+  }
+  if (pathSegments.length === 3 && pathSegments[1] === 'schema' && pathSegments[2] === 'proposal') {
+    return handleAiProposalSchema(context);
   }
 
   return Promise.resolve();

@@ -49,6 +49,7 @@ export function permissionForManagement(method: string | undefined): PermissionK
 }
 
 export function permissionForAi(method: string | undefined): PermissionKey | null {
+  if (method === 'GET') return 'read:itineraries';
   if (method === 'POST') return 'write:itineraries';
   return null;
 }

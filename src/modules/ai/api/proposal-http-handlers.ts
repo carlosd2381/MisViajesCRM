@@ -2,7 +2,18 @@ import type { RequestContext } from '../../../core/http/http-types';
 import { readJsonBody, sendJson } from '../../../core/http/http-utils';
 import type { SupportedLocale } from '../../../core/i18n/supported-locales';
 import { generateMockProposal } from '../application/proposal-mock-service';
+import { buildAiProposalSchemaMetadata } from '../domain/proposal-schema-metadata';
 import { validateCreateAiProposal } from './proposal-validation';
+
+export async function handleAiProposalSchema(context: RequestContext): Promise<void> {
+  if (context.req.method !== 'GET') {
+    sendJson(context.res, 405, { message: messageByLocale(context.locale, 'Método no permitido') });
+    return;
+  }
+
+  const data = buildAiProposalSchemaMetadata();
+  sendJson(context.res, 200, { data, message: messageByLocale(context.locale, 'Esquema AI disponible') });
+}
 
 export async function handleAiProposalCollection(context: RequestContext): Promise<void> {
   if (context.req.method !== 'POST') {
@@ -39,6 +50,7 @@ function messageByLocale(locale: string, spanish: string): string {
 function englishMessage(spanish: string): string {
   const map: Record<string, string> = {
     'Método no permitido': 'Method not allowed',
+    'Esquema AI disponible': 'AI schema available',
     'Solicitud inválida': 'Invalid request',
     'Propuesta bloqueada por quality gate': 'Proposal blocked by quality gate',
     'Propuesta AI generada (mock)': 'AI proposal generated (mock)'

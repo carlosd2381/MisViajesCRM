@@ -97,6 +97,6 @@ test('permissionForManagement maps methods correctly', () => {
 
 test('permissionForAi maps methods correctly', () => {
   assert.equal(permissionForAi('POST'), 'write:itineraries');
-  assert.equal(permissionForAi('GET'), null);
+  assert.equal(permissionForAi('GET'), 'read:itineraries');
   assert.equal(permissionForAi('PATCH'), null);
 });
