@@ -196,7 +196,7 @@ jobs:
 
       - name: Upload API logs on failure
         if: failure() && steps.scope.outputs.run_combo == 'true'
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/upload-artifact
         with:
           name: auth-smoke-server-log-${{ matrix.auth-mode }}-${{ matrix.locale }}
           path: |
@@ -265,7 +265,7 @@ jobs:
 
       - name: Upload API logs on failure
         if: failure() && steps.scope.outputs.run_combo == 'true'
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/upload-artifact
         with:
           name: ai-schema-smoke-server-log-${{ matrix.auth-mode }}-${{ matrix.locale }}
           path: |
@@ -332,7 +332,7 @@ jobs:
 
       - name: Upload API logs on failure
         if: failure() && steps.scope.outputs.run_combo == 'true'
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/upload-artifact
         with:
           name: ai-render-smoke-server-log-${{ matrix.auth-mode }}-${{ matrix.locale }}
           path: |
@@ -365,7 +365,7 @@ jobs:
 
       - name: Upload smoke matrix summary artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/upload-artifact
         with:
           name: smoke-matrix-summary
           path: |

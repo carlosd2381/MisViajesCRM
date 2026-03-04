@@ -102,6 +102,7 @@ CI:
 - Los filtros por combinación matriz/selector manual en jobs smoke se unifican con `tools/ops/ci-matrix-scope.sh` para evitar drift entre jobs.
 - La extracción/parse/publicación de `*_SMOKE_SUMMARY` en CI se unifica con `tools/ops/ci-smoke-summary.sh` para reducir duplicación de bloques shell en workflow.
 - La preparación de runtime en CI (`setup-node` + `npm install`) se centraliza con la acción compuesta local `.github/actions/setup-node-deps` para evitar repetición entre jobs.
+- La publicación de artifacts en CI se centraliza con la acción compuesta local `.github/actions/upload-artifact` para reducir duplicación en jobs de smoke.
 - El job `quality` publica `QUALITY_HELPER_TESTS_SUMMARY {pass,fail}` en logs y `GITHUB_STEP_SUMMARY` para triage rápido de regresiones en checks auxiliares.
 - El contrato de `QUALITY_HELPER_TESTS_SUMMARY` se centraliza en `tools/quality/quality-summary-helpers.mjs` con cobertura de pruebas dedicada.
 - El workflow usa `tools/quality/quality-helper-summary-cli.mjs` para aplicar el contrato de summary en formato/parse sin snippets inline ad-hoc.
