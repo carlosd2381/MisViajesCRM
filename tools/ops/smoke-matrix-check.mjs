@@ -14,6 +14,8 @@ const AUTH_MODES_INPUT = process.env.SMOKE_MATRIX_AUTH_MODES ?? 'header,token';
 const LOCALES_INPUT = process.env.SMOKE_MATRIX_LOCALES ?? 'es-MX,en-US';
 const COMMAND_TIMEOUT_MS = Number(process.env.SMOKE_MATRIX_COMMAND_TIMEOUT_MS ?? '180000');
 const REUSE_EXTERNAL_API = (process.env.SMOKE_MATRIX_REUSE_EXTERNAL_API ?? 'false').toLowerCase() === 'true';
+const CONTRACT_ONLY = process.argv.includes('--contract-only')
+  || (process.env.SMOKE_MATRIX_CONTRACT_ONLY ?? 'false').toLowerCase() === 'true';
 
 const SUPPORTED_AUTH_MODES = ['header', 'token'];
 const SUPPORTED_LOCALES = ['es-MX', 'en-US'];
@@ -267,6 +269,11 @@ async function runTokenMatrix() {
 }
 
 async function run() {
+  if (CONTRACT_ONLY) {
+    await runContractOnlyMode();
+    return;
+  }
+
   console.log(`Running smoke matrix against ${BASE_URL}`);
 
   if (REUSE_EXTERNAL_API && SELECTED_AUTH_MODES.length !== 1) {
@@ -292,6 +299,68 @@ async function run() {
   }
 
   console.log('\n✅ Smoke matrix check passed.');
+}
+
+async function runContractOnlyMode() {
+  console.log('Running smoke matrix in contract-only mode (no API calls, no script execution)');
+
+  const authSummary = {
+    locale: 'es-MX',
+    verifyTokenMode: true,
+    checkedNegativeScenarios: [
+      'unauth_metrics_401',
+      'forbidden_metrics_403',
+      'invalid_refresh_401',
+      'token_mode_unauth_protected_401'
+    ]
+  };
+
+  const aiSchemaSummary = {
+    authMode: 'header',
+    locale: 'es-MX',
+    schemaVersion: 'ai-proposal.v1',
+    warningsCatalogCount: 4,
+    sectionOrder: ['storyteller', 'auditor', 'ghost_writer', 'local_insider']
+  };
+
+  const aiRenderSummary = {
+    authMode: 'header',
+    locale: 'es-MX',
+    checks: [
+      'unauthorized_401',
+      'method_not_allowed_405_web',
+      'method_not_allowed_405_pdf',
+      'forbidden_external_403',
+      'render_schema_options_contract',
+      'invalid_render_options_400_web',
+      'invalid_render_options_400_pdf',
+      'web_render_200_html',
+      'pdf_render_200_pdf'
+    ]
+  };
+
+  assertAuthSmokeSummaryContract(authSummary);
+  assertAiSchemaSmokeSummaryContract(aiSchemaSummary);
+  assertAiRenderSmokeSummaryContract(aiRenderSummary);
+
+  const summary = {
+    contractOnly: true,
+    selectedAuthModes: SELECTED_AUTH_MODES,
+    selectedLocales: SELECTED_LOCALES,
+    validatedContracts: ['AUTH_SMOKE_SUMMARY', 'AI_SCHEMA_SMOKE_SUMMARY', 'AI_RENDER_SMOKE_SUMMARY'],
+    totalRuns: 0,
+    runs: []
+  };
+
+  console.log(formatSmokeSummaryLine('SMOKE_MATRIX_SUMMARY', summary));
+
+  if (SUMMARY_FILE) {
+    await mkdir(dirname(SUMMARY_FILE), { recursive: true });
+    await writeFile(SUMMARY_FILE, `${JSON.stringify(summary, null, 2)}\n`, 'utf8');
+    console.log(`SMOKE_MATRIX_SUMMARY_FILE ${SUMMARY_FILE}`);
+  }
+
+  console.log('\n✅ Smoke matrix contract-only check passed.');
 }
 
 run().catch((error) => {

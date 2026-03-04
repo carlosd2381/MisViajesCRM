@@ -71,6 +71,7 @@ Además, si se exceden límites soft de tamaño de archivo/función, el PR debe 
 - Ejecutar smoke-check de render AI en token-mode + `en-US`: `npm run ai:render:smoke:token:en`
 - Ejecutar matriz completa de smoke-checks (auth+AI, `header/token`, `es-MX/en-US`): `npm run smoke:matrix`
 - Ejecutar matriz completa y persistir resumen JSON: `npm run smoke:matrix:json`
+- Ejecutar preflight rápido de contratos de summary (sin levantar API): `npm run smoke:matrix:contract`
 - Ejecutar matriz solo en `AUTH_MODE=token`: `npm run smoke:matrix:token`
 - Ejecutar matriz solo para locale `en-US`: `npm run smoke:matrix:en`
 - Ejecutar matriz reutilizando API externa en `AUTH_MODE=header`: `npm run smoke:matrix:external:header`
@@ -185,6 +186,7 @@ Si falta la línea summary o cambia su estructura, tratar el run como sospechoso
 `npm run smoke:matrix` también imprime `SMOKE_MATRIX_SUMMARY {...}` con el consolidado de todas las corridas de smoke ejecutadas.
 Si se define `SMOKE_MATRIX_SUMMARY_FILE`, también escribe ese consolidado en archivo JSON.
 También soporta selección parcial por variables: `SMOKE_MATRIX_AUTH_MODES=header|token` y `SMOKE_MATRIX_LOCALES=es-MX|en-US` (listas separadas por coma).
+Para preflight de contrato de summaries sin ejecutar smokes reales, usar `npm run smoke:matrix:contract` (equivalente a `--contract-only` / `SMOKE_MATRIX_CONTRACT_ONLY=true`).
 Cada comando invocado por la matriz respeta `SMOKE_MATRIX_COMMAND_TIMEOUT_MS` (default `180000`) para evitar bloqueos indefinidos.
 Para reutilizar una API ya levantada (sin spawn interno), usar `SMOKE_MATRIX_REUSE_EXTERNAL_API=true`; en ese modo se requiere un único auth mode (`SMOKE_MATRIX_AUTH_MODES=header` o `token`).
 Aliases disponibles para ese modo: `npm run smoke:matrix:external:header` y `npm run smoke:matrix:external:token`.
