@@ -109,7 +109,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run quality checks
         run: npm run quality
@@ -172,7 +172,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.scope.outputs.run_combo == 'true'
-        run: npm install
+        run: npm ci
 
       - name: Start API
         if: steps.scope.outputs.run_combo == 'true'
@@ -248,7 +248,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.scope.outputs.run_combo == 'true'
-        run: npm install
+        run: npm ci
 
       - name: Start API
         if: steps.scope.outputs.run_combo == 'true'
@@ -325,7 +325,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.scope.outputs.run_combo == 'true'
-        run: npm install
+        run: npm ci
 
       - name: Start API
         if: steps.scope.outputs.run_combo == 'true'
@@ -381,7 +381,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run smoke matrix with JSON export
         env:

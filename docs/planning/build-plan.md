@@ -156,6 +156,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 ## Registro de cambios
 
+- 2026-03-04: Se migró instalación de dependencias en jobs de `quality.yml` de `npm install` a `npm ci` para mayor reproducibilidad en CI.
 - 2026-03-04: Se normalizó convención de nombres de logs/pid/artifacts en jobs smoke de `quality.yml` usando variables `env` por job para reducir duplicación y drift.
 - 2026-03-04: Se hicieron portables `test:ops` y `test:quality` en `package.json` usando `find` (en lugar de glob `**`) para evitar diferencias de expansión shell entre macOS/zsh y CI Linux/bash.
 - 2026-03-04: Se corrigió orden de pasos en jobs smoke de `quality.yml` para ejecutar `checkout` antes de `ci-matrix-scope.sh`, evitando fallas `127` por script no disponible en runner.
