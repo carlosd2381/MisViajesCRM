@@ -62,6 +62,31 @@ interface ModuleRouteContext {
   authMode: AuthMode;
 }
 
+type ModuleRouteKey =
+  | 'leads'
+  | 'clients'
+  | 'suppliers'
+  | 'commissions'
+  | 'financials'
+  | 'messaging'
+  | 'dashboard'
+  | 'management'
+  | 'ai'
+  | 'itineraries';
+
+export const MODULE_ROUTE_DISPATCH_ORDER: ReadonlyArray<ModuleRouteKey> = [
+  'leads',
+  'clients',
+  'suppliers',
+  'commissions',
+  'financials',
+  'messaging',
+  'dashboard',
+  'management',
+  'ai',
+  'itineraries'
+];
+
 function canProceed(
   req: IncomingMessage,
   res: ServerResponse,
@@ -224,21 +249,21 @@ function handleAiRoute(context: ModuleRouteContext): Promise<void> | null {
 }
 
 export function dispatchModuleRoute(context: ModuleRouteContext): Promise<void> | null {
-  const routeHandlers = [
-    handleLeadsRoute,
-    handleClientsRoute,
-    handleSuppliersRoute,
-    handleCommissionsRoute,
-    handleFinancialsRoute,
-    handleMessagingRoute,
-    handleDashboardRoute,
-    handleManagementRoute,
-    handleAiRoute,
-    handleItinerariesRoute
-  ];
+  const routeHandlers: Record<ModuleRouteKey, (ctx: ModuleRouteContext) => Promise<void> | null> = {
+    leads: handleLeadsRoute,
+    clients: handleClientsRoute,
+    suppliers: handleSuppliersRoute,
+    commissions: handleCommissionsRoute,
+    financials: handleFinancialsRoute,
+    messaging: handleMessagingRoute,
+    dashboard: handleDashboardRoute,
+    management: handleManagementRoute,
+    ai: handleAiRoute,
+    itineraries: handleItinerariesRoute
+  };
 
-  for (const routeHandler of routeHandlers) {
-    const result = routeHandler(context);
+  for (const routeKey of MODULE_ROUTE_DISPATCH_ORDER) {
+    const result = routeHandlers[routeKey](context);
     if (result) return result;
   }
 
