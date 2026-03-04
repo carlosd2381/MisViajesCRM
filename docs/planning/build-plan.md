@@ -156,6 +156,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 ## Registro de cambios
 
+- 2026-03-04: Se hicieron portables `test:ops` y `test:quality` en `package.json` usando `find` (en lugar de glob `**`) para evitar diferencias de expansión shell entre macOS/zsh y CI Linux/bash.
 - 2026-03-04: Se corrigió orden de pasos en jobs smoke de `quality.yml` para ejecutar `checkout` antes de `ci-matrix-scope.sh`, evitando fallas `127` por script no disponible en runner.
 - 2026-03-04: Se revirtió uso de `.github/actions/setup-node-deps` en `quality.yml` para recuperar estabilidad en GitHub Actions, manteniendo setup/install explícito por job.
 - 2026-03-04: Se extrajo acción compuesta local para publicación de artifacts en CI (`.github/actions/upload-artifact`) y se migraron jobs smoke para usarla.
