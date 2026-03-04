@@ -9,6 +9,7 @@ import {
   permissionForFinancials,
   permissionForItineraries,
   permissionForLeads,
+  permissionForManagement,
   permissionForMessaging,
   permissionForSuppliers
 } from './core/auth/route-permissions';
@@ -42,6 +43,10 @@ import {
   handleDashboardCollection,
   handleDashboardResource
 } from './modules/dashboard/api/dashboard-http-handlers';
+import {
+  handleManagementCollection,
+  handleManagementResource
+} from './modules/management/api/management-http-handlers';
 import {
   handleItineraryItemsCollection,
   handleItinerariesCollection,
@@ -271,6 +276,25 @@ function handleDashboardRoute(
   return Promise.resolve();
 }
 
+function handleManagementRoute(
+  req: IncomingMessage,
+  res: ServerResponse,
+  pathSegments: string[],
+  locale: string,
+  repositories: RepositoryBundle,
+  authMode: AuthMode
+): Promise<void> | null {
+  if (pathSegments[0] !== 'management') return null;
+
+  const permission = permissionForManagement(req.method);
+  if (!canProceed(req, res, locale, permission, authMode)) return Promise.resolve();
+
+  const context = { req, res, pathSegments, locale };
+  if (pathSegments.length === 1) return handleManagementCollection(context, repositories.management);
+  if (pathSegments.length === 2) return handleManagementResource(context, repositories.management);
+  return Promise.resolve();
+}
+
 function handler(repositories: RepositoryBundle, options: AppOptions) {
   const authMode = options.authMode ?? 'header';
   const refreshTokens = options.refreshTokenService ?? buildRefreshTokenService(tokenServiceOptions());
@@ -310,6 +334,9 @@ function handler(repositories: RepositoryBundle, options: AppOptions) {
 
       const dashboardRoute = handleDashboardRoute(req, res, pathSegments, locale, repositories, authMode);
       if (dashboardRoute) return dashboardRoute;
+
+      const managementRoute = handleManagementRoute(req, res, pathSegments, locale, repositories, authMode);
+      if (managementRoute) return managementRoute;
 
       const itinerariesRoute = handleItinerariesRoute(req, res, pathSegments, locale, repositories, authMode);
       if (itinerariesRoute) return itinerariesRoute;

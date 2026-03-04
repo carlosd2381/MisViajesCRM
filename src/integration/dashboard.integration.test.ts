@@ -11,6 +11,7 @@ import { InMemoryFinancialRepository } from '../modules/financials/infrastructur
 import { InMemoryMessagingRepository } from '../modules/messaging/infrastructure/in-memory-messaging-repository';
 import { InMemoryDashboardRepository } from '../modules/dashboard/infrastructure/in-memory-dashboard-repository';
 import { InMemoryItineraryRepository } from '../modules/itinerary/infrastructure/in-memory-itinerary-repository';
+import { InMemoryManagementRepository } from '../modules/management/infrastructure/in-memory-management-repository';
 
 function testHeaders(role = 'manager'): Record<string, string> {
   return {
@@ -30,6 +31,7 @@ async function startServer(): Promise<{ server: Server; baseUrl: string }> {
     financials: new InMemoryFinancialRepository(),
     messaging: new InMemoryMessagingRepository(),
     dashboard: new InMemoryDashboardRepository(),
+    management: new InMemoryManagementRepository(),
     itineraries: new InMemoryItineraryRepository()
   }, { authMode: 'header' });
 

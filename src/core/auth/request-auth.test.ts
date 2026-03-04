@@ -8,6 +8,7 @@ import {
   permissionForFinancials,
   permissionForItineraries,
   permissionForLeads,
+  permissionForManagement,
   permissionForMessaging,
   permissionForSuppliers
 } from './route-permissions';
@@ -84,4 +85,11 @@ test('permissionForDashboard maps methods correctly', () => {
   assert.equal(permissionForDashboard('POST'), 'write:dashboard');
   assert.equal(permissionForDashboard('PATCH'), 'write:dashboard');
   assert.equal(permissionForDashboard('DELETE'), null);
+});
+
+test('permissionForManagement maps methods correctly', () => {
+  assert.equal(permissionForManagement('GET'), 'read:settings');
+  assert.equal(permissionForManagement('POST'), 'write:settings');
+  assert.equal(permissionForManagement('PATCH'), 'write:settings');
+  assert.equal(permissionForManagement('DELETE'), null);
 });

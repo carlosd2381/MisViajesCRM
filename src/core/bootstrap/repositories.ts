@@ -6,6 +6,7 @@ import type { CommissionRepository } from '../../modules/commissions/domain/comm
 import type { FinancialRepository } from '../../modules/financials/domain/financial-repository';
 import type { MessagingRepository } from '../../modules/messaging/domain/messaging-repository';
 import type { DashboardRepository } from '../../modules/dashboard/domain/dashboard-repository';
+import type { ManagementRepository } from '../../modules/management/domain/management-repository';
 import { InMemoryLeadRepository } from '../../modules/leads/infrastructure/in-memory-lead-repository';
 import { InMemoryClientRepository } from '../../modules/clients/infrastructure/in-memory-client-repository';
 import { InMemoryItineraryRepository } from '../../modules/itinerary/infrastructure/in-memory-itinerary-repository';
@@ -14,6 +15,7 @@ import { InMemoryCommissionRepository } from '../../modules/commissions/infrastr
 import { InMemoryFinancialRepository } from '../../modules/financials/infrastructure/in-memory-financial-repository';
 import { InMemoryMessagingRepository } from '../../modules/messaging/infrastructure/in-memory-messaging-repository';
 import { InMemoryDashboardRepository } from '../../modules/dashboard/infrastructure/in-memory-dashboard-repository';
+import { InMemoryManagementRepository } from '../../modules/management/infrastructure/in-memory-management-repository';
 import { PostgresLeadRepository } from '../../modules/leads/infrastructure/postgres-lead-repository';
 import { PostgresClientRepository } from '../../modules/clients/infrastructure/postgres-client-repository';
 import { PostgresItineraryRepository } from '../../modules/itinerary/infrastructure/postgres-itinerary-repository';
@@ -22,6 +24,7 @@ import { PostgresCommissionRepository } from '../../modules/commissions/infrastr
 import { PostgresFinancialRepository } from '../../modules/financials/infrastructure/postgres-financial-repository';
 import { PostgresMessagingRepository } from '../../modules/messaging/infrastructure/postgres-messaging-repository';
 import { PostgresDashboardRepository } from '../../modules/dashboard/infrastructure/postgres-dashboard-repository';
+import { PostgresManagementRepository } from '../../modules/management/infrastructure/postgres-management-repository';
 
 export interface RepositoryBundle {
   leads: LeadRepository;
@@ -31,6 +34,7 @@ export interface RepositoryBundle {
   financials: FinancialRepository;
   messaging: MessagingRepository;
   dashboard: DashboardRepository;
+  management: ManagementRepository;
   itineraries: ItineraryRepository;
 }
 
@@ -46,6 +50,7 @@ export function buildRepositories(): RepositoryBundle {
       financials: new PostgresFinancialRepository(),
       messaging: new PostgresMessagingRepository(),
       dashboard: new PostgresDashboardRepository(),
+      management: new PostgresManagementRepository(),
       itineraries: new PostgresItineraryRepository()
     };
   }
@@ -58,6 +63,7 @@ export function buildRepositories(): RepositoryBundle {
     financials: new InMemoryFinancialRepository(),
     messaging: new InMemoryMessagingRepository(),
     dashboard: new InMemoryDashboardRepository(),
+    management: new InMemoryManagementRepository(),
     itineraries: new InMemoryItineraryRepository()
   };
 }

@@ -11,6 +11,7 @@ import { InMemoryCommissionRepository } from '../modules/commissions/infrastruct
 import { InMemoryFinancialRepository } from '../modules/financials/infrastructure/in-memory-financial-repository';
 import { InMemoryMessagingRepository } from '../modules/messaging/infrastructure/in-memory-messaging-repository';
 import { InMemoryDashboardRepository } from '../modules/dashboard/infrastructure/in-memory-dashboard-repository';
+import { InMemoryManagementRepository } from '../modules/management/infrastructure/in-memory-management-repository';
 import { signAuthToken } from '../core/auth/token-service';
 
 function testHeaders(role = 'agent'): Record<string, string> {
@@ -31,7 +32,8 @@ async function startServer(): Promise<{ server: Server; baseUrl: string }> {
     financials: new InMemoryFinancialRepository(),
     messaging: new InMemoryMessagingRepository(),
     itineraries: new InMemoryItineraryRepository(),
-    dashboard: new InMemoryDashboardRepository()
+    dashboard: new InMemoryDashboardRepository(),
+    management: new InMemoryManagementRepository()
   }, { authMode: 'header' });
 
   await new Promise<void>((resolve) => {
@@ -51,7 +53,8 @@ async function startTokenServer(): Promise<{ server: Server; baseUrl: string }> 
     financials: new InMemoryFinancialRepository(),
     messaging: new InMemoryMessagingRepository(),
     itineraries: new InMemoryItineraryRepository(),
-    dashboard: new InMemoryDashboardRepository()
+    dashboard: new InMemoryDashboardRepository(),
+    management: new InMemoryManagementRepository()
   }, { authMode: 'token' });
 
   await new Promise<void>((resolve) => {

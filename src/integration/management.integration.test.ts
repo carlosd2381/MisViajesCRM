@@ -5,15 +5,15 @@ import type { Server } from 'node:http';
 import { createApiServer } from '../app';
 import { InMemoryLeadRepository } from '../modules/leads/infrastructure/in-memory-lead-repository';
 import { InMemoryClientRepository } from '../modules/clients/infrastructure/in-memory-client-repository';
-import { InMemoryItineraryRepository } from '../modules/itinerary/infrastructure/in-memory-itinerary-repository';
 import { InMemorySupplierRepository } from '../modules/suppliers/infrastructure/in-memory-supplier-repository';
 import { InMemoryCommissionRepository } from '../modules/commissions/infrastructure/in-memory-commission-repository';
 import { InMemoryFinancialRepository } from '../modules/financials/infrastructure/in-memory-financial-repository';
 import { InMemoryMessagingRepository } from '../modules/messaging/infrastructure/in-memory-messaging-repository';
 import { InMemoryDashboardRepository } from '../modules/dashboard/infrastructure/in-memory-dashboard-repository';
 import { InMemoryManagementRepository } from '../modules/management/infrastructure/in-memory-management-repository';
+import { InMemoryItineraryRepository } from '../modules/itinerary/infrastructure/in-memory-itinerary-repository';
 
-function testHeaders(role = 'agent'): Record<string, string> {
+function testHeaders(role = 'owner'): Record<string, string> {
   return {
     'content-type': 'application/json',
     'x-user-id': 'user_test',
@@ -30,9 +30,9 @@ async function startServer(): Promise<{ server: Server; baseUrl: string }> {
     commissions: new InMemoryCommissionRepository(),
     financials: new InMemoryFinancialRepository(),
     messaging: new InMemoryMessagingRepository(),
-    itineraries: new InMemoryItineraryRepository(),
     dashboard: new InMemoryDashboardRepository(),
-    management: new InMemoryManagementRepository()
+    management: new InMemoryManagementRepository(),
+    itineraries: new InMemoryItineraryRepository()
   }, { authMode: 'header' });
 
   await new Promise<void>((resolve) => {
@@ -52,108 +52,57 @@ async function stopServer(server: Server): Promise<void> {
   });
 }
 
-test('health endpoint responds with 200', async () => {
+test('owner can create and update management setting', async () => {
   const { server, baseUrl } = await startServer();
 
   try {
-    const response = await fetch(`${baseUrl}/health`);
-    const data = (await response.json()) as { status: string };
-
-    assert.equal(response.status, 200);
-    assert.equal(data.status, 'ok');
-  } finally {
-    await stopServer(server);
-  }
-});
-
-test('leads endpoint requires authentication headers', async () => {
-  const { server, baseUrl } = await startServer();
-
-  try {
-    const response = await fetch(`${baseUrl}/leads`);
-    assert.equal(response.status, 401);
-  } finally {
-    await stopServer(server);
-  }
-});
-
-test('lead create and fetch flow works', async () => {
-  const { server, baseUrl } = await startServer();
-
-  try {
-    const createResponse = await fetch(`${baseUrl}/leads`, {
+    const createResponse = await fetch(`${baseUrl}/management`, {
       method: 'POST',
-      headers: testHeaders(),
+      headers: testHeaders('owner'),
       body: JSON.stringify({
-        status: 'new',
-        source: 'whatsapp',
-        priority: 'high',
-        destination: 'Oaxaca',
-        adultsCount: 2,
-        childrenCount: 0
+        key: 'booking_window_days',
+        value: '45',
+        description: 'Ventana de reserva recomendada'
       })
     });
 
     assert.equal(createResponse.status, 201);
     const created = (await createResponse.json()) as { data: { id: string } };
 
-    const getResponse = await fetch(`${baseUrl}/leads/${created.data.id}`, {
-      headers: testHeaders()
+    const patchResponse = await fetch(`${baseUrl}/management/${created.data.id}`, {
+      method: 'PATCH',
+      headers: testHeaders('owner'),
+      body: JSON.stringify({ value: '60' })
     });
 
-    assert.equal(getResponse.status, 200);
+    assert.equal(patchResponse.status, 200);
   } finally {
     await stopServer(server);
   }
 });
 
-test('client create and fetch flow works', async () => {
+test('manager can read settings but cannot write', async () => {
   const { server, baseUrl } = await startServer();
 
   try {
-    const createResponse = await fetch(`${baseUrl}/clients`, {
+    const readResponse = await fetch(`${baseUrl}/management`, {
+      method: 'GET',
+      headers: testHeaders('manager')
+    });
+
+    assert.equal(readResponse.status, 200);
+
+    const writeResponse = await fetch(`${baseUrl}/management`, {
       method: 'POST',
-      headers: testHeaders(),
+      headers: testHeaders('manager'),
       body: JSON.stringify({
-        firstName: 'Ana',
-        paternalLastName: 'Lopez',
-        contacts: [{ type: 'email', value: 'ana@example.com' }]
+        key: 'default_markup_pct',
+        value: '12'
       })
     });
 
-    assert.equal(createResponse.status, 201);
-    const created = (await createResponse.json()) as { data: { id: string } };
-
-    const getResponse = await fetch(`${baseUrl}/clients/${created.data.id}`, {
-      headers: testHeaders()
-    });
-
-    assert.equal(getResponse.status, 200);
+    assert.equal(writeResponse.status, 403);
   } finally {
     await stopServer(server);
   }
 });
-
-test('accountant cannot write leads', async () => {
-  const { server, baseUrl } = await startServer();
-
-  try {
-    const response = await fetch(`${baseUrl}/leads`, {
-      method: 'POST',
-      headers: testHeaders('accountant'),
-      body: JSON.stringify({
-        status: 'new',
-        source: 'whatsapp',
-        priority: 'high',
-        destination: 'Oaxaca',
-        adultsCount: 2,
-        childrenCount: 0
-      })
-    });
-
-    assert.equal(response.status, 403);
-  } finally {
-    await stopServer(server);
-  }
-});
-

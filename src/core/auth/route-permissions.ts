@@ -42,6 +42,12 @@ export function permissionForDashboard(method: string | undefined): PermissionKe
   return null;
 }
 
+export function permissionForManagement(method: string | undefined): PermissionKey | null {
+  if (method === 'GET') return 'read:settings';
+  if (method === 'POST' || method === 'PATCH') return 'write:settings';
+  return null;
+}
+
 export function permissionForItineraries(method: string | undefined): PermissionKey | null {
   if (method === 'GET') return 'read:itineraries';
   if (method === 'POST' || method === 'PATCH') return 'write:itineraries';

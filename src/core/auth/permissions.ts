@@ -55,7 +55,8 @@ export const ROLE_PERMISSIONS: RolePermissions = {
     'read:itineraries',
     'write:itineraries',
     'approve:itineraries',
-    'read:commissions'
+    'read:commissions',
+    'read:settings'
   ],
   agent: [
     'read:leads',

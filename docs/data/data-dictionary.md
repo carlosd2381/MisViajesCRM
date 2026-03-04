@@ -233,7 +233,21 @@ Campos clave:
 
 ---
 
-## 9) authorization_audit
+## 9) management_settings
+
+Descripción: configuración operativa administrable por owner para políticas del CRM.
+
+Campos clave:
+- `id` (uuid, PK)
+- `key` (text, único)
+- `value` (text)
+- `description` (text, nullable)
+- `created_at` (timestamptz)
+- `updated_at` (timestamptz)
+
+---
+
+## 10) authorization_audit
 
 Descripción: seguridad, roles y trazabilidad.
 
@@ -311,3 +325,4 @@ Actualizar este archivo en cada cambio de:
 - 2026-03-04: Se documentó implementación de `financial_transactions` y su migración SQL base.
 - 2026-03-04: Se documentó implementación de `communication_logs` y su migración SQL base.
 - 2026-03-04: Se documentó implementación de `dashboard_snapshots` y su migración SQL base.
+- 2026-03-04: Se documentó implementación de `management_settings` y su migración SQL base.
