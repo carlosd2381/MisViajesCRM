@@ -189,6 +189,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 - 2026-03-03: Se documentó lectura rápida de `AUTH_SMOKE_SUMMARY` y `AI_SCHEMA_SMOKE_SUMMARY` en `docs/README.md` para diagnóstico operativo en CI.
 - 2026-03-03: Se agregaron ejemplos manuales para `force_ai_schema_smoke` y selectores `ai_schema_smoke_auth_modes`/`ai_schema_smoke_locales` en docs y checklist de PR.
 - 2026-03-03: Se agregó tabla de quick triage en `docs/operations/auth-incident-runbook.md` para mapear señales de summaries (`AUTH_SMOKE_SUMMARY`/`AI_SCHEMA_SMOKE_SUMMARY`) a acciones operativas.
+- 2026-03-03: Se endurecieron jobs CI de smoke para fallar si no aparece `*_SMOKE_SUMMARY` y publicar dicha línea en `GITHUB_STEP_SUMMARY`.
 - 2026-03-03: Se documentaron ejemplos de ejecución manual de `auth-smoke` para escenarios de incidente.
 - 2026-03-03: Se agregó plantilla de PR con checklist de validación y recordatorio de `auth-smoke` manual.
 - 2026-03-03: Se agregó plantilla `.github/CODEOWNERS.example` para ownership de rutas críticas (auth/ops/CI).

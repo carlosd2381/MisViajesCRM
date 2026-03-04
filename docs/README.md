@@ -71,6 +71,8 @@ CI:
 - El job `auth-smoke` imprime un resumen de modo/flags para facilitar diagnóstico en logs de CI.
 - El workflow usa `concurrency` (cancelación de runs previos por rama) y `timeout` por job para evitar ejecuciones colgadas/duplicadas.
 - El job `auth-smoke` se ejecuta solo si hay cambios en rutas relevantes de auth/backend/ops/CI.
+- Los jobs de smoke validan que exista `AUTH_SMOKE_SUMMARY` / `AI_SCHEMA_SMOKE_SUMMARY` en salida; si falta, el job falla.
+- Los summaries detectados se publican también en `GITHUB_STEP_SUMMARY` para lectura rápida del run.
 - También se puede ejecutar manualmente por `workflow_dispatch` usando `force_auth_smoke=true`.
 - En ejecución manual, `auth_smoke_modes` permite correr `header`, `token` o `both`.
 - En ejecución manual, `auth_smoke_locales` permite correr `es-MX`, `en-US` o `both`.

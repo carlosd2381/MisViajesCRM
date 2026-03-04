@@ -147,7 +147,7 @@ jobs:
           AUTH_SMOKE_BASE_URL: http://127.0.0.1:3000
           AUTH_SMOKE_VERIFY_TOKEN_MODE: ${{ matrix.auth-mode == 'token' }}
           AUTH_SMOKE_LOCALE: ${{ matrix.locale }}
-        run: npm run auth:smoke
+        run: npm run auth:smoke | tee auth-smoke-output.log
 
       - name: Auth smoke summary
         if: always()
@@ -157,11 +157,24 @@ jobs:
           AUTH_SMOKE_VERIFY_TOKEN_MODE: ${{ matrix.auth-mode == 'token' }}
           AUTH_SMOKE_BASE_URL: http://127.0.0.1:3000
         run: |
+          SUMMARY_LINE=$(grep 'AUTH_SMOKE_SUMMARY ' auth-smoke-output.log | tail -n 1 || true)
+          if [ -z "$SUMMARY_LINE" ]; then
+            echo "AUTH_SMOKE_SUMMARY line not found in output"
+            exit 1
+          fi
+
           echo "Auth smoke run summary"
           echo "- AUTH_MODE=${AUTH_MODE_VALUE}"
           echo "- AUTH_SMOKE_LOCALE=${AUTH_SMOKE_LOCALE}"
           echo "- AUTH_SMOKE_BASE_URL=${AUTH_SMOKE_BASE_URL}"
           echo "- AUTH_SMOKE_VERIFY_TOKEN_MODE=${AUTH_SMOKE_VERIFY_TOKEN_MODE}"
+          echo "- ${SUMMARY_LINE}"
+
+          {
+            echo "### Auth smoke (${AUTH_MODE_VALUE}, ${AUTH_SMOKE_LOCALE})"
+            echo ""
+            echo "- ${SUMMARY_LINE}"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Stop API
         if: always()
@@ -175,7 +188,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: auth-smoke-server-log-${{ matrix.auth-mode }}-${{ matrix.locale }}
-          path: auth-smoke-server.log
+          path: |
+            auth-smoke-server.log
+            auth-smoke-output.log
 
   ai-schema-smoke:
     needs: changes
@@ -236,7 +251,7 @@ jobs:
           AI_SCHEMA_SMOKE_LOCALE: ${{ matrix.locale }}
           AI_SCHEMA_SMOKE_AUTH_MODE: ${{ matrix.auth-mode }}
           AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION: ai-proposal.v1
-        run: npm run ai:schema:smoke
+        run: npm run ai:schema:smoke | tee ai-schema-smoke-output.log
 
       - name: AI schema smoke summary
         if: always()
@@ -246,11 +261,24 @@ jobs:
           AI_SCHEMA_SMOKE_BASE_URL: http://127.0.0.1:3000
           AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION: ai-proposal.v1
         run: |
+          SUMMARY_LINE=$(grep 'AI_SCHEMA_SMOKE_SUMMARY ' ai-schema-smoke-output.log | tail -n 1 || true)
+          if [ -z "$SUMMARY_LINE" ]; then
+            echo "AI_SCHEMA_SMOKE_SUMMARY line not found in output"
+            exit 1
+          fi
+
           echo "AI schema smoke run summary"
           echo "- AI_SCHEMA_SMOKE_AUTH_MODE=${AI_SCHEMA_SMOKE_AUTH_MODE}"
           echo "- AI_SCHEMA_SMOKE_BASE_URL=${AI_SCHEMA_SMOKE_BASE_URL}"
           echo "- AI_SCHEMA_SMOKE_LOCALE=${AI_SCHEMA_SMOKE_LOCALE}"
           echo "- AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION=${AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION}"
+          echo "- ${SUMMARY_LINE}"
+
+          {
+            echo "### AI schema smoke (${AI_SCHEMA_SMOKE_AUTH_MODE}, ${AI_SCHEMA_SMOKE_LOCALE})"
+            echo ""
+            echo "- ${SUMMARY_LINE}"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Stop API
         if: always()
@@ -264,4 +292,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ai-schema-smoke-server-log-${{ matrix.auth-mode }}-${{ matrix.locale }}
-          path: ai-schema-smoke-server.log
+          path: |
+            ai-schema-smoke-server.log
+            ai-schema-smoke-output.log
