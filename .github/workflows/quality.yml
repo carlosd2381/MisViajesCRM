@@ -128,7 +128,7 @@ jobs:
           if [ -z "$PASS_COUNT" ]; then PASS_COUNT=0; fi
           if [ -z "$FAIL_COUNT" ]; then FAIL_COUNT=0; fi
 
-          SUMMARY_LINE="QUALITY_HELPER_TESTS_SUMMARY {\"pass\":${PASS_COUNT},\"fail\":${FAIL_COUNT}}"
+          SUMMARY_LINE=$(PASS_COUNT="$PASS_COUNT" FAIL_COUNT="$FAIL_COUNT" node --input-type=module -e "import { QUALITY_HELPER_TESTS_SUMMARY_PREFIX, formatQualitySummaryLine } from './tools/quality/quality-summary-helpers.mjs'; console.log(formatQualitySummaryLine(QUALITY_HELPER_TESTS_SUMMARY_PREFIX, { pass: Number(process.env.PASS_COUNT), fail: Number(process.env.FAIL_COUNT) }));")
           echo "$SUMMARY_LINE"
 
           {

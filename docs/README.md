@@ -97,6 +97,7 @@ CI:
 - Los jobs de smoke validan que exista `AUTH_SMOKE_SUMMARY` / `AI_SCHEMA_SMOKE_SUMMARY` / `AI_RENDER_SMOKE_SUMMARY` en salida; si falta, el job falla.
 - Los summaries detectados se publican también en `GITHUB_STEP_SUMMARY` para lectura rápida del run.
 - El job `quality` publica `QUALITY_HELPER_TESTS_SUMMARY {pass,fail}` en logs y `GITHUB_STEP_SUMMARY` para triage rápido de regresiones en checks auxiliares.
+- El contrato de `QUALITY_HELPER_TESTS_SUMMARY` se centraliza en `tools/quality/quality-summary-helpers.mjs` con cobertura de pruebas dedicada.
 - También se puede ejecutar manualmente por `workflow_dispatch` usando `force_auth_smoke=true`.
 - En ejecución manual, `auth_smoke_modes` permite correr `header`, `token` o `both`.
 - En ejecución manual, `auth_smoke_locales` permite correr `es-MX`, `en-US` o `both`.
