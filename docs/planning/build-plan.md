@@ -156,6 +156,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 ## Registro de cambios
 
+- 2026-03-04: Se agregó endpoint de metadata de render AI `GET /ai/proposal/render/schema` (i18n `es-MX|en-US`) con contrato explícito `ai-proposal-render.v1` y cobertura unitaria/integración.
 - 2026-03-04: Se localizó render de Proposal Experience (web+pdf) para `es-MX|en-US` en labels estructurales (`schema/generated/profile/checks/warnings`) y se agregó cobertura unitaria de contrato para `proposal-render-service`.
 - 2026-03-04: Se extrajo acción compuesta local `.github/actions/setup-node-ci` para unificar `setup-node` + `npm ci` en jobs de `quality.yml`.
 - 2026-03-04: Se unificó `API_BASE_URL` por job smoke en `quality.yml` para eliminar literales repetidos de `http://127.0.0.1:3000` y reducir drift de configuración.
