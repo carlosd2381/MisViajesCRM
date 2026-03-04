@@ -4,6 +4,7 @@ import { resolveLocale } from '../../../core/i18n/resolve-locale';
 import type { SupportedLocale } from '../../../core/i18n/supported-locales';
 import { generateMockProposal } from '../application/proposal-mock-service';
 import { renderProposalHtml, renderProposalPdfDraft } from '../application/proposal-render-service';
+import { buildAiProposalRenderSchemaMetadata } from '../domain/proposal-render-schema-metadata';
 import { buildAiProposalSchemaMetadata } from '../domain/proposal-schema-metadata';
 import { validateCreateAiProposal } from './proposal-validation';
 
@@ -29,6 +30,18 @@ export async function handleAiProposalCollection(context: RequestContext): Promi
   if (!data) return;
 
   sendJson(context.res, 200, { data, message: messageByLocale(context.locale, 'Propuesta AI generada (mock)') });
+}
+
+export async function handleAiProposalRenderSchema(context: RequestContext): Promise<void> {
+  if (context.req.method !== 'GET') {
+    sendJson(context.res, 405, { message: messageByLocale(context.locale, 'Método no permitido') });
+    return;
+  }
+
+  const requestedLocale = new URL(context.req.url ?? '/', 'http://localhost').searchParams.get('locale');
+  const schemaLocale = resolveLocale(requestedLocale ?? context.locale);
+  const data = buildAiProposalRenderSchemaMetadata(schemaLocale);
+  sendJson(context.res, 200, { data, message: messageByLocale(context.locale, 'Esquema de render AI disponible') });
 }
 
 export async function handleAiProposalWebRender(context: RequestContext): Promise<void> {
@@ -92,6 +105,7 @@ function englishMessage(spanish: string): string {
   const map: Record<string, string> = {
     'Método no permitido': 'Method not allowed',
     'Esquema AI disponible': 'AI schema available',
+    'Esquema de render AI disponible': 'AI render schema available',
     'Solicitud inválida': 'Invalid request',
     'Propuesta bloqueada por quality gate': 'Proposal blocked by quality gate',
     'Propuesta AI generada (mock)': 'AI proposal generated (mock)'

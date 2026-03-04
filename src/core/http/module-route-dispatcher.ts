@@ -43,6 +43,7 @@ import {
 import {
   handleAiProposalCollection,
   handleAiProposalPdfDraft,
+  handleAiProposalRenderSchema,
   handleAiProposalSchema,
   handleAiProposalWebRender
 } from '../../modules/ai/api/proposal-http-handlers';
@@ -240,6 +241,7 @@ function handleAiRoute(context: ModuleRouteContext): Promise<void> | null {
   if (pathSegments.length === 4 && pathSegments[1] === 'proposal' && pathSegments[2] === 'render') {
     if (pathSegments[3] === 'web') return handleAiProposalWebRender(requestContext);
     if (pathSegments[3] === 'pdf') return handleAiProposalPdfDraft(requestContext);
+    if (pathSegments[3] === 'schema') return handleAiProposalRenderSchema(requestContext);
   }
   if (pathSegments.length === 3 && pathSegments[1] === 'schema' && pathSegments[2] === 'proposal') {
     return handleAiProposalSchema(requestContext);
