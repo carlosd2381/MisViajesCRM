@@ -135,6 +135,8 @@ Tanto `auth:smoke` como `ai:schema:smoke` imprimen una línea JSON para diagnós
 
 Si falta la línea summary o cambia su estructura, tratar el run como sospechoso y revisar artifacts/logs del job.
 
+`npm run smoke:matrix` también imprime `SMOKE_MATRIX_SUMMARY {...}` con el consolidado de todas las corridas de smoke ejecutadas.
+
 ## Persistencia (modo de almacenamiento)
 
 - `STORAGE_MODE=memory` (default) usa repositorios en memoria.

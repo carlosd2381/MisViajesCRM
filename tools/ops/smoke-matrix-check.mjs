@@ -21,20 +21,52 @@ async function waitForApiReady(baseUrl, attempts = 30) {
   throw new Error(`API did not become ready in time at ${baseUrl}`);
 }
 
-function runNpmScript(script, envOverrides = {}) {
+function parseSummaryLine(line, expectedPrefix) {
+  if (!line.startsWith(expectedPrefix)) return null;
+
+  const payload = line.slice(expectedPrefix.length).trim();
+  try {
+    return JSON.parse(payload);
+  } catch {
+    throw new Error(`Invalid JSON payload for ${expectedPrefix}`);
+  }
+}
+
+function runNpmScript(script, expectedPrefix, envOverrides = {}) {
   return new Promise((resolve, reject) => {
+    let summary = null;
+
     const child = spawn('npm', ['run', script], {
       env: {
         ...process.env,
         ...envOverrides
       },
-      stdio: 'inherit'
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+
+    child.stdout.on('data', (chunk) => {
+      const text = chunk.toString();
+      process.stdout.write(text);
+
+      for (const line of text.split('\n')) {
+        const parsed = parseSummaryLine(line.trim(), expectedPrefix);
+        if (parsed) summary = parsed;
+      }
+    });
+
+    child.stderr.on('data', (chunk) => {
+      process.stderr.write(chunk.toString());
     });
 
     child.on('error', reject);
     child.on('exit', (code) => {
       if (code === 0) {
-        resolve();
+        if (!summary) {
+          reject(new Error(`npm run ${script} did not produce expected ${expectedPrefix} line`));
+          return;
+        }
+
+        resolve(summary);
         return;
       }
 
@@ -70,10 +102,25 @@ async function runHeaderMatrix() {
 
   try {
     await waitForApiReady(BASE_URL);
-    await runNpmScript('auth:smoke');
-    await runNpmScript('auth:smoke:en');
-    await runNpmScript('ai:schema:smoke');
-    await runNpmScript('ai:schema:smoke:en');
+
+    return [
+      {
+        script: 'auth:smoke',
+        summary: await runNpmScript('auth:smoke', 'AUTH_SMOKE_SUMMARY ')
+      },
+      {
+        script: 'auth:smoke:en',
+        summary: await runNpmScript('auth:smoke:en', 'AUTH_SMOKE_SUMMARY ')
+      },
+      {
+        script: 'ai:schema:smoke',
+        summary: await runNpmScript('ai:schema:smoke', 'AI_SCHEMA_SMOKE_SUMMARY ')
+      },
+      {
+        script: 'ai:schema:smoke:en',
+        summary: await runNpmScript('ai:schema:smoke:en', 'AI_SCHEMA_SMOKE_SUMMARY ')
+      }
+    ];
   } finally {
     await stopApi(api);
   }
@@ -85,10 +132,25 @@ async function runTokenMatrix() {
 
   try {
     await waitForApiReady(BASE_URL);
-    await runNpmScript('auth:smoke:token');
-    await runNpmScript('auth:smoke:token:en');
-    await runNpmScript('ai:schema:smoke:token');
-    await runNpmScript('ai:schema:smoke:token:en');
+
+    return [
+      {
+        script: 'auth:smoke:token',
+        summary: await runNpmScript('auth:smoke:token', 'AUTH_SMOKE_SUMMARY ')
+      },
+      {
+        script: 'auth:smoke:token:en',
+        summary: await runNpmScript('auth:smoke:token:en', 'AUTH_SMOKE_SUMMARY ')
+      },
+      {
+        script: 'ai:schema:smoke:token',
+        summary: await runNpmScript('ai:schema:smoke:token', 'AI_SCHEMA_SMOKE_SUMMARY ')
+      },
+      {
+        script: 'ai:schema:smoke:token:en',
+        summary: await runNpmScript('ai:schema:smoke:token:en', 'AI_SCHEMA_SMOKE_SUMMARY ')
+      }
+    ];
   } finally {
     await stopApi(api);
   }
@@ -96,8 +158,16 @@ async function runTokenMatrix() {
 
 async function run() {
   console.log(`Running smoke matrix against ${BASE_URL}`);
-  await runHeaderMatrix();
-  await runTokenMatrix();
+
+  const headerRuns = await runHeaderMatrix();
+  const tokenRuns = await runTokenMatrix();
+  const summary = {
+    baseUrl: BASE_URL,
+    totalRuns: headerRuns.length + tokenRuns.length,
+    runs: [...headerRuns, ...tokenRuns]
+  };
+
+  console.log(`SMOKE_MATRIX_SUMMARY ${JSON.stringify(summary)}`);
   console.log('\n✅ Smoke matrix check passed.');
 }
 
