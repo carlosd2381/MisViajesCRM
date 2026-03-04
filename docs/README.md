@@ -151,6 +151,7 @@ Si falta la línea summary o cambia su estructura, tratar el run como sospechoso
 `npm run smoke:matrix` también imprime `SMOKE_MATRIX_SUMMARY {...}` con el consolidado de todas las corridas de smoke ejecutadas.
 Si se define `SMOKE_MATRIX_SUMMARY_FILE`, también escribe ese consolidado en archivo JSON.
 También soporta selección parcial por variables: `SMOKE_MATRIX_AUTH_MODES=header|token` y `SMOKE_MATRIX_LOCALES=es-MX|en-US` (listas separadas por coma).
+Cada comando invocado por la matriz respeta `SMOKE_MATRIX_COMMAND_TIMEOUT_MS` (default `180000`) para evitar bloqueos indefinidos.
 
 ## Persistencia (modo de almacenamiento)
 

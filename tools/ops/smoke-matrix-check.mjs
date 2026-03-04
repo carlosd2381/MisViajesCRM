@@ -6,6 +6,7 @@ const BASE_URL = process.env.SMOKE_MATRIX_BASE_URL ?? 'http://127.0.0.1:3000';
 const SUMMARY_FILE = process.env.SMOKE_MATRIX_SUMMARY_FILE;
 const AUTH_MODES_INPUT = process.env.SMOKE_MATRIX_AUTH_MODES ?? 'header,token';
 const LOCALES_INPUT = process.env.SMOKE_MATRIX_LOCALES ?? 'es-MX,en-US';
+const COMMAND_TIMEOUT_MS = Number(process.env.SMOKE_MATRIX_COMMAND_TIMEOUT_MS ?? '180000');
 
 const SUPPORTED_AUTH_MODES = ['header', 'token'];
 const SUPPORTED_LOCALES = ['es-MX', 'en-US'];
@@ -68,6 +69,7 @@ function parseSummaryLine(line, expectedPrefix) {
 function runNpmScript(script, expectedPrefix, envOverrides = {}) {
   return new Promise((resolve, reject) => {
     let summary = null;
+    let settled = false;
 
     const child = spawn('npm', ['run', script], {
       env: {
@@ -76,6 +78,14 @@ function runNpmScript(script, expectedPrefix, envOverrides = {}) {
       },
       stdio: ['ignore', 'pipe', 'pipe']
     });
+
+    const timeoutHandle = setTimeout(() => {
+      if (settled) return;
+
+      child.kill('SIGTERM');
+      settled = true;
+      reject(new Error(`npm run ${script} timed out after ${COMMAND_TIMEOUT_MS}ms`));
+    }, COMMAND_TIMEOUT_MS);
 
     child.stdout.on('data', (chunk) => {
       const text = chunk.toString();
@@ -93,16 +103,22 @@ function runNpmScript(script, expectedPrefix, envOverrides = {}) {
 
     child.on('error', reject);
     child.on('exit', (code) => {
+      if (settled) return;
+      clearTimeout(timeoutHandle);
+
       if (code === 0) {
         if (!summary) {
+          settled = true;
           reject(new Error(`npm run ${script} did not produce expected ${expectedPrefix} line`));
           return;
         }
 
+        settled = true;
         resolve(summary);
         return;
       }
 
+      settled = true;
       reject(new Error(`npm run ${script} failed with exit code ${code ?? 'unknown'}`));
     });
   });
