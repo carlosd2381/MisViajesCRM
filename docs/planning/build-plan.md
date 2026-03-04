@@ -156,6 +156,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 ## Registro de cambios
 
+- 2026-03-04: Se extrajo helper de summary para jobs smoke en CI (`tools/ops/ci-smoke-summary.sh`) y se aplicó a `auth-smoke`, `ai-schema-smoke`, `ai-render-smoke` y `smoke-matrix`.
 - 2026-03-04: Se extrajo helper de evaluación de scope por matriz en CI (`tools/ops/ci-matrix-scope.sh`) y se aplicó a jobs smoke manuales.
 - 2026-03-04: Se extrajo helper de publicación de `GITHUB_STEP_SUMMARY` (`tools/ops/ci-step-summary.sh`) y se aplicó a jobs de quality/smoke.
 - 2026-03-04: Se extrajo helper de ciclo de vida API en CI (`tools/ops/ci-api-lifecycle.sh`) y se aplicó a jobs smoke para `start/wait/stop` homogéneos.

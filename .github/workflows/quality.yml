@@ -195,18 +195,7 @@ jobs:
           AUTH_SMOKE_LOCALE: ${{ matrix.locale }}
           AUTH_SMOKE_VERIFY_TOKEN_MODE: ${{ matrix.auth-mode == 'token' }}
           AUTH_SMOKE_BASE_URL: http://127.0.0.1:3000
-        run: |
-          SUMMARY_LINE=$(node tools/ops/smoke-summary-cli.mjs extract AUTH_SMOKE_SUMMARY auth-smoke-output.log)
-          PARSED_SUMMARY=$(node tools/ops/smoke-summary-cli.mjs parse AUTH_SMOKE_SUMMARY "$SUMMARY_LINE")
-
-          echo "Auth smoke run summary"
-          echo "- AUTH_MODE=${AUTH_MODE_VALUE}"
-          echo "- AUTH_SMOKE_LOCALE=${AUTH_SMOKE_LOCALE}"
-          echo "- AUTH_SMOKE_BASE_URL=${AUTH_SMOKE_BASE_URL}"
-          echo "- AUTH_SMOKE_VERIFY_TOKEN_MODE=${AUTH_SMOKE_VERIFY_TOKEN_MODE}"
-          echo "- ${SUMMARY_LINE}"
-
-          bash tools/ops/ci-step-summary.sh "Auth smoke (${AUTH_MODE_VALUE}, ${AUTH_SMOKE_LOCALE})" "$SUMMARY_LINE" "$PARSED_SUMMARY"
+        run: bash tools/ops/ci-smoke-summary.sh "Auth smoke (${AUTH_MODE_VALUE}, ${AUTH_SMOKE_LOCALE})" AUTH_SMOKE_SUMMARY auth-smoke-output.log "AUTH_MODE=${AUTH_MODE_VALUE}" "AUTH_SMOKE_LOCALE=${AUTH_SMOKE_LOCALE}" "AUTH_SMOKE_BASE_URL=${AUTH_SMOKE_BASE_URL}" "AUTH_SMOKE_VERIFY_TOKEN_MODE=${AUTH_SMOKE_VERIFY_TOKEN_MODE}"
 
       - name: Stop API
         if: always() && steps.scope.outputs.run_combo == 'true'
@@ -279,18 +268,7 @@ jobs:
           AI_SCHEMA_SMOKE_LOCALE: ${{ matrix.locale }}
           AI_SCHEMA_SMOKE_BASE_URL: http://127.0.0.1:3000
           AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION: ai-proposal.v1
-        run: |
-          SUMMARY_LINE=$(node tools/ops/smoke-summary-cli.mjs extract AI_SCHEMA_SMOKE_SUMMARY ai-schema-smoke-output.log)
-          PARSED_SUMMARY=$(node tools/ops/smoke-summary-cli.mjs parse AI_SCHEMA_SMOKE_SUMMARY "$SUMMARY_LINE")
-
-          echo "AI schema smoke run summary"
-          echo "- AI_SCHEMA_SMOKE_AUTH_MODE=${AI_SCHEMA_SMOKE_AUTH_MODE}"
-          echo "- AI_SCHEMA_SMOKE_BASE_URL=${AI_SCHEMA_SMOKE_BASE_URL}"
-          echo "- AI_SCHEMA_SMOKE_LOCALE=${AI_SCHEMA_SMOKE_LOCALE}"
-          echo "- AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION=${AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION}"
-          echo "- ${SUMMARY_LINE}"
-
-          bash tools/ops/ci-step-summary.sh "AI schema smoke (${AI_SCHEMA_SMOKE_AUTH_MODE}, ${AI_SCHEMA_SMOKE_LOCALE})" "$SUMMARY_LINE" "$PARSED_SUMMARY"
+        run: bash tools/ops/ci-smoke-summary.sh "AI schema smoke (${AI_SCHEMA_SMOKE_AUTH_MODE}, ${AI_SCHEMA_SMOKE_LOCALE})" AI_SCHEMA_SMOKE_SUMMARY ai-schema-smoke-output.log "AI_SCHEMA_SMOKE_AUTH_MODE=${AI_SCHEMA_SMOKE_AUTH_MODE}" "AI_SCHEMA_SMOKE_BASE_URL=${AI_SCHEMA_SMOKE_BASE_URL}" "AI_SCHEMA_SMOKE_LOCALE=${AI_SCHEMA_SMOKE_LOCALE}" "AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION=${AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION}"
 
       - name: Stop API
         if: always() && steps.scope.outputs.run_combo == 'true'
@@ -361,17 +339,7 @@ jobs:
           AI_RENDER_SMOKE_AUTH_MODE: ${{ matrix.auth-mode }}
           AI_RENDER_SMOKE_LOCALE: ${{ matrix.locale }}
           AI_RENDER_SMOKE_BASE_URL: http://127.0.0.1:3000
-        run: |
-          SUMMARY_LINE=$(node tools/ops/smoke-summary-cli.mjs extract AI_RENDER_SMOKE_SUMMARY ai-render-smoke-output.log)
-          PARSED_SUMMARY=$(node tools/ops/smoke-summary-cli.mjs parse AI_RENDER_SMOKE_SUMMARY "$SUMMARY_LINE")
-
-          echo "AI render smoke run summary"
-          echo "- AI_RENDER_SMOKE_AUTH_MODE=${AI_RENDER_SMOKE_AUTH_MODE}"
-          echo "- AI_RENDER_SMOKE_BASE_URL=${AI_RENDER_SMOKE_BASE_URL}"
-          echo "- AI_RENDER_SMOKE_LOCALE=${AI_RENDER_SMOKE_LOCALE}"
-          echo "- ${SUMMARY_LINE}"
-
-          bash tools/ops/ci-step-summary.sh "AI render smoke (${AI_RENDER_SMOKE_AUTH_MODE}, ${AI_RENDER_SMOKE_LOCALE})" "$SUMMARY_LINE" "$PARSED_SUMMARY"
+        run: bash tools/ops/ci-smoke-summary.sh "AI render smoke (${AI_RENDER_SMOKE_AUTH_MODE}, ${AI_RENDER_SMOKE_LOCALE})" AI_RENDER_SMOKE_SUMMARY ai-render-smoke-output.log "AI_RENDER_SMOKE_AUTH_MODE=${AI_RENDER_SMOKE_AUTH_MODE}" "AI_RENDER_SMOKE_BASE_URL=${AI_RENDER_SMOKE_BASE_URL}" "AI_RENDER_SMOKE_LOCALE=${AI_RENDER_SMOKE_LOCALE}"
 
       - name: Stop API
         if: always() && steps.scope.outputs.run_combo == 'true'
@@ -411,14 +379,7 @@ jobs:
 
       - name: Smoke matrix summary
         if: always()
-        run: |
-          SUMMARY_LINE=$(node tools/ops/smoke-summary-cli.mjs extract SMOKE_MATRIX_SUMMARY smoke-matrix-output.log)
-          PARSED_SUMMARY=$(node tools/ops/smoke-summary-cli.mjs parse SMOKE_MATRIX_SUMMARY "$SUMMARY_LINE")
-
-          echo "Smoke matrix run summary"
-          echo "- ${SUMMARY_LINE}"
-
-          bash tools/ops/ci-step-summary.sh "Smoke matrix" "$SUMMARY_LINE" "$PARSED_SUMMARY"
+        run: bash tools/ops/ci-smoke-summary.sh "Smoke matrix" SMOKE_MATRIX_SUMMARY smoke-matrix-output.log
 
       - name: Upload smoke matrix summary artifact
         if: always()

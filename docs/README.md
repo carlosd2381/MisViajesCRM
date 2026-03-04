@@ -100,6 +100,7 @@ CI:
 - Los jobs `auth-smoke`/`ai-schema-smoke`/`ai-render-smoke` usan `tools/ops/ci-api-lifecycle.sh` para manejo homogéneo de `start/wait/stop` de la API local en CI.
 - Los bloques de publicación en `GITHUB_STEP_SUMMARY` usan `tools/ops/ci-step-summary.sh` para formato homogéneo y menor duplicación en workflow YAML.
 - Los filtros por combinación matriz/selector manual en jobs smoke se unifican con `tools/ops/ci-matrix-scope.sh` para evitar drift entre jobs.
+- La extracción/parse/publicación de `*_SMOKE_SUMMARY` en CI se unifica con `tools/ops/ci-smoke-summary.sh` para reducir duplicación de bloques shell en workflow.
 - El job `quality` publica `QUALITY_HELPER_TESTS_SUMMARY {pass,fail}` en logs y `GITHUB_STEP_SUMMARY` para triage rápido de regresiones en checks auxiliares.
 - El contrato de `QUALITY_HELPER_TESTS_SUMMARY` se centraliza en `tools/quality/quality-summary-helpers.mjs` con cobertura de pruebas dedicada.
 - El workflow usa `tools/quality/quality-helper-summary-cli.mjs` para aplicar el contrato de summary en formato/parse sin snippets inline ad-hoc.
