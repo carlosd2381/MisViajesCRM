@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { validateWorkflowYaml } from './check-workflow-yaml.mjs';
@@ -49,4 +49,14 @@ test('validateWorkflowYaml reports missing workflows directory', () => {
   const errors = validateWorkflowYaml(root);
 
   assert.deepEqual(errors, ['❌ Workflows directory is missing: .github/workflows']);
+});
+
+test('quality workflow keeps smoke contract preflight and summary steps', () => {
+  const qualityWorkflowPath = join(process.cwd(), '.github', 'workflows', 'quality.yml');
+  const source = readFileSync(qualityWorkflowPath, 'utf8');
+
+  assert.match(source, /- name:\s+Run smoke contract preflight/);
+  assert.match(source, /npm run smoke:matrix:contract\s*\|\s*tee\s+smoke-matrix-contract-output\.log/);
+  assert.match(source, /- name:\s+Smoke contract preflight summary/);
+  assert.match(source, /ci-smoke-summary\.sh\s+"Smoke matrix contract preflight"\s+SMOKE_MATRIX_SUMMARY\s+smoke-matrix-contract-output\.log/);
 });
