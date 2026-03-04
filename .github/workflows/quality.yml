@@ -36,6 +36,14 @@ on:
         description: 'Run consolidated smoke matrix job (auth+ai, all modes/locales)'
         required: false
         default: 'false'
+      smoke_matrix_auth_modes:
+        description: 'Smoke matrix auth modes for manual run'
+        required: false
+        default: 'header,token'
+      smoke_matrix_locales:
+        description: 'Smoke matrix locales for manual run'
+        required: false
+        default: 'es-MX,en-US'
 
 concurrency:
   group: quality-${{ github.workflow }}-${{ github.ref }}
@@ -318,6 +326,9 @@ jobs:
         run: npm install
 
       - name: Run smoke matrix with JSON export
+        env:
+          SMOKE_MATRIX_AUTH_MODES: ${{ github.event.inputs.smoke_matrix_auth_modes }}
+          SMOKE_MATRIX_LOCALES: ${{ github.event.inputs.smoke_matrix_locales }}
         run: npm run smoke:matrix:json | tee smoke-matrix-output.log
 
       - name: Smoke matrix summary

@@ -198,6 +198,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 - 2026-03-03: `smoke:matrix` ahora soporta selección parcial por `SMOKE_MATRIX_AUTH_MODES` y `SMOKE_MATRIX_LOCALES` (con aliases `smoke:matrix:token` y `smoke:matrix:en`).
 - 2026-03-03: Se agregó job manual `smoke-matrix` en CI (`workflow_dispatch` con `force_smoke_matrix=true`) con artifact `smoke-matrix-summary`.
 - 2026-03-03: Se endureció job `smoke-matrix` para exigir `SMOKE_MATRIX_SUMMARY`, publicarlo en `GITHUB_STEP_SUMMARY` y adjuntar `smoke-matrix-output.log`.
+- 2026-03-03: Se agregaron inputs manuales `smoke_matrix_auth_modes` y `smoke_matrix_locales` para ejecutar `smoke-matrix` parcial desde `workflow_dispatch`.
 - 2026-03-03: Se agregó `tmp/` a `.gitignore` para evitar ruido local por artefactos de `smoke:matrix:json`.
 - 2026-03-03: Se documentaron ejemplos de ejecución manual de `auth-smoke` para escenarios de incidente.
 - 2026-03-03: Se agregó plantilla de PR con checklist de validación y recordatorio de `auth-smoke` manual.
