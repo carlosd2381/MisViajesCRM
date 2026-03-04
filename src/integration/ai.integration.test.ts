@@ -68,9 +68,44 @@ test('agent can generate AI proposal mock', async () => {
     });
 
     assert.equal(response.status, 200);
-    const payload = (await response.json()) as { data: { profile: string; narrative: string } };
+    const payload = (await response.json()) as {
+      data: {
+        profile: string;
+        narrative: string;
+        warnings: Array<{ code: string; severity: string; message: string }>;
+      };
+    };
     assert.equal(payload.data.profile, 'storyteller');
     assert.match(payload.data.narrative, /Oaxaca/);
+    assert.ok(Array.isArray(payload.data.warnings));
+  } finally {
+    await stopServer(server);
+  }
+});
+
+test('ai proposal returns quality warnings for weak summaries', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/ai/proposal`, {
+      method: 'POST',
+      headers: testHeaders('agent'),
+      body: JSON.stringify({
+        promptProfile: 'auditor',
+        itinerarySummary: 'Plan breve con actividades.',
+        destination: 'Oaxaca',
+        days: 8
+      })
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      data: { warnings: Array<{ code: string; severity: string; message: string }> };
+    };
+
+    assert.ok(payload.data.warnings.some((warning) => warning.code === 'SUMMARY_TOO_SHORT'));
+    assert.ok(payload.data.warnings.some((warning) => warning.code === 'DESTINATION_NOT_REFERENCED'));
+    assert.ok(payload.data.warnings.some((warning) => warning.code === 'DAY_BY_DAY_MISSING'));
   } finally {
     await stopServer(server);
   }
