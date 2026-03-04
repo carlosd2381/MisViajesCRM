@@ -97,6 +97,7 @@ CI:
 - Los jobs de smoke validan que exista `AUTH_SMOKE_SUMMARY` / `AI_SCHEMA_SMOKE_SUMMARY` / `AI_RENDER_SMOKE_SUMMARY` en salida; si falta, el job falla.
 - Los summaries detectados se publican también en `GITHUB_STEP_SUMMARY` para lectura rápida del run.
 - Los jobs de smoke usan `tools/ops/smoke-summary-cli.mjs` para extracción/parse del summary y publican también el payload parseado para triage consistente.
+- Los jobs `auth-smoke`/`ai-schema-smoke`/`ai-render-smoke` usan `tools/ops/ci-api-lifecycle.sh` para manejo homogéneo de `start/wait/stop` de la API local en CI.
 - El job `quality` publica `QUALITY_HELPER_TESTS_SUMMARY {pass,fail}` en logs y `GITHUB_STEP_SUMMARY` para triage rápido de regresiones en checks auxiliares.
 - El contrato de `QUALITY_HELPER_TESTS_SUMMARY` se centraliza en `tools/quality/quality-summary-helpers.mjs` con cobertura de pruebas dedicada.
 - El workflow usa `tools/quality/quality-helper-summary-cli.mjs` para aplicar el contrato de summary en formato/parse sin snippets inline ad-hoc.

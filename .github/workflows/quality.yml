@@ -190,21 +190,11 @@ jobs:
         if: steps.scope.outputs.run_combo == 'true'
         env:
           AUTH_MODE: ${{ matrix.auth-mode }}
-        run: |
-          npm run dev:api > auth-smoke-server.log 2>&1 &
-          echo $! > auth-smoke-server.pid
+        run: bash tools/ops/ci-api-lifecycle.sh start "$AUTH_MODE" auth-smoke-server.log auth-smoke-server.pid
 
       - name: Wait for API readiness
         if: steps.scope.outputs.run_combo == 'true'
-        run: |
-          for i in {1..30}; do
-            if curl -fsS http://127.0.0.1:3000/health >/dev/null; then
-              exit 0
-            fi
-            sleep 1
-          done
-          echo "API did not become ready in time"
-          exit 1
+        run: bash tools/ops/ci-api-lifecycle.sh wait http://127.0.0.1:3000 30 1
 
       - name: Run auth smoke check
         if: steps.scope.outputs.run_combo == 'true'
@@ -241,10 +231,7 @@ jobs:
 
       - name: Stop API
         if: always() && steps.scope.outputs.run_combo == 'true'
-        run: |
-          if [ -f auth-smoke-server.pid ]; then
-            kill "$(cat auth-smoke-server.pid)" || true
-          fi
+        run: bash tools/ops/ci-api-lifecycle.sh stop auth-smoke-server.pid
 
       - name: Upload API logs on failure
         if: failure() && steps.scope.outputs.run_combo == 'true'
@@ -302,21 +289,11 @@ jobs:
         if: steps.scope.outputs.run_combo == 'true'
         env:
           AUTH_MODE: ${{ matrix.auth-mode }}
-        run: |
-          npm run dev:api > ai-schema-smoke-server.log 2>&1 &
-          echo $! > ai-schema-smoke-server.pid
+        run: bash tools/ops/ci-api-lifecycle.sh start "$AUTH_MODE" ai-schema-smoke-server.log ai-schema-smoke-server.pid
 
       - name: Wait for API readiness
         if: steps.scope.outputs.run_combo == 'true'
-        run: |
-          for i in {1..30}; do
-            if curl -fsS http://127.0.0.1:3000/health >/dev/null; then
-              exit 0
-            fi
-            sleep 1
-          done
-          echo "API did not become ready in time"
-          exit 1
+        run: bash tools/ops/ci-api-lifecycle.sh wait http://127.0.0.1:3000 30 1
 
       - name: Run AI schema smoke check
         if: steps.scope.outputs.run_combo == 'true'
@@ -354,10 +331,7 @@ jobs:
 
       - name: Stop API
         if: always() && steps.scope.outputs.run_combo == 'true'
-        run: |
-          if [ -f ai-schema-smoke-server.pid ]; then
-            kill "$(cat ai-schema-smoke-server.pid)" || true
-          fi
+        run: bash tools/ops/ci-api-lifecycle.sh stop ai-schema-smoke-server.pid
 
       - name: Upload API logs on failure
         if: failure() && steps.scope.outputs.run_combo == 'true'
@@ -415,21 +389,11 @@ jobs:
         if: steps.scope.outputs.run_combo == 'true'
         env:
           AUTH_MODE: ${{ matrix.auth-mode }}
-        run: |
-          npm run dev:api > ai-render-smoke-server.log 2>&1 &
-          echo $! > ai-render-smoke-server.pid
+        run: bash tools/ops/ci-api-lifecycle.sh start "$AUTH_MODE" ai-render-smoke-server.log ai-render-smoke-server.pid
 
       - name: Wait for API readiness
         if: steps.scope.outputs.run_combo == 'true'
-        run: |
-          for i in {1..30}; do
-            if curl -fsS http://127.0.0.1:3000/health >/dev/null; then
-              exit 0
-            fi
-            sleep 1
-          done
-          echo "API did not become ready in time"
-          exit 1
+        run: bash tools/ops/ci-api-lifecycle.sh wait http://127.0.0.1:3000 30 1
 
       - name: Run AI render smoke check
         if: steps.scope.outputs.run_combo == 'true'
@@ -464,10 +428,7 @@ jobs:
 
       - name: Stop API
         if: always() && steps.scope.outputs.run_combo == 'true'
-        run: |
-          if [ -f ai-render-smoke-server.pid ]; then
-            kill "$(cat ai-render-smoke-server.pid)" || true
-          fi
+        run: bash tools/ops/ci-api-lifecycle.sh stop ai-render-smoke-server.pid
 
       - name: Upload API logs on failure
         if: failure() && steps.scope.outputs.run_combo == 'true'
