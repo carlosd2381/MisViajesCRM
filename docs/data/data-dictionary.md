@@ -288,3 +288,4 @@ Actualizar este archivo en cada cambio de:
 - 2026-03-03: Se agregó entidad `auth_refresh_sessions` para refresh tokens con rotación y revocación.
 - 2026-03-04: Se documentó implementación inicial de `itineraries` y su migración SQL base.
 - 2026-03-04: Se documentó implementación de `itinerary_items` y regla de recálculo automático de totales.
+- 2026-03-04: Se documentó implementación de `financial_transactions` y su migración SQL base.

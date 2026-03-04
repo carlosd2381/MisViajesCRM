@@ -24,6 +24,12 @@ export function permissionForCommissions(method: string | undefined): Permission
   return null;
 }
 
+export function permissionForFinancials(method: string | undefined): PermissionKey | null {
+  if (method === 'GET') return 'read:financials';
+  if (method === 'POST' || method === 'PATCH') return 'write:financials';
+  return null;
+}
+
 export function permissionForItineraries(method: string | undefined): PermissionKey | null {
   if (method === 'GET') return 'read:itineraries';
   if (method === 'POST' || method === 'PATCH') return 'write:itineraries';

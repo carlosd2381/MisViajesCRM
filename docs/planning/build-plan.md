@@ -121,6 +121,7 @@ Construir un CRM de agencia de viajes AI-native con interfaz primaria en `es-MX`
 - Subrecurso de items agregado para itinerarios (`GET/POST /itineraries/:id/items`) con recálculo automático de totales.
 - Módulo `suppliers` v1 implementado (dominio/API/validación/repositorios/rutas RBAC) con migración SQL base y cobertura inicial de integración.
 - Módulo `commissions` v1 implementado (dominio/API/validación/repositorios/rutas RBAC) con migración SQL base y cobertura inicial de integración.
+- Módulo `financials` v1 implementado (dominio/API/validación/repositorios/rutas RBAC) con migración SQL base y cobertura inicial de integración.
 
 ## Mantenimiento del documento
 
@@ -177,3 +178,4 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 - 2026-03-04: Se agregó `itinerary_items` (API+repos+migración) con recálculo automático de `gross/net/markup/profit` en itinerario.
 - 2026-03-04: Se agregó módulo `suppliers` v1 (API+validación+repos+RBAC+migración) con cobertura inicial de pruebas de integración.
 - 2026-03-04: Se agregó módulo `commissions` v1 (API+validación+repos+RBAC+migración) con cobertura inicial de pruebas de integración.
+- 2026-03-04: Se agregó módulo `financials` v1 (API+validación+repos+RBAC+migración) con cobertura inicial de pruebas de integración.

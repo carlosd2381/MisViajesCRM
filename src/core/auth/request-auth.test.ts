@@ -4,6 +4,7 @@ import { getUserContextFromHeaders } from './request-auth';
 import {
   permissionForCommissions,
   permissionForClients,
+  permissionForFinancials,
   permissionForItineraries,
   permissionForLeads,
   permissionForSuppliers
@@ -60,4 +61,11 @@ test('permissionForCommissions maps methods correctly', () => {
   assert.equal(permissionForCommissions('POST'), 'reconcile:commissions');
   assert.equal(permissionForCommissions('PATCH'), 'reconcile:commissions');
   assert.equal(permissionForCommissions('DELETE'), null);
+});
+
+test('permissionForFinancials maps methods correctly', () => {
+  assert.equal(permissionForFinancials('GET'), 'read:financials');
+  assert.equal(permissionForFinancials('POST'), 'write:financials');
+  assert.equal(permissionForFinancials('PATCH'), 'write:financials');
+  assert.equal(permissionForFinancials('DELETE'), null);
 });

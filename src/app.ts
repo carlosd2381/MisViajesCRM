@@ -5,6 +5,7 @@ import { authorizeRequest, type AuthMode } from './core/auth/request-auth';
 import {
   permissionForCommissions,
   permissionForClients,
+  permissionForFinancials,
   permissionForItineraries,
   permissionForLeads,
   permissionForSuppliers
@@ -27,6 +28,10 @@ import {
   handleCommissionResource,
   handleCommissionsCollection
 } from './modules/commissions/api/commission-http-handlers';
+import {
+  handleFinancialResource,
+  handleFinancialsCollection
+} from './modules/financials/api/financial-http-handlers';
 import {
   handleItineraryItemsCollection,
   handleItinerariesCollection,
@@ -199,6 +204,25 @@ function handleCommissionsRoute(
   return Promise.resolve();
 }
 
+function handleFinancialsRoute(
+  req: IncomingMessage,
+  res: ServerResponse,
+  pathSegments: string[],
+  locale: string,
+  repositories: RepositoryBundle,
+  authMode: AuthMode
+): Promise<void> | null {
+  if (pathSegments[0] !== 'financials') return null;
+
+  const permission = permissionForFinancials(req.method);
+  if (!canProceed(req, res, locale, permission, authMode)) return Promise.resolve();
+
+  const context = { req, res, pathSegments, locale };
+  if (pathSegments.length === 1) return handleFinancialsCollection(context, repositories.financials);
+  if (pathSegments.length === 2) return handleFinancialResource(context, repositories.financials);
+  return Promise.resolve();
+}
+
 function handler(repositories: RepositoryBundle, options: AppOptions) {
   const authMode = options.authMode ?? 'header';
   const refreshTokens = options.refreshTokenService ?? buildRefreshTokenService(tokenServiceOptions());
@@ -229,6 +253,9 @@ function handler(repositories: RepositoryBundle, options: AppOptions) {
 
       const commissionsRoute = handleCommissionsRoute(req, res, pathSegments, locale, repositories, authMode);
       if (commissionsRoute) return commissionsRoute;
+
+      const financialsRoute = handleFinancialsRoute(req, res, pathSegments, locale, repositories, authMode);
+      if (financialsRoute) return financialsRoute;
 
       const itinerariesRoute = handleItinerariesRoute(req, res, pathSegments, locale, repositories, authMode);
       if (itinerariesRoute) return itinerariesRoute;
