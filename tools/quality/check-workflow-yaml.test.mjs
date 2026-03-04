@@ -17,6 +17,23 @@ function createWorkspaceWithWorkflows(files) {
   return workspaceRoot;
 }
 
+function readQualityWorkflowSource() {
+  const qualityWorkflowPath = join(process.cwd(), '.github', 'workflows', 'quality.yml');
+  return readFileSync(qualityWorkflowPath, 'utf8');
+}
+
+function assertStepExists(source, stepName) {
+  const index = source.indexOf(`- name: ${stepName}`);
+  assert.notEqual(index, -1, `Missing workflow step: ${stepName}`);
+  return index;
+}
+
+function assertStepOrder(source, beforeStepName, afterStepName) {
+  const beforeIndex = assertStepExists(source, beforeStepName);
+  const afterIndex = assertStepExists(source, afterStepName);
+  assert.ok(beforeIndex < afterIndex, `${beforeStepName} must appear before ${afterStepName}`);
+}
+
 test('validateWorkflowYaml passes for valid workflow files', () => {
   const root = createWorkspaceWithWorkflows({
     'quality.yml': 'name: Quality\non: [push]\njobs:\n  quality:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n'
@@ -52,20 +69,11 @@ test('validateWorkflowYaml reports missing workflows directory', () => {
 });
 
 test('quality workflow keeps smoke contract preflight and summary steps', () => {
-  const qualityWorkflowPath = join(process.cwd(), '.github', 'workflows', 'quality.yml');
-  const source = readFileSync(qualityWorkflowPath, 'utf8');
+  const source = readQualityWorkflowSource();
 
-  assert.match(source, /- name:\s+Run smoke contract preflight/);
+  assertStepExists(source, 'Run smoke contract preflight');
   assert.match(source, /npm run smoke:matrix:contract\s*\|\s*tee\s+smoke-matrix-contract-output\.log/);
-  assert.match(source, /- name:\s+Smoke contract preflight summary/);
+  assertStepExists(source, 'Smoke contract preflight summary');
   assert.match(source, /ci-smoke-summary\.sh\s+"Smoke matrix contract preflight"\s+SMOKE_MATRIX_SUMMARY\s+smoke-matrix-contract-output\.log/);
-
-  const preflightIndex = source.indexOf('- name: Run smoke contract preflight');
-  const qualityChecksIndex = source.indexOf('- name: Run quality checks');
-  assert.notEqual(preflightIndex, -1);
-  assert.notEqual(qualityChecksIndex, -1);
-  assert.ok(
-    preflightIndex < qualityChecksIndex,
-    'Run smoke contract preflight must appear before Run quality checks in quality workflow'
-  );
+  assertStepOrder(source, 'Run smoke contract preflight', 'Run quality checks');
 });
