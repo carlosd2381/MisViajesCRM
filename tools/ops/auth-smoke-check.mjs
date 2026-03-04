@@ -1,4 +1,5 @@
 import { issueSmokeTokenPair, smokeHeaders } from './smoke-auth-helpers.mjs';
+import { formatSmokeSummaryLine } from './smoke-summary-helpers.mjs';
 import {
   smokeExpectedMessage,
   smokeExpectLocalizedMessage,
@@ -147,7 +148,7 @@ async function run() {
     ]
   };
 
-  console.log(`AUTH_SMOKE_SUMMARY ${JSON.stringify(summary)}`);
+  console.log(formatSmokeSummaryLine('AUTH_SMOKE_SUMMARY', summary));
 
   console.log('✅ Auth smoke-check passed.');
 }

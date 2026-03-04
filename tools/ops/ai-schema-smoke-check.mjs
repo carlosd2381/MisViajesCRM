@@ -1,5 +1,6 @@
 import { resolveSmokeAuthHeaders, smokeHeaders } from './smoke-auth-helpers.mjs';
 import { smokeAssert, smokeExpectedMessage } from './smoke-common-helpers.mjs';
+import { formatSmokeSummaryLine } from './smoke-summary-helpers.mjs';
 
 const BASE_URL = process.env.AI_SCHEMA_SMOKE_BASE_URL ?? 'http://127.0.0.1:3000';
 const LOCALE = process.env.AI_SCHEMA_SMOKE_LOCALE ?? 'es-MX';
@@ -215,7 +216,7 @@ async function run() {
     sectionOrder: data.sectionOrder
   };
 
-  console.log(`AI_SCHEMA_SMOKE_SUMMARY ${JSON.stringify(summary)}`);
+  console.log(formatSmokeSummaryLine('AI_SCHEMA_SMOKE_SUMMARY', summary));
 
   console.log('✅ AI schema smoke-check passed.');
 }

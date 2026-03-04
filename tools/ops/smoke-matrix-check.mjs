@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
+import { formatSmokeSummaryLine, parseSmokeSummaryLine } from './smoke-summary-helpers.mjs';
 
 const BASE_URL = process.env.SMOKE_MATRIX_BASE_URL ?? 'http://127.0.0.1:3000';
 const SUMMARY_FILE = process.env.SMOKE_MATRIX_SUMMARY_FILE;
@@ -55,17 +56,6 @@ async function waitForApiReady(baseUrl, attempts = 30) {
   throw new Error(`API did not become ready in time at ${baseUrl}`);
 }
 
-function parseSummaryLine(line, expectedPrefix) {
-  if (!line.startsWith(expectedPrefix)) return null;
-
-  const payload = line.slice(expectedPrefix.length).trim();
-  try {
-    return JSON.parse(payload);
-  } catch {
-    throw new Error(`Invalid JSON payload for ${expectedPrefix}`);
-  }
-}
-
 function runNpmScript(script, expectedPrefix, envOverrides = {}) {
   return new Promise((resolve, reject) => {
     let summary = null;
@@ -92,7 +82,7 @@ function runNpmScript(script, expectedPrefix, envOverrides = {}) {
       process.stdout.write(text);
 
       for (const line of text.split('\n')) {
-        const parsed = parseSummaryLine(line.trim(), expectedPrefix);
+        const parsed = parseSmokeSummaryLine(line.trim(), expectedPrefix);
         if (parsed) summary = parsed;
       }
     });
@@ -109,7 +99,7 @@ function runNpmScript(script, expectedPrefix, envOverrides = {}) {
       if (code === 0) {
         if (!summary) {
           settled = true;
-          reject(new Error(`npm run ${script} did not produce expected ${expectedPrefix} line`));
+          reject(new Error(`npm run ${script} did not produce expected ${expectedPrefix} summary line`));
           return;
         }
 
@@ -157,30 +147,30 @@ async function runHeaderMatrix() {
     if (SELECTED_LOCALES.includes('es-MX')) {
       runs.push({
         script: 'auth:smoke',
-        summary: await runNpmScript('auth:smoke', 'AUTH_SMOKE_SUMMARY ')
+        summary: await runNpmScript('auth:smoke', 'AUTH_SMOKE_SUMMARY')
       });
       runs.push({
         script: 'ai:schema:smoke',
-        summary: await runNpmScript('ai:schema:smoke', 'AI_SCHEMA_SMOKE_SUMMARY ')
+        summary: await runNpmScript('ai:schema:smoke', 'AI_SCHEMA_SMOKE_SUMMARY')
       });
       runs.push({
         script: 'ai:render:smoke',
-        summary: await runNpmScript('ai:render:smoke', 'AI_RENDER_SMOKE_SUMMARY ')
+        summary: await runNpmScript('ai:render:smoke', 'AI_RENDER_SMOKE_SUMMARY')
       });
     }
 
     if (SELECTED_LOCALES.includes('en-US')) {
       runs.push({
         script: 'auth:smoke:en',
-        summary: await runNpmScript('auth:smoke:en', 'AUTH_SMOKE_SUMMARY ')
+        summary: await runNpmScript('auth:smoke:en', 'AUTH_SMOKE_SUMMARY')
       });
       runs.push({
         script: 'ai:schema:smoke:en',
-        summary: await runNpmScript('ai:schema:smoke:en', 'AI_SCHEMA_SMOKE_SUMMARY ')
+        summary: await runNpmScript('ai:schema:smoke:en', 'AI_SCHEMA_SMOKE_SUMMARY')
       });
       runs.push({
         script: 'ai:render:smoke:en',
-        summary: await runNpmScript('ai:render:smoke:en', 'AI_RENDER_SMOKE_SUMMARY ')
+        summary: await runNpmScript('ai:render:smoke:en', 'AI_RENDER_SMOKE_SUMMARY')
       });
     }
 
@@ -202,30 +192,30 @@ async function runTokenMatrix() {
     if (SELECTED_LOCALES.includes('es-MX')) {
       runs.push({
         script: 'auth:smoke:token',
-        summary: await runNpmScript('auth:smoke:token', 'AUTH_SMOKE_SUMMARY ')
+        summary: await runNpmScript('auth:smoke:token', 'AUTH_SMOKE_SUMMARY')
       });
       runs.push({
         script: 'ai:schema:smoke:token',
-        summary: await runNpmScript('ai:schema:smoke:token', 'AI_SCHEMA_SMOKE_SUMMARY ')
+        summary: await runNpmScript('ai:schema:smoke:token', 'AI_SCHEMA_SMOKE_SUMMARY')
       });
       runs.push({
         script: 'ai:render:smoke:token',
-        summary: await runNpmScript('ai:render:smoke:token', 'AI_RENDER_SMOKE_SUMMARY ')
+        summary: await runNpmScript('ai:render:smoke:token', 'AI_RENDER_SMOKE_SUMMARY')
       });
     }
 
     if (SELECTED_LOCALES.includes('en-US')) {
       runs.push({
         script: 'auth:smoke:token:en',
-        summary: await runNpmScript('auth:smoke:token:en', 'AUTH_SMOKE_SUMMARY ')
+        summary: await runNpmScript('auth:smoke:token:en', 'AUTH_SMOKE_SUMMARY')
       });
       runs.push({
         script: 'ai:schema:smoke:token:en',
-        summary: await runNpmScript('ai:schema:smoke:token:en', 'AI_SCHEMA_SMOKE_SUMMARY ')
+        summary: await runNpmScript('ai:schema:smoke:token:en', 'AI_SCHEMA_SMOKE_SUMMARY')
       });
       runs.push({
         script: 'ai:render:smoke:token:en',
-        summary: await runNpmScript('ai:render:smoke:token:en', 'AI_RENDER_SMOKE_SUMMARY ')
+        summary: await runNpmScript('ai:render:smoke:token:en', 'AI_RENDER_SMOKE_SUMMARY')
       });
     }
 
@@ -248,7 +238,7 @@ async function run() {
     runs: [...headerRuns, ...tokenRuns]
   };
 
-  console.log(`SMOKE_MATRIX_SUMMARY ${JSON.stringify(summary)}`);
+  console.log(formatSmokeSummaryLine('SMOKE_MATRIX_SUMMARY', summary));
 
   if (SUMMARY_FILE) {
     await mkdir(dirname(SUMMARY_FILE), { recursive: true });
