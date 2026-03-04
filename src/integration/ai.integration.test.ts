@@ -1,64 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import type { AddressInfo } from 'node:net';
-import type { Server } from 'node:http';
-import { createApiServer } from '../app';
-import { InMemoryLeadRepository } from '../modules/leads/infrastructure/in-memory-lead-repository';
-import { InMemoryClientRepository } from '../modules/clients/infrastructure/in-memory-client-repository';
-import { InMemoryItineraryRepository } from '../modules/itinerary/infrastructure/in-memory-itinerary-repository';
-import { InMemorySupplierRepository } from '../modules/suppliers/infrastructure/in-memory-supplier-repository';
-import { InMemoryCommissionRepository } from '../modules/commissions/infrastructure/in-memory-commission-repository';
-import { InMemoryFinancialRepository } from '../modules/financials/infrastructure/in-memory-financial-repository';
-import { InMemoryMessagingRepository } from '../modules/messaging/infrastructure/in-memory-messaging-repository';
-import { InMemoryDashboardRepository } from '../modules/dashboard/infrastructure/in-memory-dashboard-repository';
-import { InMemoryManagementRepository } from '../modules/management/infrastructure/in-memory-management-repository';
-
-function testHeaders(role = 'agent'): Record<string, string> {
-  return {
-    'content-type': 'application/json',
-    'x-user-id': 'user_test',
-    'x-user-role': role,
-    'x-locale': 'es-MX'
-  };
-}
-
-async function startServer(): Promise<{ server: Server; baseUrl: string }> {
-  const server = createApiServer({
-    leads: new InMemoryLeadRepository(),
-    clients: new InMemoryClientRepository(),
-    suppliers: new InMemorySupplierRepository(),
-    commissions: new InMemoryCommissionRepository(),
-    financials: new InMemoryFinancialRepository(),
-    messaging: new InMemoryMessagingRepository(),
-    itineraries: new InMemoryItineraryRepository(),
-    dashboard: new InMemoryDashboardRepository(),
-    management: new InMemoryManagementRepository()
-  }, { authMode: 'header' });
-
-  await new Promise<void>((resolve) => {
-    server.listen(0, () => resolve());
-  });
-
-  const address = server.address() as AddressInfo;
-  return { server, baseUrl: `http://127.0.0.1:${address.port}` };
-}
-
-async function stopServer(server: Server): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
-    server.close((error) => {
-      if (error) reject(error);
-      else resolve();
-    });
-  });
-}
+import {
+  integrationTestHeaders,
+  startIntegrationServer,
+  stopIntegrationServer
+} from './test-harness';
 
 test('agent can generate AI proposal mock', async () => {
-  const { server, baseUrl } = await startServer();
+  const { server, baseUrl } = await startIntegrationServer();
 
   try {
     const response = await fetch(`${baseUrl}/ai/proposal`, {
       method: 'POST',
-      headers: testHeaders('agent'),
+      headers: integrationTestHeaders('agent'),
       body: JSON.stringify({
         promptProfile: 'storyteller',
         itinerarySummary: 'Llegada, recorrido gastronómico y cierre cultural.',
@@ -93,17 +47,17 @@ test('agent can generate AI proposal mock', async () => {
     assert.equal(typeof payload.data.sections.storyteller.tripHook, 'string');
     assert.ok(Array.isArray(payload.data.sections.auditor.operationalChecklist));
   } finally {
-    await stopServer(server);
+    await stopIntegrationServer(server);
   }
 });
 
 test('ai proposal returns quality warnings for weak summaries', async () => {
-  const { server, baseUrl } = await startServer();
+  const { server, baseUrl } = await startIntegrationServer();
 
   try {
     const response = await fetch(`${baseUrl}/ai/proposal`, {
       method: 'POST',
-      headers: testHeaders('agent'),
+      headers: integrationTestHeaders('agent'),
       body: JSON.stringify({
         promptProfile: 'auditor',
         itinerarySummary: 'Plan breve con actividades.',
@@ -121,17 +75,17 @@ test('ai proposal returns quality warnings for weak summaries', async () => {
     assert.ok(payload.data.warnings.some((warning) => warning.code === 'DESTINATION_NOT_REFERENCED'));
     assert.ok(payload.data.warnings.some((warning) => warning.code === 'DAY_BY_DAY_MISSING'));
   } finally {
-    await stopServer(server);
+    await stopIntegrationServer(server);
   }
 });
 
 test('external_dmc cannot generate AI proposal mock', async () => {
-  const { server, baseUrl } = await startServer();
+  const { server, baseUrl } = await startIntegrationServer();
 
   try {
     const response = await fetch(`${baseUrl}/ai/proposal`, {
       method: 'POST',
-      headers: testHeaders('external_dmc'),
+      headers: integrationTestHeaders('external_dmc'),
       body: JSON.stringify({
         promptProfile: 'storyteller',
         itinerarySummary: 'Plan base',
@@ -142,17 +96,17 @@ test('external_dmc cannot generate AI proposal mock', async () => {
 
     assert.equal(response.status, 403);
   } finally {
-    await stopServer(server);
+    await stopIntegrationServer(server);
   }
 });
 
 test('ai proposal strict quality gate returns 422 when high severity warnings exist', async () => {
-  const { server, baseUrl } = await startServer();
+  const { server, baseUrl } = await startIntegrationServer();
 
   try {
     const response = await fetch(`${baseUrl}/ai/proposal`, {
       method: 'POST',
-      headers: testHeaders('agent'),
+      headers: integrationTestHeaders('agent'),
       body: JSON.stringify({
         promptProfile: 'auditor',
         itinerarySummary: 'Plan breve',
@@ -169,17 +123,17 @@ test('ai proposal strict quality gate returns 422 when high severity warnings ex
 
     assert.ok(payload.data.warnings.some((warning) => warning.code === 'QUALITY_GATE_BLOCKER'));
   } finally {
-    await stopServer(server);
+    await stopIntegrationServer(server);
   }
 });
 
 test('agent can read AI proposal schema metadata', async () => {
-  const { server, baseUrl } = await startServer();
+  const { server, baseUrl } = await startIntegrationServer();
 
   try {
     const response = await fetch(`${baseUrl}/ai/schema/proposal`, {
       method: 'GET',
-      headers: testHeaders('agent')
+      headers: integrationTestHeaders('agent')
     });
 
     assert.equal(response.status, 200);
@@ -206,23 +160,23 @@ test('agent can read AI proposal schema metadata', async () => {
     assert.equal(payload.data.examples.blockedResponse.statusCode, 422);
     assert.equal(payload.data.examples.blockedResponse.body.blockingWarningCode, 'QUALITY_GATE_BLOCKER');
   } finally {
-    await stopServer(server);
+    await stopIntegrationServer(server);
   }
 });
 
 test('external_dmc can read AI schema but cannot post proposal', async () => {
-  const { server, baseUrl } = await startServer();
+  const { server, baseUrl } = await startIntegrationServer();
 
   try {
     const schemaResponse = await fetch(`${baseUrl}/ai/schema/proposal`, {
       method: 'GET',
-      headers: testHeaders('external_dmc')
+      headers: integrationTestHeaders('external_dmc')
     });
     assert.equal(schemaResponse.status, 200);
 
     const proposalResponse = await fetch(`${baseUrl}/ai/proposal`, {
       method: 'POST',
-      headers: testHeaders('external_dmc'),
+      headers: integrationTestHeaders('external_dmc'),
       body: JSON.stringify({
         promptProfile: 'storyteller',
         itinerarySummary: 'Plan base',
@@ -233,17 +187,17 @@ test('external_dmc can read AI schema but cannot post proposal', async () => {
 
     assert.equal(proposalResponse.status, 403);
   } finally {
-    await stopServer(server);
+    await stopIntegrationServer(server);
   }
 });
 
 test('ai schema endpoint supports locale query for description localization', async () => {
-  const { server, baseUrl } = await startServer();
+  const { server, baseUrl } = await startIntegrationServer();
 
   try {
     const enResponse = await fetch(`${baseUrl}/ai/schema/proposal?locale=en-US`, {
       method: 'GET',
-      headers: testHeaders('agent')
+      headers: integrationTestHeaders('agent')
     });
 
     assert.equal(enResponse.status, 200);
@@ -260,7 +214,7 @@ test('ai schema endpoint supports locale query for description localization', as
 
     const esResponse = await fetch(`${baseUrl}/ai/schema/proposal?locale=es-MX`, {
       method: 'GET',
-      headers: testHeaders('agent')
+      headers: integrationTestHeaders('agent')
     });
 
     assert.equal(esResponse.status, 200);
@@ -275,6 +229,6 @@ test('ai schema endpoint supports locale query for description localization', as
     assert.ok((esSummary?.description ?? '').toLowerCase().includes('resumen'));
     assert.equal(esPayload.data.examples.blockedResponse.body.message, 'Propuesta bloqueada por quality gate');
   } finally {
-    await stopServer(server);
+    await stopIntegrationServer(server);
   }
 });
