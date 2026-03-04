@@ -65,3 +65,15 @@ test('renderProposalHtml honors compactMode=true option', () => {
 
   assert.doesNotMatch(html, /<h3>Validaciones<\/h3>/);
 });
+
+test('renderProposalPdfDraft honors includeWarnings=false and compactMode=true options', () => {
+  const proposal = sampleProposal();
+  const pdf = renderProposalPdfDraft(proposal, 'es-MX', {
+    includeWarnings: false,
+    compactMode: true
+  }).toString('utf8');
+
+  assert.doesNotMatch(pdf, /Alertas:/);
+  assert.doesNotMatch(pdf, /Validaciones de calidad:/);
+  assert.doesNotMatch(pdf, /Tips locales:/);
+});

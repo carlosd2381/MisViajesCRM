@@ -149,3 +149,32 @@ test('web render supports includeWarnings=false and compactMode=true options', a
     await stopIntegrationServer(server);
   }
 });
+
+test('pdf render supports includeWarnings=false and compactMode=true options', async () => {
+  const { server, baseUrl } = await startIntegrationServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/ai/proposal/render/pdf`, {
+      method: 'POST',
+      headers: integrationTestHeaders('agent'),
+      body: JSON.stringify({
+        promptProfile: 'ghost_writer',
+        itinerarySummary: 'Viaje de cuatro días en Oaxaca con enfoque gastronómico y cultural.',
+        destination: 'Oaxaca',
+        days: 4,
+        renderOptions: {
+          includeWarnings: false,
+          compactMode: true
+        }
+      })
+    });
+
+    assert.equal(response.status, 200);
+    const pdf = Buffer.from(await response.arrayBuffer()).toString('utf8');
+    assert.doesNotMatch(pdf, /Alertas:/);
+    assert.doesNotMatch(pdf, /Validaciones de calidad:/);
+    assert.doesNotMatch(pdf, /Tips locales:/);
+  } finally {
+    await stopIntegrationServer(server);
+  }
+});

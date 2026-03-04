@@ -71,24 +71,33 @@ function labelsByLocale(locale: string): RenderLabels {
   };
 }
 
-function proposalLines(proposal: ProposalData, locale: string): string[] {
+function proposalLines(proposal: ProposalData, locale: string, options?: AiRenderOptions): string[] {
   const labels = labelsByLocale(locale);
+  const renderOptions = normalizeRenderOptions(options);
   const warningsLabel = proposal.warnings.length === 0 ? labels.noWarnings : proposal.warnings.length.toString();
   const checklist = proposal.qualityChecks.join(' | ');
   const tips = proposal.sections.local_insider.localTips.join(' | ');
 
-  return [
+  const lines = [
     labels.draftTitle,
     `${labels.generated}: ${proposal.generatedAt}`,
     `${labels.profile}: ${proposal.profile}`,
     `${labels.schema}: ${proposal.schemaVersion}`,
     `${labels.narrative}: ${proposal.narrative}`,
     `${labels.headline}: ${proposal.sections.ghost_writer.headline}`,
-    `${labels.callToAction}: ${proposal.sections.ghost_writer.callToAction}`,
-    `${labels.warnings}: ${warningsLabel}`,
-    `${labels.qualityChecks}: ${checklist}`,
-    `${labels.localTips}: ${tips}`
+    `${labels.callToAction}: ${proposal.sections.ghost_writer.callToAction}`
   ];
+
+  if (renderOptions.includeWarnings) {
+    lines.push(`${labels.warnings}: ${warningsLabel}`);
+  }
+
+  if (!renderOptions.compactMode) {
+    lines.push(`${labels.qualityChecks}: ${checklist}`);
+    lines.push(`${labels.localTips}: ${tips}`);
+  }
+
+  return lines;
 }
 
 function normalizeRenderOptions(options: AiRenderOptions | undefined) {
@@ -147,8 +156,8 @@ export function renderProposalHtml(proposal: ProposalData, locale: string, optio
 </html>`;
 }
 
-export function renderProposalPdfDraft(proposal: ProposalData, locale = 'es-MX'): Buffer {
-  const lines = proposalLines(proposal, locale).slice(0, 18);
+export function renderProposalPdfDraft(proposal: ProposalData, locale = 'es-MX', options?: AiRenderOptions): Buffer {
+  const lines = proposalLines(proposal, locale, options).slice(0, 18);
   const body = lines
     .map((line, index) => {
       const yOffset = index === 0 ? '' : '0 -16 Td\n';

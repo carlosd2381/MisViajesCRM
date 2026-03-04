@@ -156,6 +156,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 ## Registro de cambios
 
+- 2026-03-04: Proposal Experience PDF render ahora también aplica `renderOptions` (`includeWarnings`, `compactMode`) en `POST /ai/proposal/render/pdf`, alineado con web render y cubierto con pruebas unitarias/integración.
 - 2026-03-04: Proposal Experience web render ahora soporta `renderOptions` (`includeWarnings`, `compactMode`) en `POST /ai/proposal/render/web`, con validación de contrato, metadata de ejemplo actualizada y cobertura unitaria/integración.
 - 2026-03-04: Se agregó endpoint de metadata de render AI `GET /ai/proposal/render/schema` (i18n `es-MX|en-US`) con contrato explícito `ai-proposal-render.v1` y cobertura unitaria/integración.
 - 2026-03-04: Se localizó render de Proposal Experience (web+pdf) para `es-MX|en-US` en labels estructurales (`schema/generated/profile/checks/warnings`) y se agregó cobertura unitaria de contrato para `proposal-render-service`.

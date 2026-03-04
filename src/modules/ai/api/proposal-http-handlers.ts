@@ -72,10 +72,17 @@ export async function handleAiProposalPdfDraft(context: RequestContext): Promise
     return;
   }
 
-  const data = await buildProposalOrRespondError(context);
+  const payload = await readJsonBody(context.req);
+  const validation = validateCreateAiProposal(payload);
+  if (!validation.ok) {
+    sendJson(context.res, 400, { message: messageByLocale(context.locale, 'Solicitud inválida'), errors: validation.errors });
+    return;
+  }
+
+  const data = await buildProposalOrRespondError(context, validation);
   if (!data) return;
 
-  const pdf = renderProposalPdfDraft(data, context.locale);
+  const pdf = renderProposalPdfDraft(data, context.locale, validation.value.renderOptions);
   context.res.statusCode = 200;
   context.res.setHeader('Content-Type', 'application/pdf');
   context.res.setHeader('Content-Disposition', 'inline; filename="proposal-draft.pdf"');
