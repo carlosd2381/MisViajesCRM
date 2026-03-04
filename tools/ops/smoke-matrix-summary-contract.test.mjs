@@ -2,12 +2,51 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseSmokeSummaryLine } from './smoke-summary-helpers.mjs';
 import {
+  REQUIRED_AUTH_NEGATIVE_SCENARIOS_BASE,
+  REQUIRED_AUTH_NEGATIVE_SCENARIO_TOKEN_MODE,
   REQUIRED_AI_RENDER_CHECKS,
   REQUIRED_AI_SCHEMA_SECTION_ORDER,
   REQUIRED_AI_SCHEMA_VERSION,
+  assertAuthSmokeSummaryContract,
   assertAiRenderSmokeSummaryContract,
   assertAiSchemaSmokeSummaryContract
 } from './smoke-matrix-summary-contract.mjs';
+
+test('Auth smoke summary contract accepts required base scenarios', () => {
+  const line =
+    'AUTH_SMOKE_SUMMARY {"locale":"es-MX","verifyTokenMode":false,"checkedNegativeScenarios":["unauth_metrics_401","forbidden_metrics_403","invalid_refresh_401"]}';
+
+  const parsed = parseSmokeSummaryLine(line, 'AUTH_SMOKE_SUMMARY');
+
+  assert.ok(parsed);
+  assert.equal(parsed.verifyTokenMode, false);
+  assert.deepEqual(parsed.checkedNegativeScenarios, REQUIRED_AUTH_NEGATIVE_SCENARIOS_BASE);
+  assert.doesNotThrow(() => assertAuthSmokeSummaryContract(parsed));
+});
+
+test('Auth smoke summary contract requires token-mode scenario when verifyTokenMode=true', () => {
+  const line =
+    'AUTH_SMOKE_SUMMARY {"locale":"en-US","verifyTokenMode":true,"checkedNegativeScenarios":["unauth_metrics_401","forbidden_metrics_403","invalid_refresh_401","token_mode_unauth_protected_401"]}';
+
+  const parsed = parseSmokeSummaryLine(line, 'AUTH_SMOKE_SUMMARY');
+
+  assert.ok(parsed);
+  assert.ok(parsed.checkedNegativeScenarios.includes(REQUIRED_AUTH_NEGATIVE_SCENARIO_TOKEN_MODE));
+  assert.doesNotThrow(() => assertAuthSmokeSummaryContract(parsed));
+});
+
+test('Auth smoke summary contract rejects missing token-mode scenario when verifyTokenMode=true', () => {
+  const line =
+    'AUTH_SMOKE_SUMMARY {"locale":"en-US","verifyTokenMode":true,"checkedNegativeScenarios":["unauth_metrics_401","forbidden_metrics_403","invalid_refresh_401"]}';
+
+  const parsed = parseSmokeSummaryLine(line, 'AUTH_SMOKE_SUMMARY');
+
+  assert.ok(parsed);
+  assert.throws(
+    () => assertAuthSmokeSummaryContract(parsed),
+    /missing token-mode scenario token_mode_unauth_protected_401/
+  );
+});
 
 test('AI render smoke summary contract includes required checks for matrix consumers', () => {
   const line =

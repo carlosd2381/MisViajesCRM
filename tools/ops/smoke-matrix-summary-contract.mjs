@@ -19,6 +19,14 @@ export const REQUIRED_AI_SCHEMA_SECTION_ORDER = [
 
 export const REQUIRED_AI_SCHEMA_VERSION = 'ai-proposal.v1';
 
+export const REQUIRED_AUTH_NEGATIVE_SCENARIOS_BASE = [
+  'unauth_metrics_401',
+  'forbidden_metrics_403',
+  'invalid_refresh_401'
+];
+
+export const REQUIRED_AUTH_NEGATIVE_SCENARIO_TOKEN_MODE = 'token_mode_unauth_protected_401';
+
 export function assertAiRenderSmokeSummaryContract(summary) {
   if (!summary || typeof summary !== 'object') {
     throw new Error('AI_RENDER_SMOKE_SUMMARY contract invalid: summary must be an object');
@@ -68,5 +76,40 @@ export function assertAiSchemaSmokeSummaryContract(summary) {
         `AI_SCHEMA_SMOKE_SUMMARY contract invalid: sectionOrder mismatch at index ${index}; expected ${expected}, got ${actual}`
       );
     }
+  }
+}
+
+export function assertAuthSmokeSummaryContract(summary) {
+  if (!summary || typeof summary !== 'object') {
+    throw new Error('AUTH_SMOKE_SUMMARY contract invalid: summary must be an object');
+  }
+
+  if (summary.locale !== 'es-MX' && summary.locale !== 'en-US') {
+    throw new Error('AUTH_SMOKE_SUMMARY contract invalid: locale must be es-MX or en-US');
+  }
+
+  if (typeof summary.verifyTokenMode !== 'boolean') {
+    throw new Error('AUTH_SMOKE_SUMMARY contract invalid: verifyTokenMode must be boolean');
+  }
+
+  if (!Array.isArray(summary.checkedNegativeScenarios)) {
+    throw new Error('AUTH_SMOKE_SUMMARY contract invalid: checkedNegativeScenarios must be an array');
+  }
+
+  for (const requiredScenario of REQUIRED_AUTH_NEGATIVE_SCENARIOS_BASE) {
+    if (!summary.checkedNegativeScenarios.includes(requiredScenario)) {
+      throw new Error(
+        `AUTH_SMOKE_SUMMARY contract invalid: missing required negative scenario ${requiredScenario}`
+      );
+    }
+  }
+
+  if (
+    summary.verifyTokenMode === true
+    && !summary.checkedNegativeScenarios.includes(REQUIRED_AUTH_NEGATIVE_SCENARIO_TOKEN_MODE)
+  ) {
+    throw new Error(
+      `AUTH_SMOKE_SUMMARY contract invalid: missing token-mode scenario ${REQUIRED_AUTH_NEGATIVE_SCENARIO_TOKEN_MODE}`
+    );
   }
 }

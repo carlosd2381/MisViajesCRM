@@ -3,6 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { formatSmokeSummaryLine, parseSmokeSummaryLine } from './smoke-summary-helpers.mjs';
 import {
+  assertAuthSmokeSummaryContract,
   assertAiRenderSmokeSummaryContract,
   assertAiSchemaSmokeSummaryContract
 } from './smoke-matrix-summary-contract.mjs';
@@ -114,6 +115,16 @@ function runNpmScript(script, expectedPrefix, envOverrides = {}) {
           } catch (error) {
             settled = true;
             reject(new Error(`npm run ${script} produced invalid AI render summary contract: ${error.message}`));
+            return;
+          }
+        }
+
+        if (expectedPrefix === 'AUTH_SMOKE_SUMMARY') {
+          try {
+            assertAuthSmokeSummaryContract(summary);
+          } catch (error) {
+            settled = true;
+            reject(new Error(`npm run ${script} produced invalid auth summary contract: ${error.message}`));
             return;
           }
         }

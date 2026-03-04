@@ -156,6 +156,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 ## Registro de cambios
 
+- 2026-03-04: `smoke:matrix` ahora valida también en runtime el contrato de `AUTH_SMOKE_SUMMARY` (locale válido, `verifyTokenMode` boolean y negativos requeridos, incluyendo escenario token cuando aplique), con pruebas de contrato en `tools/ops`.
 - 2026-03-04: `smoke:matrix` ahora valida también en runtime el contrato de `AI_SCHEMA_SMOKE_SUMMARY` (schemaVersion esperado, warningsCatalogCount positivo y orden estable de secciones), con validador compartido y pruebas de contrato en `tools/ops`.
 - 2026-03-04: `smoke:matrix` ahora valida en runtime el contrato de `AI_RENDER_SMOKE_SUMMARY` y falla temprano si faltan checks requeridos (incluyendo `invalid_render_options_400_web|pdf`), con validador compartido y pruebas dedicadas.
 - 2026-03-04: Se agregaron pruebas de contrato en `tools/ops` para fijar claves requeridas de `AI_RENDER_SMOKE_SUMMARY` (incluyendo `invalid_render_options_400_web|pdf`) consumidas por `smoke:matrix` y utilidades de parse en CI.
