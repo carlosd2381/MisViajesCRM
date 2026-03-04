@@ -15,6 +15,7 @@
   "scripts": {
     "dev:api": "tsx src/server.ts",
     "auth:smoke": "node tools/ops/auth-smoke-check.mjs",
+    "ai:schema:smoke": "node tools/ops/ai-schema-smoke-check.mjs",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "tsx --test src/core/**/*.test.ts src/modules/**/*.test.ts",
     "test:integration": "tsx --test src/integration/**/*.test.ts",
