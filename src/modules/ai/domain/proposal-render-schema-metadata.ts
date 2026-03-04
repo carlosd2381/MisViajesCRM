@@ -64,7 +64,11 @@ function buildRenderExamples(schemaLocale: SchemaLocale, labels: ReturnType<type
           : 'Day 1 arrival in Oaxaca and cultural walk. Day 2 local gastronomy.',
       destination: 'Oaxaca',
       days: 2,
-      enforceQualityGate: false
+      enforceQualityGate: false,
+      renderOptions: {
+        includeWarnings: true,
+        compactMode: false
+      }
     },
     webResponse: {
       statusCode: 200,

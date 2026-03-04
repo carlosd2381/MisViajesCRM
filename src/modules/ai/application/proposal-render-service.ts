@@ -1,4 +1,5 @@
 import type { AiProposalResponse } from '../api/proposal-contracts';
+import type { AiRenderOptions } from '../api/proposal-contracts';
 
 type ProposalData = AiProposalResponse['data'];
 
@@ -90,8 +91,16 @@ function proposalLines(proposal: ProposalData, locale: string): string[] {
   ];
 }
 
-export function renderProposalHtml(proposal: ProposalData, locale: string): string {
+function normalizeRenderOptions(options: AiRenderOptions | undefined) {
+  return {
+    includeWarnings: options?.includeWarnings !== false,
+    compactMode: options?.compactMode === true
+  };
+}
+
+export function renderProposalHtml(proposal: ProposalData, locale: string, options?: AiRenderOptions): string {
   const labels = labelsByLocale(locale);
+  const renderOptions = normalizeRenderOptions(options);
 
   const warningsItems =
     proposal.warnings.length === 0
@@ -101,6 +110,19 @@ export function renderProposalHtml(proposal: ProposalData, locale: string): stri
           .join('');
 
   const checksItems = proposal.qualityChecks.map((check) => `<li>${escapeHtml(check)}</li>`).join('');
+  const checksSection = renderOptions.compactMode
+    ? ''
+    : `<section>
+        <h3>${escapeHtml(labels.checksTitle)}</h3>
+        <ul>${checksItems}</ul>
+      </section>`;
+
+  const warningsSection = !renderOptions.includeWarnings
+    ? ''
+    : `<section>
+        <h3>${escapeHtml(labels.warningsTitle)}</h3>
+        <ul>${warningsItems}</ul>
+      </section>`;
 
   return `<!doctype html>
 <html lang="${locale}">
@@ -118,14 +140,8 @@ export function renderProposalHtml(proposal: ProposalData, locale: string): stri
       <h2>${escapeHtml(proposal.sections.ghost_writer.headline)}</h2>
       <p>${escapeHtml(proposal.narrative)}</p>
       <p>${escapeHtml(proposal.sections.ghost_writer.callToAction)}</p>
-      <section>
-        <h3>${escapeHtml(labels.checksTitle)}</h3>
-        <ul>${checksItems}</ul>
-      </section>
-      <section>
-        <h3>${escapeHtml(labels.warningsTitle)}</h3>
-        <ul>${warningsItems}</ul>
-      </section>
+      ${checksSection}
+      ${warningsSection}
     </main>
   </body>
 </html>`;

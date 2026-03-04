@@ -25,6 +25,11 @@ function parseProfile(value: unknown): PromptProfile | undefined {
   return text as PromptProfile;
 }
 
+function asRecord(value: unknown): UnknownRecord | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  return value as UnknownRecord;
+}
+
 export function validateCreateAiProposal(payload: UnknownRecord): ValidationResult<CreateAiProposalRequest> {
   const errors: string[] = [];
 
@@ -33,6 +38,29 @@ export function validateCreateAiProposal(payload: UnknownRecord): ValidationResu
   const destination = asText(payload.destination);
   const days = asNumber(payload.days);
   const enforceQualityGate = asBoolean(payload.enforceQualityGate);
+  const renderOptionsPayload = payload.renderOptions;
+  let includeWarnings: boolean | undefined;
+  let compactMode: boolean | undefined;
+
+  if (renderOptionsPayload !== undefined) {
+    const renderOptionsRecord = asRecord(renderOptionsPayload);
+    if (!renderOptionsRecord) {
+      errors.push('renderOptions inválido');
+    } else {
+      const parsedIncludeWarnings = asBoolean(renderOptionsRecord.includeWarnings);
+      const parsedCompactMode = asBoolean(renderOptionsRecord.compactMode);
+
+      if (renderOptionsRecord.includeWarnings !== undefined && parsedIncludeWarnings === undefined) {
+        errors.push('renderOptions.includeWarnings inválido');
+      }
+      if (renderOptionsRecord.compactMode !== undefined && parsedCompactMode === undefined) {
+        errors.push('renderOptions.compactMode inválido');
+      }
+
+      includeWarnings = parsedIncludeWarnings;
+      compactMode = parsedCompactMode;
+    }
+  }
 
   if (!promptProfile) errors.push('promptProfile inválido');
   if (!itinerarySummary) errors.push('itinerarySummary es requerido');
@@ -46,6 +74,9 @@ export function validateCreateAiProposal(payload: UnknownRecord): ValidationResu
     itinerarySummary: itinerarySummary as string,
     destination: destination as string,
     days: days as number,
-    enforceQualityGate
+    enforceQualityGate,
+    renderOptions: includeWarnings !== undefined || compactMode !== undefined
+      ? { includeWarnings, compactMode }
+      : undefined
   });
 }

@@ -12,6 +12,8 @@ test('buildAiProposalRenderSchemaMetadata returns localized spanish descriptions
   assert.match(metadata.endpoints.web.description, /Vista previa HTML/);
   assert.equal(metadata.examples.webResponse.contentType, 'text/html; charset=utf-8');
   assert.equal(metadata.examples.pdfResponse.contentType, 'application/pdf');
+  assert.equal(metadata.examples.request.renderOptions.includeWarnings, true);
+  assert.equal(metadata.examples.request.renderOptions.compactMode, false);
 });
 
 test('buildAiProposalRenderSchemaMetadata returns localized english descriptions', () => {

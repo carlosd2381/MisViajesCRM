@@ -36,3 +36,36 @@ test('validateCreateAiProposal fails with invalid days', () => {
 
   assert.equal(result.ok, false);
 });
+
+test('validateCreateAiProposal accepts optional renderOptions flags', () => {
+  const result = validateCreateAiProposal({
+    promptProfile: 'storyteller',
+    itinerarySummary: 'Llegada, city tour y cena de bienvenida',
+    destination: 'Oaxaca',
+    days: 4,
+    renderOptions: {
+      includeWarnings: false,
+      compactMode: true
+    }
+  });
+
+  assert.equal(result.ok, true);
+  if (result.ok) {
+    assert.equal(result.value.renderOptions?.includeWarnings, false);
+    assert.equal(result.value.renderOptions?.compactMode, true);
+  }
+});
+
+test('validateCreateAiProposal rejects invalid renderOptions payload', () => {
+  const result = validateCreateAiProposal({
+    promptProfile: 'storyteller',
+    itinerarySummary: 'Llegada, city tour y cena de bienvenida',
+    destination: 'Oaxaca',
+    days: 4,
+    renderOptions: {
+      includeWarnings: 'false'
+    }
+  } as unknown as Record<string, unknown>);
+
+  assert.equal(result.ok, false);
+});

@@ -50,10 +50,17 @@ export async function handleAiProposalWebRender(context: RequestContext): Promis
     return;
   }
 
-  const data = await buildProposalOrRespondError(context);
+  const payload = await readJsonBody(context.req);
+  const validation = validateCreateAiProposal(payload);
+  if (!validation.ok) {
+    sendJson(context.res, 400, { message: messageByLocale(context.locale, 'Solicitud inválida'), errors: validation.errors });
+    return;
+  }
+
+  const data = await buildProposalOrRespondError(context, validation);
   if (!data) return;
 
-  const html = renderProposalHtml(data, context.locale);
+  const html = renderProposalHtml(data, context.locale, validation.value.renderOptions);
   context.res.statusCode = 200;
   context.res.setHeader('Content-Type', 'text/html; charset=utf-8');
   context.res.end(html);
@@ -75,9 +82,11 @@ export async function handleAiProposalPdfDraft(context: RequestContext): Promise
   context.res.end(pdf);
 }
 
-async function buildProposalOrRespondError(context: RequestContext) {
-  const payload = await readJsonBody(context.req);
-  const validation = validateCreateAiProposal(payload);
+async function buildProposalOrRespondError(
+  context: RequestContext,
+  existingValidation?: ReturnType<typeof validateCreateAiProposal>
+) {
+  const validation = existingValidation ?? validateCreateAiProposal(await readJsonBody(context.req));
   if (!validation.ok) {
     sendJson(context.res, 400, { message: messageByLocale(context.locale, 'Solicitud inválida'), errors: validation.errors });
     return null;

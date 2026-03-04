@@ -51,3 +51,17 @@ test('renderProposalPdfDraft localizes summary lines by locale', () => {
   assert.match(pdfEn, /Proposal Draft/);
   assert.match(pdfEn, /Schema:/);
 });
+
+test('renderProposalHtml honors includeWarnings=false option', () => {
+  const proposal = sampleProposal();
+  const html = renderProposalHtml(proposal, 'es-MX', { includeWarnings: false });
+
+  assert.doesNotMatch(html, /Alertas de calidad/);
+});
+
+test('renderProposalHtml honors compactMode=true option', () => {
+  const proposal = sampleProposal();
+  const html = renderProposalHtml(proposal, 'es-MX', { compactMode: true });
+
+  assert.doesNotMatch(html, /<h3>Validaciones<\/h3>/);
+});

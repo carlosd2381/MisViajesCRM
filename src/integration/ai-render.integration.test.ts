@@ -121,3 +121,31 @@ test('ai render schema metadata supports locale and method guard', async () => {
     await stopIntegrationServer(server);
   }
 });
+
+test('web render supports includeWarnings=false and compactMode=true options', async () => {
+  const { server, baseUrl } = await startIntegrationServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/ai/proposal/render/web`, {
+      method: 'POST',
+      headers: integrationTestHeaders('agent'),
+      body: JSON.stringify({
+        promptProfile: 'ghost_writer',
+        itinerarySummary: 'Viaje de cuatro días en Oaxaca con enfoque gastronómico y cultural.',
+        destination: 'Oaxaca',
+        days: 4,
+        renderOptions: {
+          includeWarnings: false,
+          compactMode: true
+        }
+      })
+    });
+
+    assert.equal(response.status, 200);
+    const html = await response.text();
+    assert.doesNotMatch(html, /Alertas de calidad/);
+    assert.doesNotMatch(html, /<h3>Validaciones<\/h3>/);
+  } finally {
+    await stopIntegrationServer(server);
+  }
+});

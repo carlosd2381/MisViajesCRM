@@ -35,12 +35,18 @@ export interface AiProfileSections {
   local_insider: LocalInsiderSection;
 }
 
+export interface AiRenderOptions {
+  includeWarnings?: boolean;
+  compactMode?: boolean;
+}
+
 export interface CreateAiProposalRequest {
   promptProfile: PromptProfile;
   itinerarySummary: string;
   destination: string;
   days: number;
   enforceQualityGate?: boolean;
+  renderOptions?: AiRenderOptions;
 }
 
 export interface AiProposalResponse {
