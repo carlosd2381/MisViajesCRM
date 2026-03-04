@@ -49,6 +49,16 @@ Atajo recomendado:
    - `AUTH_SMOKE_MANAGER_ID`, `AUTH_SMOKE_MANAGER_ROLE`
    - `AUTH_SMOKE_LOCALE`
 
+### Quick triage de summaries (CI)
+
+| Señal en logs | Interpretación rápida | Acción recomendada |
+| --- | --- | --- |
+| Falta `AUTH_SMOKE_SUMMARY` | El script no terminó flujo esperado o cambió formato | Revisar paso `Run auth smoke check`, confirmar exit code y artifact de logs del job |
+| `verifyTokenMode=false` cuando esperabas token | Se ejecutó variante header o variable no aplicada | Revisar matriz/inputs (`auth_smoke_modes`) y variable `AUTH_SMOKE_VERIFY_TOKEN_MODE` |
+| `checkedNegativeScenarios` sin `token_mode_unauth_protected_401` en corrida token | Cobertura token negativa no se ejecutó | Confirmar que el job corre con `AUTH_MODE=token` y `AUTH_SMOKE_VERIFY_TOKEN_MODE=true` |
+| `locale` distinto al esperado | Se corrió locale incorrecto o sin selector manual | Revisar matriz/inputs (`auth_smoke_locales`) y `AUTH_SMOKE_LOCALE` |
+| Falta `AI_SCHEMA_SMOKE_SUMMARY` | El schema smoke no completó validación de contrato | Revisar paso `Run AI schema smoke check` y artifact del job `ai-schema-smoke` |
+
 ## Escenario A — falla de validación JWT
 
 Síntoma:
