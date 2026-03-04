@@ -8,6 +8,33 @@ export interface AiProposalWarning {
   message: string;
 }
 
+export interface StorytellerSection {
+  tripHook: string;
+  dayNarrative: string;
+}
+
+export interface AuditorSection {
+  operationalChecklist: string[];
+  riskNotes: string[];
+}
+
+export interface GhostWriterSection {
+  headline: string;
+  callToAction: string;
+}
+
+export interface LocalInsiderSection {
+  localTips: string[];
+  signatureExperience: string;
+}
+
+export interface AiProfileSections {
+  storyteller: StorytellerSection;
+  auditor: AuditorSection;
+  ghost_writer: GhostWriterSection;
+  local_insider: LocalInsiderSection;
+}
+
 export interface CreateAiProposalRequest {
   promptProfile: PromptProfile;
   itinerarySummary: string;
@@ -21,5 +48,6 @@ export interface AiProposalResponse {
     narrative: string;
     qualityChecks: string[];
     warnings: AiProposalWarning[];
+    sections: AiProfileSections;
   };
 }

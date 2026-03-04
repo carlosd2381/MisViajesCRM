@@ -1,7 +1,7 @@
 import type { SupportedLocale } from '../../../core/i18n/supported-locales';
 import type { CreateAiProposalRequest } from '../api/proposal-contracts';
 import type { PromptProfile } from '../domain/prompt-profile';
-import type { AiProposalWarning } from '../api/proposal-contracts';
+import type { AiProfileSections, AiProposalWarning } from '../api/proposal-contracts';
 
 function prefixByProfile(profile: PromptProfile, locale: SupportedLocale): string {
   const es: Record<PromptProfile, string> = {
@@ -34,12 +34,75 @@ export function generateMockProposal(input: CreateAiProposalRequest, locale: Sup
       : ['Date consistency checked', 'Totals reviewed', 'Proposal tone validated'];
 
   const warnings = buildWarnings(input, locale);
+  const sections = buildSections(input, locale);
 
   return {
     profile: input.promptProfile,
     narrative,
     qualityChecks,
-    warnings
+    warnings,
+    sections
+  };
+}
+
+function buildSections(input: CreateAiProposalRequest, locale: SupportedLocale): AiProfileSections {
+  const storytellerTripHook =
+    locale === 'es-MX'
+      ? `${input.destination} en ${input.days} días con enfoque emocional y ritmo equilibrado.`
+      : `${input.destination} in ${input.days} days with emotional storytelling and balanced pacing.`;
+
+  const storytellerDayNarrative =
+    locale === 'es-MX'
+      ? `Día 1 de conexión con ${input.destination}, seguido por experiencias locales y cierre memorable.`
+      : `Day 1 introduces ${input.destination}, followed by local experiences and a memorable close.`;
+
+  const checklist =
+    locale === 'es-MX'
+      ? ['Validar ventanas de traslado', 'Confirmar políticas de proveedor', 'Revisar hitos de pago']
+      : ['Validate transfer windows', 'Confirm supplier policies', 'Review payment milestones'];
+
+  const riskNotes =
+    locale === 'es-MX'
+      ? ['Posible saturación de agenda en días pico', 'Dependencia de disponibilidad de proveedor']
+      : ['Possible schedule saturation on peak days', 'Dependency on supplier availability'];
+
+  const headline =
+    locale === 'es-MX'
+      ? `Propuesta premium para ${input.destination}`
+      : `Premium proposal for ${input.destination}`;
+
+  const callToAction =
+    locale === 'es-MX'
+      ? 'Autoriza esta versión para emitir PDF y bloquear disponibilidad.'
+      : 'Approve this version to issue PDF and lock availability.';
+
+  const localTips =
+    locale === 'es-MX'
+      ? ['Reservar experiencias culinarias con anticipación', 'Priorizar traslados temprano en temporada alta']
+      : ['Book culinary experiences in advance', 'Prioritize early transfers during high season'];
+
+  const signatureExperience =
+    locale === 'es-MX'
+      ? `Experiencia distintiva sugerida en ${input.destination}: recorrido privado de identidad local.`
+      : `Recommended signature experience in ${input.destination}: private local-identity tour.`;
+
+  return {
+    storyteller: {
+      tripHook: storytellerTripHook,
+      dayNarrative: storytellerDayNarrative
+    },
+    auditor: {
+      operationalChecklist: checklist,
+      riskNotes
+    },
+    ghost_writer: {
+      headline,
+      callToAction
+    },
+    local_insider: {
+      localTips,
+      signatureExperience
+    }
   };
 }
 

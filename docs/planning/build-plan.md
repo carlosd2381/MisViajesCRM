@@ -127,6 +127,7 @@ Construir un CRM de agencia de viajes AI-native con interfaz primaria en `es-MX`
 - Módulo `management` v1 implementado (dominio/API/validación/repositorios/rutas RBAC) con migración SQL base y cobertura inicial de integración.
 - Pipeline AI mock + contrato JSON implementado vía endpoint protegido `POST /ai/proposal` con perfiles base (Storyteller, Auditor, Ghost Writer, Local Insider).
 - Reglas de quality-auditor AI agregadas en `/ai/proposal` con warnings estructurados por consistencia y completitud del resumen.
+- Secciones JSON por perfil agregadas en `/ai/proposal` para consumo de renderizado (storyteller, auditor, ghost_writer, local_insider).
 
 ## Mantenimiento del documento
 
@@ -189,3 +190,4 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 - 2026-03-04: Se agregó módulo `management` v1 (API+validación+repos+RBAC+migración) con cobertura inicial de pruebas de integración.
 - 2026-03-04: Se implementó pipeline AI mock + contrato JSON inicial con endpoint protegido `/ai/proposal` y cobertura de pruebas.
 - 2026-03-04: Se agregaron reglas iniciales de auditoría de calidad AI (warnings estructurados) y cobertura de pruebas unitarias/integración.
+- 2026-03-04: Se agregaron bloques JSON explícitos por perfil AI para soporte de renderización posterior de propuesta/PDF.

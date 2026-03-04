@@ -73,11 +73,19 @@ test('agent can generate AI proposal mock', async () => {
         profile: string;
         narrative: string;
         warnings: Array<{ code: string; severity: string; message: string }>;
+        sections: {
+          storyteller: { tripHook: string; dayNarrative: string };
+          auditor: { operationalChecklist: string[]; riskNotes: string[] };
+          ghost_writer: { headline: string; callToAction: string };
+          local_insider: { localTips: string[]; signatureExperience: string };
+        };
       };
     };
     assert.equal(payload.data.profile, 'storyteller');
     assert.match(payload.data.narrative, /Oaxaca/);
     assert.ok(Array.isArray(payload.data.warnings));
+    assert.equal(typeof payload.data.sections.storyteller.tripHook, 'string');
+    assert.ok(Array.isArray(payload.data.sections.auditor.operationalChecklist));
   } finally {
     await stopServer(server);
   }

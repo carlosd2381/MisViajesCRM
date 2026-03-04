@@ -13,6 +13,8 @@ test('generateMockProposal returns warnings for short summary and missing destin
   assert.ok(result.warnings.length >= 2);
   assert.ok(result.warnings.some((warning) => warning.code === 'SUMMARY_TOO_SHORT'));
   assert.ok(result.warnings.some((warning) => warning.code === 'DESTINATION_NOT_REFERENCED'));
+  assert.equal(typeof result.sections.storyteller.tripHook, 'string');
+  assert.ok(Array.isArray(result.sections.auditor.operationalChecklist));
 });
 
 test('generateMockProposal emits long-trip warning when day breakdown is missing', () => {
@@ -36,4 +38,20 @@ test('generateMockProposal can return no warnings for complete summary', () => {
   }, 'es-MX');
 
   assert.equal(result.warnings.length, 0);
+  assert.equal(typeof result.sections.ghost_writer.headline, 'string');
+  assert.equal(typeof result.sections.local_insider.signatureExperience, 'string');
+});
+
+test('generateMockProposal exposes all profile sections for downstream rendering', () => {
+  const result = generateMockProposal({
+    promptProfile: 'local_insider',
+    itinerarySummary: 'Día 1 llegada a Oaxaca y experiencia gastronómica local con guía.',
+    destination: 'Oaxaca',
+    days: 1
+  }, 'es-MX');
+
+  assert.ok(result.sections.storyteller.dayNarrative.length > 0);
+  assert.ok(result.sections.auditor.riskNotes.length > 0);
+  assert.ok(result.sections.ghost_writer.callToAction.length > 0);
+  assert.ok(result.sections.local_insider.localTips.length > 0);
 });
