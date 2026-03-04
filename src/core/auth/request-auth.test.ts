@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { getUserContextFromHeaders } from './request-auth';
 import {
+  permissionForCommissions,
   permissionForClients,
   permissionForItineraries,
   permissionForLeads,
@@ -52,4 +53,11 @@ test('permissionForSuppliers maps methods correctly', () => {
   assert.equal(permissionForSuppliers('POST'), 'write:suppliers');
   assert.equal(permissionForSuppliers('PATCH'), 'write:suppliers');
   assert.equal(permissionForSuppliers('DELETE'), null);
+});
+
+test('permissionForCommissions maps methods correctly', () => {
+  assert.equal(permissionForCommissions('GET'), 'read:commissions');
+  assert.equal(permissionForCommissions('POST'), 'reconcile:commissions');
+  assert.equal(permissionForCommissions('PATCH'), 'reconcile:commissions');
+  assert.equal(permissionForCommissions('DELETE'), null);
 });

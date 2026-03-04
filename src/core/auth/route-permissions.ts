@@ -18,6 +18,12 @@ export function permissionForSuppliers(method: string | undefined): PermissionKe
   return null;
 }
 
+export function permissionForCommissions(method: string | undefined): PermissionKey | null {
+  if (method === 'GET') return 'read:commissions';
+  if (method === 'POST' || method === 'PATCH') return 'reconcile:commissions';
+  return null;
+}
+
 export function permissionForItineraries(method: string | undefined): PermissionKey | null {
   if (method === 'GET') return 'read:itineraries';
   if (method === 'POST' || method === 'PATCH') return 'write:itineraries';

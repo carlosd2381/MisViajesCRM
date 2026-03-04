@@ -3,6 +3,7 @@ import { extractLocale, notFound, parsePathSegments, sendJson } from './core/htt
 import { buildRepositories, type RepositoryBundle } from './core/bootstrap/repositories';
 import { authorizeRequest, type AuthMode } from './core/auth/request-auth';
 import {
+  permissionForCommissions,
   permissionForClients,
   permissionForItineraries,
   permissionForLeads,
@@ -22,6 +23,10 @@ import {
   handleSupplierResource,
   handleSuppliersCollection
 } from './modules/suppliers/api/supplier-http-handlers';
+import {
+  handleCommissionResource,
+  handleCommissionsCollection
+} from './modules/commissions/api/commission-http-handlers';
 import {
   handleItineraryItemsCollection,
   handleItinerariesCollection,
@@ -175,6 +180,25 @@ function handleSuppliersRoute(
   return Promise.resolve();
 }
 
+function handleCommissionsRoute(
+  req: IncomingMessage,
+  res: ServerResponse,
+  pathSegments: string[],
+  locale: string,
+  repositories: RepositoryBundle,
+  authMode: AuthMode
+): Promise<void> | null {
+  if (pathSegments[0] !== 'commissions') return null;
+
+  const permission = permissionForCommissions(req.method);
+  if (!canProceed(req, res, locale, permission, authMode)) return Promise.resolve();
+
+  const context = { req, res, pathSegments, locale };
+  if (pathSegments.length === 1) return handleCommissionsCollection(context, repositories.commissions);
+  if (pathSegments.length === 2) return handleCommissionResource(context, repositories.commissions);
+  return Promise.resolve();
+}
+
 function handler(repositories: RepositoryBundle, options: AppOptions) {
   const authMode = options.authMode ?? 'header';
   const refreshTokens = options.refreshTokenService ?? buildRefreshTokenService(tokenServiceOptions());
@@ -202,6 +226,9 @@ function handler(repositories: RepositoryBundle, options: AppOptions) {
 
       const suppliersRoute = handleSuppliersRoute(req, res, pathSegments, locale, repositories, authMode);
       if (suppliersRoute) return suppliersRoute;
+
+      const commissionsRoute = handleCommissionsRoute(req, res, pathSegments, locale, repositories, authMode);
+      if (commissionsRoute) return commissionsRoute;
 
       const itinerariesRoute = handleItinerariesRoute(req, res, pathSegments, locale, repositories, authMode);
       if (itinerariesRoute) return itinerariesRoute;
