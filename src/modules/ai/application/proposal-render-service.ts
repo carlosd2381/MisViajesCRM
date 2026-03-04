@@ -2,6 +2,23 @@ import type { AiProposalResponse } from '../api/proposal-contracts';
 
 type ProposalData = AiProposalResponse['data'];
 
+type RenderLabels = {
+  previewTitle: string;
+  draftTitle: string;
+  schema: string;
+  generated: string;
+  profile: string;
+  narrative: string;
+  headline: string;
+  callToAction: string;
+  warnings: string;
+  noWarnings: string;
+  qualityChecks: string;
+  localTips: string;
+  checksTitle: string;
+  warningsTitle: string;
+};
+
 function escapeHtml(value: string): string {
   return value
     .replaceAll('&', '&amp;')
@@ -15,33 +32,70 @@ function escapePdfText(value: string): string {
   return value.replaceAll('\\', '\\\\').replaceAll('(', '\\(').replaceAll(')', '\\)');
 }
 
-function proposalLines(proposal: ProposalData): string[] {
-  const warningsLabel = proposal.warnings.length === 0 ? 'None' : proposal.warnings.length.toString();
+function labelsByLocale(locale: string): RenderLabels {
+  if (locale === 'en-US') {
+    return {
+      previewTitle: 'Proposal preview',
+      draftTitle: 'Mis Viajes CRM - Proposal Draft',
+      schema: 'Schema',
+      generated: 'Generated',
+      profile: 'Profile',
+      narrative: 'Narrative',
+      headline: 'Headline',
+      callToAction: 'CTA',
+      warnings: 'Warnings',
+      noWarnings: 'None',
+      qualityChecks: 'Quality checks',
+      localTips: 'Local tips',
+      checksTitle: 'Checks',
+      warningsTitle: 'Quality warnings'
+    };
+  }
+
+  return {
+    previewTitle: 'Vista previa de propuesta',
+    draftTitle: 'Mis Viajes CRM - Borrador de propuesta',
+    schema: 'Esquema',
+    generated: 'Generado',
+    profile: 'Perfil',
+    narrative: 'Narrativa',
+    headline: 'Titular',
+    callToAction: 'Llamado a la acción',
+    warnings: 'Alertas',
+    noWarnings: 'Ninguna',
+    qualityChecks: 'Validaciones de calidad',
+    localTips: 'Tips locales',
+    checksTitle: 'Validaciones',
+    warningsTitle: 'Alertas de calidad'
+  };
+}
+
+function proposalLines(proposal: ProposalData, locale: string): string[] {
+  const labels = labelsByLocale(locale);
+  const warningsLabel = proposal.warnings.length === 0 ? labels.noWarnings : proposal.warnings.length.toString();
   const checklist = proposal.qualityChecks.join(' | ');
   const tips = proposal.sections.local_insider.localTips.join(' | ');
 
   return [
-    'Mis Viajes CRM - Proposal Draft',
-    `Generated: ${proposal.generatedAt}`,
-    `Profile: ${proposal.profile}`,
-    `Schema: ${proposal.schemaVersion}`,
-    `Narrative: ${proposal.narrative}`,
-    `Headline: ${proposal.sections.ghost_writer.headline}`,
-    `CTA: ${proposal.sections.ghost_writer.callToAction}`,
-    `Warnings: ${warningsLabel}`,
-    `Quality checks: ${checklist}`,
-    `Local tips: ${tips}`
+    labels.draftTitle,
+    `${labels.generated}: ${proposal.generatedAt}`,
+    `${labels.profile}: ${proposal.profile}`,
+    `${labels.schema}: ${proposal.schemaVersion}`,
+    `${labels.narrative}: ${proposal.narrative}`,
+    `${labels.headline}: ${proposal.sections.ghost_writer.headline}`,
+    `${labels.callToAction}: ${proposal.sections.ghost_writer.callToAction}`,
+    `${labels.warnings}: ${warningsLabel}`,
+    `${labels.qualityChecks}: ${checklist}`,
+    `${labels.localTips}: ${tips}`
   ];
 }
 
 export function renderProposalHtml(proposal: ProposalData, locale: string): string {
-  const title = locale === 'es-MX' ? 'Vista previa de propuesta' : 'Proposal preview';
-  const warningsTitle = locale === 'es-MX' ? 'Alertas de calidad' : 'Quality warnings';
-  const checksTitle = locale === 'es-MX' ? 'Validaciones' : 'Checks';
+  const labels = labelsByLocale(locale);
 
   const warningsItems =
     proposal.warnings.length === 0
-      ? `<li>${locale === 'es-MX' ? 'Sin alertas' : 'No warnings'}</li>`
+      ? `<li>${escapeHtml(labels.noWarnings)}</li>`
       : proposal.warnings
           .map((warning) => `<li>[${escapeHtml(warning.severity)}] ${escapeHtml(warning.message)}</li>`)
           .join('');
@@ -53,23 +107,23 @@ export function renderProposalHtml(proposal: ProposalData, locale: string): stri
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>${escapeHtml(title)}</title>
+    <title>${escapeHtml(labels.previewTitle)}</title>
   </head>
   <body>
     <main>
-      <h1>${escapeHtml(title)}</h1>
-      <p><strong>Schema:</strong> ${escapeHtml(proposal.schemaVersion)}</p>
-      <p><strong>Generated:</strong> ${escapeHtml(proposal.generatedAt)}</p>
-      <p><strong>Profile:</strong> ${escapeHtml(proposal.profile)}</p>
+      <h1>${escapeHtml(labels.previewTitle)}</h1>
+      <p><strong>${escapeHtml(labels.schema)}:</strong> ${escapeHtml(proposal.schemaVersion)}</p>
+      <p><strong>${escapeHtml(labels.generated)}:</strong> ${escapeHtml(proposal.generatedAt)}</p>
+      <p><strong>${escapeHtml(labels.profile)}:</strong> ${escapeHtml(proposal.profile)}</p>
       <h2>${escapeHtml(proposal.sections.ghost_writer.headline)}</h2>
       <p>${escapeHtml(proposal.narrative)}</p>
       <p>${escapeHtml(proposal.sections.ghost_writer.callToAction)}</p>
       <section>
-        <h3>${escapeHtml(checksTitle)}</h3>
+        <h3>${escapeHtml(labels.checksTitle)}</h3>
         <ul>${checksItems}</ul>
       </section>
       <section>
-        <h3>${escapeHtml(warningsTitle)}</h3>
+        <h3>${escapeHtml(labels.warningsTitle)}</h3>
         <ul>${warningsItems}</ul>
       </section>
     </main>
@@ -77,8 +131,8 @@ export function renderProposalHtml(proposal: ProposalData, locale: string): stri
 </html>`;
 }
 
-export function renderProposalPdfDraft(proposal: ProposalData): Buffer {
-  const lines = proposalLines(proposal).slice(0, 18);
+export function renderProposalPdfDraft(proposal: ProposalData, locale = 'es-MX'): Buffer {
+  const lines = proposalLines(proposal, locale).slice(0, 18);
   const body = lines
     .map((line, index) => {
       const yOffset = index === 0 ? '' : '0 -16 Td\n';

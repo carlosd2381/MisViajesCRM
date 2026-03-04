@@ -55,7 +55,7 @@ export async function handleAiProposalPdfDraft(context: RequestContext): Promise
   const data = await buildProposalOrRespondError(context);
   if (!data) return;
 
-  const pdf = renderProposalPdfDraft(data);
+  const pdf = renderProposalPdfDraft(data, context.locale);
   context.res.statusCode = 200;
   context.res.setHeader('Content-Type', 'application/pdf');
   context.res.setHeader('Content-Disposition', 'inline; filename="proposal-draft.pdf"');
