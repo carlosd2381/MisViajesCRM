@@ -224,6 +224,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 - 2026-03-03: Se añadió modo de autenticación por token y cobertura de pruebas para ambos modos de auth.
 - 2026-03-03: Se migró el modo token a JWT estándar con validación de claims y selección de clave por `kid`.
 - 2026-03-03: Se ajustó política de calidad a umbrales soft/hard (archivo y función) con proceso formal de excepciones.
+- 2026-03-03: [Resumen] Bloque auth/OTel y operación de smoke completado: sesiones JWT (refresh/revoke), métricas (JSON+Prometheus+OTel), runbooks/templates y smoke-checks auth/schema con cobertura CI.
 - 2026-03-03: Se agregó flujo MVP de refresh/revoke para sesiones JWT con cobertura de pruebas.
 - 2026-03-03: Se agregó persistencia PostgreSQL para `auth_refresh_sessions` y bootstrap por `STORAGE_MODE`.
 - 2026-03-03: Se agregaron endpoints `/auth/revoke-all` y `/auth/prune` con controles de rol.
