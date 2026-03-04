@@ -176,6 +176,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 - 2026-03-03: Se agregó quick-start de entorno con orden recomendado de plantillas (`auth` + `otel`).
 - 2026-03-03: Se agregó runbook operativo para incidentes de auth/JWT/sesiones/OTel.
 - 2026-03-03: Se agregó script `npm run auth:smoke` para validación rápida de endpoints auth/session/metrics.
+- 2026-03-03: Se endureció `auth:smoke` con checks negativos localizados (`401` no autenticado, `403` acceso denegado, `401` refresh inválido) y resumen estructurado de ejecución.
 - 2026-03-03: Se agregó job CI `auth-smoke` en workflow de calidad para detección temprana de regresiones auth.
 - 2026-03-03: Se amplió `auth-smoke` en CI para cubrir matriz `AUTH_MODE=header|token` y ruta protegida con bearer.
 - 2026-03-03: Se agregó resumen de ejecución (`mode`/flags) en logs de CI para `auth-smoke`.

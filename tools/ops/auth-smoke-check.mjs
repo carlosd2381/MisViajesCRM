@@ -6,6 +6,10 @@ const MANAGER_ID = process.env.AUTH_SMOKE_MANAGER_ID ?? 'smoke_manager';
 const MANAGER_ROLE = process.env.AUTH_SMOKE_MANAGER_ROLE ?? 'manager';
 const VERIFY_TOKEN_MODE = (process.env.AUTH_SMOKE_VERIFY_TOKEN_MODE ?? 'false').toLowerCase() === 'true';
 
+function expectedMessage(spanish, english) {
+  return LOCALE === 'en-US' ? english : spanish;
+}
+
 function headers(userId, role, contentType = 'application/json') {
   return {
     'content-type': contentType,
@@ -27,11 +31,50 @@ async function expectStatus(name, response, status) {
   }
 }
 
+async function expectLocalizedMessage(name, response, spanish, english) {
+  const payload = await response.json();
+  const expected = expectedMessage(spanish, english);
+  if (payload?.message !== expected) {
+    throw new Error(`${name} failed: expected message \"${expected}\", got \"${payload?.message ?? ''}\"`);
+  }
+}
+
+async function assertNegativeAuthScenarios() {
+  const unauthMetrics = await request('/auth/metrics', {
+    method: 'GET',
+    headers: { 'x-locale': LOCALE }
+  });
+  await expectStatus('unauth metrics', unauthMetrics, 401);
+  await expectLocalizedMessage('unauth metrics message', unauthMetrics, 'No autenticado', 'Unauthenticated');
+
+  const forbiddenMetrics = await request('/auth/metrics', {
+    method: 'GET',
+    headers: headers(AGENT_ID, AGENT_ROLE)
+  });
+  await expectStatus('forbidden metrics', forbiddenMetrics, 403);
+  await expectLocalizedMessage('forbidden metrics message', forbiddenMetrics, 'Acceso denegado', 'Access denied');
+
+  const invalidRefresh = await request('/auth/refresh', {
+    method: 'POST',
+    headers: headers(AGENT_ID, AGENT_ROLE),
+    body: JSON.stringify({ refreshToken: 'smoke_invalid_refresh_token' })
+  });
+  await expectStatus('invalid refresh', invalidRefresh, 401);
+  await expectLocalizedMessage(
+    'invalid refresh message',
+    invalidRefresh,
+    'Refresh token inválido o expirado',
+    'Invalid or expired refresh token'
+  );
+}
+
 async function run() {
   console.log(`Running auth smoke-check against ${BASE_URL}`);
 
   const health = await request('/health');
   await expectStatus('health', health, 200);
+
+  await assertNegativeAuthScenarios();
 
   const issue = await request('/auth/token', {
     method: 'POST',
@@ -93,6 +136,14 @@ async function run() {
     headers: headers(MANAGER_ID, MANAGER_ROLE, 'application/json')
   });
   await expectStatus('metrics prom', prom, 200);
+
+  const summary = {
+    locale: LOCALE,
+    verifyTokenMode: VERIFY_TOKEN_MODE,
+    checkedNegativeScenarios: ['unauth_metrics_401', 'forbidden_metrics_403', 'invalid_refresh_401']
+  };
+
+  console.log(`AUTH_SMOKE_SUMMARY ${JSON.stringify(summary)}`);
 
   console.log('✅ Auth smoke-check passed.');
 }
