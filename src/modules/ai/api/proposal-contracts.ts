@@ -40,6 +40,7 @@ export interface CreateAiProposalRequest {
   itinerarySummary: string;
   destination: string;
   days: number;
+  enforceQualityGate?: boolean;
 }
 
 export interface AiProposalResponse {

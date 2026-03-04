@@ -145,3 +145,30 @@ test('external_dmc cannot generate AI proposal mock', async () => {
     await stopServer(server);
   }
 });
+
+test('ai proposal strict quality gate returns 422 when high severity warnings exist', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/ai/proposal`, {
+      method: 'POST',
+      headers: testHeaders('agent'),
+      body: JSON.stringify({
+        promptProfile: 'auditor',
+        itinerarySummary: 'Plan breve',
+        destination: 'Oaxaca',
+        days: 12,
+        enforceQualityGate: true
+      })
+    });
+
+    assert.equal(response.status, 422);
+    const payload = (await response.json()) as {
+      data: { warnings: Array<{ code: string; severity: string }> };
+    };
+
+    assert.ok(payload.data.warnings.some((warning) => warning.code === 'QUALITY_GATE_BLOCKER'));
+  } finally {
+    await stopServer(server);
+  }
+});

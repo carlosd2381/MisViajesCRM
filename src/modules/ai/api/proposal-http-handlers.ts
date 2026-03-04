@@ -19,6 +19,15 @@ export async function handleAiProposalCollection(context: RequestContext): Promi
 
   const locale: SupportedLocale = context.locale === 'en-US' ? 'en-US' : 'es-MX';
   const data = generateMockProposal(validation.value, locale);
+
+  if (validation.value.enforceQualityGate === true && data.warnings.some((warning) => warning.severity === 'high')) {
+    sendJson(context.res, 422, {
+      data,
+      message: messageByLocale(context.locale, 'Propuesta bloqueada por quality gate')
+    });
+    return;
+  }
+
   sendJson(context.res, 200, { data, message: messageByLocale(context.locale, 'Propuesta AI generada (mock)') });
 }
 
@@ -31,6 +40,7 @@ function englishMessage(spanish: string): string {
   const map: Record<string, string> = {
     'Método no permitido': 'Method not allowed',
     'Solicitud inválida': 'Invalid request',
+    'Propuesta bloqueada por quality gate': 'Proposal blocked by quality gate',
     'Propuesta AI generada (mock)': 'AI proposal generated (mock)'
   };
 

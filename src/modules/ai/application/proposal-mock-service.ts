@@ -149,5 +149,16 @@ function buildWarnings(input: CreateAiProposalRequest, locale: SupportedLocale):
     });
   }
 
+  if (input.days >= 10 && input.itinerarySummary.length < 80) {
+    warnings.push({
+      code: 'QUALITY_GATE_BLOCKER',
+      severity: 'high',
+      message:
+        locale === 'es-MX'
+          ? 'El resumen es insuficiente para un itinerario largo y no cumple el umbral de calidad.'
+          : 'The summary is insufficient for a long itinerary and does not pass the quality threshold.'
+    });
+  }
+
   return warnings;
 }

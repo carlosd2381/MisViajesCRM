@@ -58,3 +58,16 @@ test('generateMockProposal exposes all profile sections for downstream rendering
   assert.ok(result.sections.ghost_writer.callToAction.length > 0);
   assert.ok(result.sections.local_insider.localTips.length > 0);
 });
+
+test('generateMockProposal emits high severity blocker for long itinerary with insufficient summary', () => {
+  const result = generateMockProposal({
+    promptProfile: 'auditor',
+    itinerarySummary: 'Resumen breve para viaje largo',
+    destination: 'Oaxaca',
+    days: 12,
+    enforceQualityGate: true
+  }, 'es-MX');
+
+  assert.ok(result.warnings.some((warning) => warning.code === 'QUALITY_GATE_BLOCKER'));
+  assert.ok(result.warnings.some((warning) => warning.severity === 'high'));
+});

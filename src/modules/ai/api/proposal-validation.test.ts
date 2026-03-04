@@ -7,10 +7,12 @@ test('validateCreateAiProposal succeeds with required fields', () => {
     promptProfile: 'storyteller',
     itinerarySummary: 'Llegada, city tour y cena de bienvenida',
     destination: 'Oaxaca',
-    days: 4
+    days: 4,
+    enforceQualityGate: true
   });
 
   assert.equal(result.ok, true);
+  if (result.ok) assert.equal(result.value.enforceQualityGate, true);
 });
 
 test('validateCreateAiProposal fails with invalid profile', () => {

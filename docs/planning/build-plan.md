@@ -129,6 +129,7 @@ Construir un CRM de agencia de viajes AI-native con interfaz primaria en `es-MX`
 - Reglas de quality-auditor AI agregadas en `/ai/proposal` con warnings estructurados por consistencia y completitud del resumen.
 - Secciones JSON por perfil agregadas en `/ai/proposal` para consumo de renderizado (storyteller, auditor, ghost_writer, local_insider).
 - Contrato AI versionado (`schemaVersion`) y orden estable de secciones (`sectionOrder`) agregados para integraciones de render/PDF.
+- Modo estricto de quality gate agregado en `/ai/proposal` mediante `enforceQualityGate` (respuesta `422` cuando existan warnings `high`).
 
 ## Mantenimiento del documento
 
@@ -193,3 +194,4 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 - 2026-03-04: Se agregaron reglas iniciales de auditoría de calidad AI (warnings estructurados) y cobertura de pruebas unitarias/integración.
 - 2026-03-04: Se agregaron bloques JSON explícitos por perfil AI para soporte de renderización posterior de propuesta/PDF.
 - 2026-03-04: Se agregó versionado del payload AI (`ai-proposal.v1`) y metadata de orden estable de secciones para consumidores downstream.
+- 2026-03-04: Se agregó enforcement opcional de quality gate en propuestas AI (`422` con bloqueadores de severidad alta).

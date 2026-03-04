@@ -13,6 +13,11 @@ function asNumber(value: unknown): number | undefined {
   return value;
 }
 
+function asBoolean(value: unknown): boolean | undefined {
+  if (typeof value !== 'boolean') return undefined;
+  return value;
+}
+
 function parseProfile(value: unknown): PromptProfile | undefined {
   const text = asText(value);
   if (!text) return undefined;
@@ -27,6 +32,7 @@ export function validateCreateAiProposal(payload: UnknownRecord): ValidationResu
   const itinerarySummary = asText(payload.itinerarySummary);
   const destination = asText(payload.destination);
   const days = asNumber(payload.days);
+  const enforceQualityGate = asBoolean(payload.enforceQualityGate);
 
   if (!promptProfile) errors.push('promptProfile inválido');
   if (!itinerarySummary) errors.push('itinerarySummary es requerido');
@@ -39,6 +45,7 @@ export function validateCreateAiProposal(payload: UnknownRecord): ValidationResu
     promptProfile: promptProfile as PromptProfile,
     itinerarySummary: itinerarySummary as string,
     destination: destination as string,
-    days: days as number
+    days: days as number,
+    enforceQualityGate
   });
 }
