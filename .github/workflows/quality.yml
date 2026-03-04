@@ -136,12 +136,7 @@ jobs:
 
           echo "$SUMMARY_LINE"
 
-          {
-            echo "### Quality helper tests"
-            echo ""
-            echo "- ${SUMMARY_LINE}"
-            echo "- Parsed summary: ${PARSED_SUMMARY}"
-          } >> "$GITHUB_STEP_SUMMARY"
+          bash tools/ops/ci-step-summary.sh "Quality helper tests" "$SUMMARY_LINE" "$PARSED_SUMMARY"
 
   auth-smoke:
     needs: changes
@@ -222,12 +217,7 @@ jobs:
           echo "- AUTH_SMOKE_VERIFY_TOKEN_MODE=${AUTH_SMOKE_VERIFY_TOKEN_MODE}"
           echo "- ${SUMMARY_LINE}"
 
-          {
-            echo "### Auth smoke (${AUTH_MODE_VALUE}, ${AUTH_SMOKE_LOCALE})"
-            echo ""
-            echo "- ${SUMMARY_LINE}"
-            echo "- Parsed summary: ${PARSED_SUMMARY}"
-          } >> "$GITHUB_STEP_SUMMARY"
+          bash tools/ops/ci-step-summary.sh "Auth smoke (${AUTH_MODE_VALUE}, ${AUTH_SMOKE_LOCALE})" "$SUMMARY_LINE" "$PARSED_SUMMARY"
 
       - name: Stop API
         if: always() && steps.scope.outputs.run_combo == 'true'
@@ -322,12 +312,7 @@ jobs:
           echo "- AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION=${AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION}"
           echo "- ${SUMMARY_LINE}"
 
-          {
-            echo "### AI schema smoke (${AI_SCHEMA_SMOKE_AUTH_MODE}, ${AI_SCHEMA_SMOKE_LOCALE})"
-            echo ""
-            echo "- ${SUMMARY_LINE}"
-            echo "- Parsed summary: ${PARSED_SUMMARY}"
-          } >> "$GITHUB_STEP_SUMMARY"
+          bash tools/ops/ci-step-summary.sh "AI schema smoke (${AI_SCHEMA_SMOKE_AUTH_MODE}, ${AI_SCHEMA_SMOKE_LOCALE})" "$SUMMARY_LINE" "$PARSED_SUMMARY"
 
       - name: Stop API
         if: always() && steps.scope.outputs.run_combo == 'true'
@@ -419,12 +404,7 @@ jobs:
           echo "- AI_RENDER_SMOKE_LOCALE=${AI_RENDER_SMOKE_LOCALE}"
           echo "- ${SUMMARY_LINE}"
 
-          {
-            echo "### AI render smoke (${AI_RENDER_SMOKE_AUTH_MODE}, ${AI_RENDER_SMOKE_LOCALE})"
-            echo ""
-            echo "- ${SUMMARY_LINE}"
-            echo "- Parsed summary: ${PARSED_SUMMARY}"
-          } >> "$GITHUB_STEP_SUMMARY"
+          bash tools/ops/ci-step-summary.sh "AI render smoke (${AI_RENDER_SMOKE_AUTH_MODE}, ${AI_RENDER_SMOKE_LOCALE})" "$SUMMARY_LINE" "$PARSED_SUMMARY"
 
       - name: Stop API
         if: always() && steps.scope.outputs.run_combo == 'true'
@@ -471,12 +451,7 @@ jobs:
           echo "Smoke matrix run summary"
           echo "- ${SUMMARY_LINE}"
 
-          {
-            echo "### Smoke matrix"
-            echo ""
-            echo "- ${SUMMARY_LINE}"
-            echo "- Parsed summary: ${PARSED_SUMMARY}"
-          } >> "$GITHUB_STEP_SUMMARY"
+          bash tools/ops/ci-step-summary.sh "Smoke matrix" "$SUMMARY_LINE" "$PARSED_SUMMARY"
 
       - name: Upload smoke matrix summary artifact
         if: always()
