@@ -94,6 +94,7 @@ CI:
 - El job `auth-smoke` imprime un resumen de modo/flags para facilitar diagnóstico en logs de CI.
 - El workflow usa `concurrency` (cancelación de runs previos por rama) y `timeout` por job para evitar ejecuciones colgadas/duplicadas.
 - Los jobs de CI instalan dependencias con `npm ci` para ejecuciones determinísticas basadas en `package-lock.json`.
+- El bootstrap de runtime en `quality.yml` (`setup-node` + `npm ci`) se centraliza con la acción compuesta local `.github/actions/setup-node-ci` para reducir duplicación entre jobs.
 - El job `auth-smoke` se ejecuta solo si hay cambios en rutas relevantes de auth/backend/ops/CI.
 - Los jobs de smoke validan que exista `AUTH_SMOKE_SUMMARY` / `AI_SCHEMA_SMOKE_SUMMARY` / `AI_RENDER_SMOKE_SUMMARY` en salida; si falta, el job falla.
 - Los summaries detectados se publican también en `GITHUB_STEP_SUMMARY` para lectura rápida del run.

@@ -103,13 +103,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Setup Node and dependencies
+        uses: ./.github/actions/setup-node-ci
         with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm ci
+          node-version: '20'
 
       - name: Run quality checks
         run: npm run quality
@@ -165,15 +162,11 @@ jobs:
         id: scope
         run: bash tools/ops/ci-matrix-scope.sh "${{ github.event_name }}" "${{ github.event.inputs.auth_smoke_modes }}" "${{ github.event.inputs.auth_smoke_locales }}" "${{ matrix.auth-mode }}" "${{ matrix.locale }}" >> "$GITHUB_OUTPUT"
 
-      - name: Setup Node
+      - name: Setup Node and dependencies
         if: steps.scope.outputs.run_combo == 'true'
-        uses: actions/setup-node@v4
+        uses: ./.github/actions/setup-node-ci
         with:
-          node-version: 20
-
-      - name: Install dependencies
-        if: steps.scope.outputs.run_combo == 'true'
-        run: npm ci
+          node-version: '20'
 
       - name: Start API
         if: steps.scope.outputs.run_combo == 'true'
@@ -242,15 +235,11 @@ jobs:
         id: scope
         run: bash tools/ops/ci-matrix-scope.sh "${{ github.event_name }}" "${{ github.event.inputs.ai_schema_smoke_auth_modes }}" "${{ github.event.inputs.ai_schema_smoke_locales }}" "${{ matrix.auth-mode }}" "${{ matrix.locale }}" >> "$GITHUB_OUTPUT"
 
-      - name: Setup Node
+      - name: Setup Node and dependencies
         if: steps.scope.outputs.run_combo == 'true'
-        uses: actions/setup-node@v4
+        uses: ./.github/actions/setup-node-ci
         with:
-          node-version: 20
-
-      - name: Install dependencies
-        if: steps.scope.outputs.run_combo == 'true'
-        run: npm ci
+          node-version: '20'
 
       - name: Start API
         if: steps.scope.outputs.run_combo == 'true'
@@ -320,15 +309,11 @@ jobs:
         id: scope
         run: bash tools/ops/ci-matrix-scope.sh "${{ github.event_name }}" "${{ github.event.inputs.ai_render_smoke_auth_modes }}" "${{ github.event.inputs.ai_render_smoke_locales }}" "${{ matrix.auth-mode }}" "${{ matrix.locale }}" >> "$GITHUB_OUTPUT"
 
-      - name: Setup Node
+      - name: Setup Node and dependencies
         if: steps.scope.outputs.run_combo == 'true'
-        uses: actions/setup-node@v4
+        uses: ./.github/actions/setup-node-ci
         with:
-          node-version: 20
-
-      - name: Install dependencies
-        if: steps.scope.outputs.run_combo == 'true'
-        run: npm ci
+          node-version: '20'
 
       - name: Start API
         if: steps.scope.outputs.run_combo == 'true'
@@ -378,13 +363,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Setup Node and dependencies
+        uses: ./.github/actions/setup-node-ci
         with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm ci
+          node-version: '20'
 
       - name: Run smoke matrix with JSON export
         env:
