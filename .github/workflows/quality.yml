@@ -154,18 +154,7 @@ jobs:
     steps:
       - name: Evaluate matrix selection
         id: scope
-        run: |
-          RUN_COMBO=true
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            if [ "${{ github.event.inputs.auth_smoke_modes }}" != "both" ] && [ "${{ github.event.inputs.auth_smoke_modes }}" != "${{ matrix.auth-mode }}" ]; then
-              RUN_COMBO=false
-            fi
-            if [ "${{ github.event.inputs.auth_smoke_locales }}" != "both" ] && [ "${{ github.event.inputs.auth_smoke_locales }}" != "${{ matrix.locale }}" ]; then
-              RUN_COMBO=false
-            fi
-          fi
-
-          echo "run_combo=${RUN_COMBO}" >> "$GITHUB_OUTPUT"
+        run: bash tools/ops/ci-matrix-scope.sh "${{ github.event_name }}" "${{ github.event.inputs.auth_smoke_modes }}" "${{ github.event.inputs.auth_smoke_locales }}" "${{ matrix.auth-mode }}" "${{ matrix.locale }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout
         if: steps.scope.outputs.run_combo == 'true'
@@ -248,18 +237,7 @@ jobs:
     steps:
       - name: Evaluate matrix selection
         id: scope
-        run: |
-          RUN_COMBO=true
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            if [ "${{ github.event.inputs.ai_schema_smoke_auth_modes }}" != "both" ] && [ "${{ github.event.inputs.ai_schema_smoke_auth_modes }}" != "${{ matrix.auth-mode }}" ]; then
-              RUN_COMBO=false
-            fi
-            if [ "${{ github.event.inputs.ai_schema_smoke_locales }}" != "both" ] && [ "${{ github.event.inputs.ai_schema_smoke_locales }}" != "${{ matrix.locale }}" ]; then
-              RUN_COMBO=false
-            fi
-          fi
-
-          echo "run_combo=${RUN_COMBO}" >> "$GITHUB_OUTPUT"
+        run: bash tools/ops/ci-matrix-scope.sh "${{ github.event_name }}" "${{ github.event.inputs.ai_schema_smoke_auth_modes }}" "${{ github.event.inputs.ai_schema_smoke_locales }}" "${{ matrix.auth-mode }}" "${{ matrix.locale }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout
         if: steps.scope.outputs.run_combo == 'true'
@@ -343,18 +321,7 @@ jobs:
     steps:
       - name: Evaluate matrix selection
         id: scope
-        run: |
-          RUN_COMBO=true
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            if [ "${{ github.event.inputs.ai_render_smoke_auth_modes }}" != "both" ] && [ "${{ github.event.inputs.ai_render_smoke_auth_modes }}" != "${{ matrix.auth-mode }}" ]; then
-              RUN_COMBO=false
-            fi
-            if [ "${{ github.event.inputs.ai_render_smoke_locales }}" != "both" ] && [ "${{ github.event.inputs.ai_render_smoke_locales }}" != "${{ matrix.locale }}" ]; then
-              RUN_COMBO=false
-            fi
-          fi
-
-          echo "run_combo=${RUN_COMBO}" >> "$GITHUB_OUTPUT"
+        run: bash tools/ops/ci-matrix-scope.sh "${{ github.event_name }}" "${{ github.event.inputs.ai_render_smoke_auth_modes }}" "${{ github.event.inputs.ai_render_smoke_locales }}" "${{ matrix.auth-mode }}" "${{ matrix.locale }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout
         if: steps.scope.outputs.run_combo == 'true'
