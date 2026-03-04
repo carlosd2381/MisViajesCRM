@@ -6,6 +6,7 @@ import { createApiServer } from '../app';
 import { InMemoryLeadRepository } from '../modules/leads/infrastructure/in-memory-lead-repository';
 import { InMemoryClientRepository } from '../modules/clients/infrastructure/in-memory-client-repository';
 import { InMemoryItineraryRepository } from '../modules/itinerary/infrastructure/in-memory-itinerary-repository';
+import { InMemorySupplierRepository } from '../modules/suppliers/infrastructure/in-memory-supplier-repository';
 import { signAuthToken } from '../core/auth/token-service';
 
 function testHeaders(role = 'agent'): Record<string, string> {
@@ -21,6 +22,7 @@ async function startServer(): Promise<{ server: Server; baseUrl: string }> {
   const server = createApiServer({
     leads: new InMemoryLeadRepository(),
     clients: new InMemoryClientRepository(),
+    suppliers: new InMemorySupplierRepository(),
     itineraries: new InMemoryItineraryRepository()
   }, { authMode: 'header' });
 
@@ -36,6 +38,7 @@ async function startTokenServer(): Promise<{ server: Server; baseUrl: string }> 
   const server = createApiServer({
     leads: new InMemoryLeadRepository(),
     clients: new InMemoryClientRepository(),
+    suppliers: new InMemorySupplierRepository(),
     itineraries: new InMemoryItineraryRepository()
   }, { authMode: 'token' });
 

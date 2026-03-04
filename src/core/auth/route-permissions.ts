@@ -12,6 +12,12 @@ export function permissionForClients(method: string | undefined): PermissionKey 
   return null;
 }
 
+export function permissionForSuppliers(method: string | undefined): PermissionKey | null {
+  if (method === 'GET') return 'read:suppliers';
+  if (method === 'POST' || method === 'PATCH') return 'write:suppliers';
+  return null;
+}
+
 export function permissionForItineraries(method: string | undefined): PermissionKey | null {
   if (method === 'GET') return 'read:itineraries';
   if (method === 'POST' || method === 'PATCH') return 'write:itineraries';

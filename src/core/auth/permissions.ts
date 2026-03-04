@@ -5,6 +5,7 @@ export type PermissionAction = 'read' | 'write' | 'delete' | 'approve' | 'reconc
 export type PermissionResource =
   | 'leads'
   | 'clients'
+  | 'suppliers'
   | 'itineraries'
   | 'financials'
   | 'commissions'
@@ -22,6 +23,8 @@ export const ROLE_PERMISSIONS: RolePermissions = {
     'read:clients',
     'write:clients',
     'delete:clients',
+    'read:suppliers',
+    'write:suppliers',
     'read:itineraries',
     'write:itineraries',
     'approve:itineraries',
@@ -37,6 +40,8 @@ export const ROLE_PERMISSIONS: RolePermissions = {
     'write:leads',
     'read:clients',
     'write:clients',
+    'read:suppliers',
+    'write:suppliers',
     'read:itineraries',
     'write:itineraries',
     'approve:itineraries',
@@ -47,14 +52,16 @@ export const ROLE_PERMISSIONS: RolePermissions = {
     'write:leads',
     'read:clients',
     'write:clients',
+    'read:suppliers',
     'read:itineraries',
     'write:itineraries'
   ],
   accountant: [
+    'read:suppliers',
     'read:financials',
     'write:financials',
     'read:commissions',
     'reconcile:commissions'
   ],
-  external_dmc: ['read:clients', 'read:itineraries']
+  external_dmc: ['read:clients', 'read:suppliers', 'read:itineraries']
 };

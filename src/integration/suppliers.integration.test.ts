@@ -42,53 +42,30 @@ async function stopServer(server: Server): Promise<void> {
   });
 }
 
-test('health endpoint responds with 200', async () => {
+test('supplier create and fetch flow works for manager', async () => {
   const { server, baseUrl } = await startServer();
 
   try {
-    const response = await fetch(`${baseUrl}/health`);
-    const data = (await response.json()) as { status: string };
-
-    assert.equal(response.status, 200);
-    assert.equal(data.status, 'ok');
-  } finally {
-    await stopServer(server);
-  }
-});
-
-test('leads endpoint requires authentication headers', async () => {
-  const { server, baseUrl } = await startServer();
-
-  try {
-    const response = await fetch(`${baseUrl}/leads`);
-    assert.equal(response.status, 401);
-  } finally {
-    await stopServer(server);
-  }
-});
-
-test('lead create and fetch flow works', async () => {
-  const { server, baseUrl } = await startServer();
-
-  try {
-    const createResponse = await fetch(`${baseUrl}/leads`, {
+    const createResponse = await fetch(`${baseUrl}/suppliers`, {
       method: 'POST',
-      headers: testHeaders(),
+      headers: testHeaders('manager'),
       body: JSON.stringify({
-        status: 'new',
-        source: 'whatsapp',
-        priority: 'high',
-        destination: 'Oaxaca',
-        adultsCount: 2,
-        childrenCount: 0
+        name: 'Operadora Riviera',
+        type: 'dmc',
+        status: 'active',
+        defaultCurrency: 'MXN',
+        commissionType: 'percentage',
+        commissionRate: 12,
+        payoutTerms: 'post_travel_30',
+        internalRiskFlag: 'reliable'
       })
     });
 
     assert.equal(createResponse.status, 201);
     const created = (await createResponse.json()) as { data: { id: string } };
 
-    const getResponse = await fetch(`${baseUrl}/leads/${created.data.id}`, {
-      headers: testHeaders()
+    const getResponse = await fetch(`${baseUrl}/suppliers/${created.data.id}`, {
+      headers: testHeaders('manager')
     });
 
     assert.equal(getResponse.status, 200);
@@ -97,47 +74,22 @@ test('lead create and fetch flow works', async () => {
   }
 });
 
-test('client create and fetch flow works', async () => {
+test('agent cannot write suppliers', async () => {
   const { server, baseUrl } = await startServer();
 
   try {
-    const createResponse = await fetch(`${baseUrl}/clients`, {
+    const response = await fetch(`${baseUrl}/suppliers`, {
       method: 'POST',
-      headers: testHeaders(),
+      headers: testHeaders('agent'),
       body: JSON.stringify({
-        firstName: 'Ana',
-        paternalLastName: 'Lopez',
-        contacts: [{ type: 'email', value: 'ana@example.com' }]
-      })
-    });
-
-    assert.equal(createResponse.status, 201);
-    const created = (await createResponse.json()) as { data: { id: string } };
-
-    const getResponse = await fetch(`${baseUrl}/clients/${created.data.id}`, {
-      headers: testHeaders()
-    });
-
-    assert.equal(getResponse.status, 200);
-  } finally {
-    await stopServer(server);
-  }
-});
-
-test('accountant cannot write leads', async () => {
-  const { server, baseUrl } = await startServer();
-
-  try {
-    const response = await fetch(`${baseUrl}/leads`, {
-      method: 'POST',
-      headers: testHeaders('accountant'),
-      body: JSON.stringify({
-        status: 'new',
-        source: 'whatsapp',
-        priority: 'high',
-        destination: 'Oaxaca',
-        adultsCount: 2,
-        childrenCount: 0
+        name: 'Proveedor Bloqueado',
+        type: 'hotel',
+        status: 'active',
+        defaultCurrency: 'MXN',
+        commissionType: 'percentage',
+        commissionRate: 10,
+        payoutTerms: 'upon_booking',
+        internalRiskFlag: 'caution'
       })
     });
 
@@ -146,4 +98,3 @@ test('accountant cannot write leads', async () => {
     await stopServer(server);
   }
 });
-

@@ -5,7 +5,8 @@ import { authorizeRequest, type AuthMode } from './core/auth/request-auth';
 import {
   permissionForClients,
   permissionForItineraries,
-  permissionForLeads
+  permissionForLeads,
+  permissionForSuppliers
 } from './core/auth/route-permissions';
 import type { PermissionKey } from './core/auth/permissions';
 import { buildRefreshTokenService } from './core/auth/refresh-token-bootstrap';
@@ -17,6 +18,10 @@ import { OpenTelemetryRefreshTokenMetricsSink } from './core/auth/otel-refresh-t
 import { InstrumentedRefreshTokenService } from './core/auth/instrumented-refresh-token-service';
 import { handleLeadsCollection, handleLeadResource } from './modules/leads/api/lead-http-handlers';
 import { handleClientResource, handleClientsCollection } from './modules/clients/api/client-http-handlers';
+import {
+  handleSupplierResource,
+  handleSuppliersCollection
+} from './modules/suppliers/api/supplier-http-handlers';
 import {
   handleItineraryItemsCollection,
   handleItinerariesCollection,
@@ -151,6 +156,25 @@ function handleItinerariesRoute(
   return Promise.resolve();
 }
 
+function handleSuppliersRoute(
+  req: IncomingMessage,
+  res: ServerResponse,
+  pathSegments: string[],
+  locale: string,
+  repositories: RepositoryBundle,
+  authMode: AuthMode
+): Promise<void> | null {
+  if (pathSegments[0] !== 'suppliers') return null;
+
+  const permission = permissionForSuppliers(req.method);
+  if (!canProceed(req, res, locale, permission, authMode)) return Promise.resolve();
+
+  const context = { req, res, pathSegments, locale };
+  if (pathSegments.length === 1) return handleSuppliersCollection(context, repositories.suppliers);
+  if (pathSegments.length === 2) return handleSupplierResource(context, repositories.suppliers);
+  return Promise.resolve();
+}
+
 function handler(repositories: RepositoryBundle, options: AppOptions) {
   const authMode = options.authMode ?? 'header';
   const refreshTokens = options.refreshTokenService ?? buildRefreshTokenService(tokenServiceOptions());
@@ -175,6 +199,9 @@ function handler(repositories: RepositoryBundle, options: AppOptions) {
 
       const clientsRoute = handleClientsRoute(req, res, pathSegments, locale, repositories, authMode);
       if (clientsRoute) return clientsRoute;
+
+      const suppliersRoute = handleSuppliersRoute(req, res, pathSegments, locale, repositories, authMode);
+      if (suppliersRoute) return suppliersRoute;
 
       const itinerariesRoute = handleItinerariesRoute(req, res, pathSegments, locale, repositories, authMode);
       if (itinerariesRoute) return itinerariesRoute;

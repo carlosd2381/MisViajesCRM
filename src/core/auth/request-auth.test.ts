@@ -1,7 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { getUserContextFromHeaders } from './request-auth';
-import { permissionForClients, permissionForItineraries, permissionForLeads } from './route-permissions';
+import {
+  permissionForClients,
+  permissionForItineraries,
+  permissionForLeads,
+  permissionForSuppliers
+} from './route-permissions';
 
 function mockRequest(headers: Record<string, string>) {
   return { headers } as { headers: Record<string, string> };
@@ -40,4 +45,11 @@ test('permissionForItineraries maps methods correctly', () => {
   assert.equal(permissionForItineraries('POST'), 'write:itineraries');
   assert.equal(permissionForItineraries('PATCH'), 'write:itineraries');
   assert.equal(permissionForItineraries('DELETE'), null);
+});
+
+test('permissionForSuppliers maps methods correctly', () => {
+  assert.equal(permissionForSuppliers('GET'), 'read:suppliers');
+  assert.equal(permissionForSuppliers('POST'), 'write:suppliers');
+  assert.equal(permissionForSuppliers('PATCH'), 'write:suppliers');
+  assert.equal(permissionForSuppliers('DELETE'), null);
 });
