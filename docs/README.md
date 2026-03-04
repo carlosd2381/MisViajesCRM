@@ -80,6 +80,7 @@ Además, si se exceden límites soft de tamaño de archivo/función, el PR debe 
 - Ejecutar pruebas unitarias: `npm run test:unit`
 - Ejecutar pruebas de integración HTTP: `npm run test:integration`
 - Validar tipos TypeScript: `npm run typecheck`
+- Validar sintaxis/estructura de workflows CI: `npm run quality:workflows`
 - Validar ownership de revisión: `npm run quality:codeowners`
 
 CI:

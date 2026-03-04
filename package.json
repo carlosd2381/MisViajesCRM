@@ -37,10 +37,11 @@
     "test:unit": "tsx --test src/core/**/*.test.ts src/modules/**/*.test.ts",
     "test:integration": "tsx --test src/integration/**/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "quality": "npm run quality:file-size && npm run quality:function-size && npm run quality:docs && npm run quality:codeowners",
+    "quality": "npm run quality:file-size && npm run quality:function-size && npm run quality:docs && npm run quality:workflows && npm run quality:codeowners",
     "quality:file-size": "node tools/quality/check-max-lines.mjs",
     "quality:function-size": "node tools/quality/check-function-size.mjs",
     "quality:docs": "node tools/quality/check-required-docs.mjs",
+    "quality:workflows": "node tools/quality/check-workflow-yaml.mjs",
     "quality:codeowners": "node tools/quality/check-codeowners.mjs"
   },
   "devDependencies": {
@@ -48,6 +49,7 @@
     "@types/node": "^25.3.3",
     "@types/pg": "^8.18.0",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "yaml": "^2.8.2"
   }
 }
