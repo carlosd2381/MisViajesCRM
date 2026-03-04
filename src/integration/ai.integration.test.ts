@@ -189,6 +189,11 @@ test('agent can read AI proposal schema metadata', async () => {
         requiredFields: string[];
         warningsCatalog: Array<{ code: string; severity: string }>;
         qualityGate: { blockedStatusCode: number };
+        examples: {
+          request: { promptProfile: string };
+          successResponse: { statusCode: number };
+          blockedResponse: { statusCode: number; body: { blockingWarningCode: string } };
+        };
       };
     };
 
@@ -196,6 +201,10 @@ test('agent can read AI proposal schema metadata', async () => {
     assert.ok(payload.data.requiredFields.includes('promptProfile'));
     assert.ok(payload.data.warningsCatalog.some((warning) => warning.code === 'QUALITY_GATE_BLOCKER'));
     assert.equal(payload.data.qualityGate.blockedStatusCode, 422);
+    assert.equal(payload.data.examples.request.promptProfile, 'storyteller');
+    assert.equal(payload.data.examples.successResponse.statusCode, 200);
+    assert.equal(payload.data.examples.blockedResponse.statusCode, 422);
+    assert.equal(payload.data.examples.blockedResponse.body.blockingWarningCode, 'QUALITY_GATE_BLOCKER');
   } finally {
     await stopServer(server);
   }
@@ -239,11 +248,15 @@ test('ai schema endpoint supports locale query for description localization', as
 
     assert.equal(enResponse.status, 200);
     const enPayload = (await enResponse.json()) as {
-      data: { warningsCatalog: Array<{ code: string; description: string }> };
+      data: {
+        warningsCatalog: Array<{ code: string; description: string }>;
+        examples: { blockedResponse: { body: { message: string } } };
+      };
     };
 
     const enSummary = enPayload.data.warningsCatalog.find((warning) => warning.code === 'SUMMARY_TOO_SHORT');
     assert.ok((enSummary?.description ?? '').toLowerCase().includes('summary'));
+    assert.equal(enPayload.data.examples.blockedResponse.body.message, 'Proposal blocked by quality gate');
 
     const esResponse = await fetch(`${baseUrl}/ai/schema/proposal?locale=es-MX`, {
       method: 'GET',
@@ -252,11 +265,15 @@ test('ai schema endpoint supports locale query for description localization', as
 
     assert.equal(esResponse.status, 200);
     const esPayload = (await esResponse.json()) as {
-      data: { warningsCatalog: Array<{ code: string; description: string }> };
+      data: {
+        warningsCatalog: Array<{ code: string; description: string }>;
+        examples: { blockedResponse: { body: { message: string } } };
+      };
     };
 
     const esSummary = esPayload.data.warningsCatalog.find((warning) => warning.code === 'SUMMARY_TOO_SHORT');
     assert.ok((esSummary?.description ?? '').toLowerCase().includes('resumen'));
+    assert.equal(esPayload.data.examples.blockedResponse.body.message, 'Propuesta bloqueada por quality gate');
   } finally {
     await stopServer(server);
   }
