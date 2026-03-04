@@ -108,6 +108,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Run smoke contract preflight
+        run: npm run smoke:matrix:contract
+
       - name: Run quality checks
         run: npm run quality
 
