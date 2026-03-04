@@ -227,3 +227,37 @@ test('external_dmc can read AI schema but cannot post proposal', async () => {
     await stopServer(server);
   }
 });
+
+test('ai schema endpoint supports locale query for description localization', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const enResponse = await fetch(`${baseUrl}/ai/schema/proposal?locale=en-US`, {
+      method: 'GET',
+      headers: testHeaders('agent')
+    });
+
+    assert.equal(enResponse.status, 200);
+    const enPayload = (await enResponse.json()) as {
+      data: { warningsCatalog: Array<{ code: string; description: string }> };
+    };
+
+    const enSummary = enPayload.data.warningsCatalog.find((warning) => warning.code === 'SUMMARY_TOO_SHORT');
+    assert.ok((enSummary?.description ?? '').toLowerCase().includes('summary'));
+
+    const esResponse = await fetch(`${baseUrl}/ai/schema/proposal?locale=es-MX`, {
+      method: 'GET',
+      headers: testHeaders('agent')
+    });
+
+    assert.equal(esResponse.status, 200);
+    const esPayload = (await esResponse.json()) as {
+      data: { warningsCatalog: Array<{ code: string; description: string }> };
+    };
+
+    const esSummary = esPayload.data.warningsCatalog.find((warning) => warning.code === 'SUMMARY_TOO_SHORT');
+    assert.ok((esSummary?.description ?? '').toLowerCase().includes('resumen'));
+  } finally {
+    await stopServer(server);
+  }
+});

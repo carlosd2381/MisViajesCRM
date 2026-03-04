@@ -1,5 +1,6 @@
 import type { RequestContext } from '../../../core/http/http-types';
 import { readJsonBody, sendJson } from '../../../core/http/http-utils';
+import { resolveLocale } from '../../../core/i18n/resolve-locale';
 import type { SupportedLocale } from '../../../core/i18n/supported-locales';
 import { generateMockProposal } from '../application/proposal-mock-service';
 import { buildAiProposalSchemaMetadata } from '../domain/proposal-schema-metadata';
@@ -11,7 +12,9 @@ export async function handleAiProposalSchema(context: RequestContext): Promise<v
     return;
   }
 
-  const data = buildAiProposalSchemaMetadata();
+  const requestedLocale = new URL(context.req.url ?? '/', 'http://localhost').searchParams.get('locale');
+  const schemaLocale = resolveLocale(requestedLocale ?? context.locale);
+  const data = buildAiProposalSchemaMetadata(schemaLocale);
   sendJson(context.res, 200, { data, message: messageByLocale(context.locale, 'Esquema AI disponible') });
 }
 
