@@ -68,6 +68,21 @@ async function assertNegativeAuthScenarios() {
   );
 }
 
+async function assertTokenModeNegativeScenario() {
+  const unauthProtectedRoute = await request('/leads', {
+    method: 'GET',
+    headers: { 'x-locale': LOCALE }
+  });
+
+  await expectStatus('token mode unauth protected route', unauthProtectedRoute, 401);
+  await expectLocalizedMessage(
+    'token mode unauth protected route message',
+    unauthProtectedRoute,
+    'No autenticado',
+    'Unauthenticated'
+  );
+}
+
 async function run() {
   console.log(`Running auth smoke-check against ${BASE_URL}`);
 
@@ -94,6 +109,8 @@ async function run() {
   }
 
   if (VERIFY_TOKEN_MODE) {
+    await assertTokenModeNegativeScenario();
+
     const protectedRoute = await request('/leads', {
       method: 'GET',
       headers: {
@@ -140,7 +157,12 @@ async function run() {
   const summary = {
     locale: LOCALE,
     verifyTokenMode: VERIFY_TOKEN_MODE,
-    checkedNegativeScenarios: ['unauth_metrics_401', 'forbidden_metrics_403', 'invalid_refresh_401']
+    checkedNegativeScenarios: [
+      'unauth_metrics_401',
+      'forbidden_metrics_403',
+      'invalid_refresh_401',
+      ...(VERIFY_TOKEN_MODE ? ['token_mode_unauth_protected_401'] : [])
+    ]
   };
 
   console.log(`AUTH_SMOKE_SUMMARY ${JSON.stringify(summary)}`);
