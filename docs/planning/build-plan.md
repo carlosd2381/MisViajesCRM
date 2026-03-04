@@ -215,7 +215,9 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 - 2026-03-04: Se agregaron ejemplos de payload en metadata de esquema AI para acelerar integración de frontend/tooling.
 - 2026-03-04: Se agregó smoke-check operativo para esquema AI (`ai:schema:smoke`) orientado a verificación rápida en entornos/CI.
 - 2026-03-04: Se integró `ai-schema-smoke` al workflow CI de calidad con path filtering y opciones de `workflow_dispatch`.
+- 2026-03-04: Se amplió `ai-schema-smoke` para cubrir matriz `AUTH_MODE=header|token` y locale (`es-MX|en-US`) con selector manual `ai_schema_smoke_auth_modes`.
 - 2026-03-04: Se endureció `ai:schema:smoke` con validaciones de contrato/localización y configuración explícita de `schemaVersion` esperada en CI.
+- 2026-03-04: `ai:schema:smoke` ahora soporta validación en `AUTH_MODE=token` (obtención de bearer vía `/auth/token`) además de header mode.
 - 2026-03-04: Se agregaron checks negativos de auth en `ai:schema:smoke` para detectar aperturas accidentales de `/ai/schema/proposal`.
 - 2026-03-04: Se agregó check negativo de método inválido en `ai:schema:smoke` para exigir `405` en `POST /ai/schema/proposal`.
 - 2026-03-04: Se agregaron aserciones de i18n en `ai:schema:smoke` para mensajes de error (`No autenticado/Unauthenticated`, `Método no permitido/Method not allowed`).

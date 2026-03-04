@@ -67,12 +67,15 @@ Además, si se exceden límites soft de tamaño de archivo/función, el PR debe 
 CI:
 
 - Workflow `.github/workflows/quality.yml` ejecuta `quality` y `auth-smoke` en matriz `AUTH_MODE=header|token` y locale `es-MX|en-US`.
+- El workflow ejecuta `ai-schema-smoke` en matriz `AUTH_MODE=header|token` y locale `es-MX|en-US`.
 - El job `auth-smoke` imprime un resumen de modo/flags para facilitar diagnóstico en logs de CI.
 - El workflow usa `concurrency` (cancelación de runs previos por rama) y `timeout` por job para evitar ejecuciones colgadas/duplicadas.
 - El job `auth-smoke` se ejecuta solo si hay cambios en rutas relevantes de auth/backend/ops/CI.
 - También se puede ejecutar manualmente por `workflow_dispatch` usando `force_auth_smoke=true`.
 - En ejecución manual, `auth_smoke_modes` permite correr `header`, `token` o `both`.
 - En ejecución manual, `auth_smoke_locales` permite correr `es-MX`, `en-US` o `both`.
+- En ejecución manual, `ai_schema_smoke_auth_modes` permite correr `header`, `token` o `both`.
+- En ejecución manual, `ai_schema_smoke_locales` permite correr `es-MX`, `en-US` o `both`.
 
 ### Ejemplos de ejecución manual (CI)
 

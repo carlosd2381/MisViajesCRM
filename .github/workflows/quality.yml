@@ -28,6 +28,10 @@ on:
         description: 'AI schema smoke locale scope for manual runs'
         required: false
         default: 'both'
+      ai_schema_smoke_auth_modes:
+        description: 'AI schema smoke auth mode scope for manual runs'
+        required: false
+        default: 'both'
 
 concurrency:
   group: quality-${{ github.workflow }}-${{ github.ref }}
@@ -183,12 +187,17 @@ jobs:
         github.event_name != 'workflow_dispatch' ||
         github.event.inputs.ai_schema_smoke_locales == 'both' ||
         github.event.inputs.ai_schema_smoke_locales == matrix.locale
+      ) && (
+        github.event_name != 'workflow_dispatch' ||
+        github.event.inputs.ai_schema_smoke_auth_modes == 'both' ||
+        github.event.inputs.ai_schema_smoke_auth_modes == matrix.auth-mode
       )
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
+        auth-mode: [header, token]
         locale: [es-MX, en-US]
 
     steps:
@@ -204,6 +213,8 @@ jobs:
         run: npm install
 
       - name: Start API
+        env:
+          AUTH_MODE: ${{ matrix.auth-mode }}
         run: |
           npm run dev:api > ai-schema-smoke-server.log 2>&1 &
           echo $! > ai-schema-smoke-server.pid
@@ -223,17 +234,20 @@ jobs:
         env:
           AI_SCHEMA_SMOKE_BASE_URL: http://127.0.0.1:3000
           AI_SCHEMA_SMOKE_LOCALE: ${{ matrix.locale }}
+          AI_SCHEMA_SMOKE_AUTH_MODE: ${{ matrix.auth-mode }}
           AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION: ai-proposal.v1
         run: npm run ai:schema:smoke
 
       - name: AI schema smoke summary
         if: always()
         env:
+          AI_SCHEMA_SMOKE_AUTH_MODE: ${{ matrix.auth-mode }}
           AI_SCHEMA_SMOKE_LOCALE: ${{ matrix.locale }}
           AI_SCHEMA_SMOKE_BASE_URL: http://127.0.0.1:3000
           AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION: ai-proposal.v1
         run: |
           echo "AI schema smoke run summary"
+          echo "- AI_SCHEMA_SMOKE_AUTH_MODE=${AI_SCHEMA_SMOKE_AUTH_MODE}"
           echo "- AI_SCHEMA_SMOKE_BASE_URL=${AI_SCHEMA_SMOKE_BASE_URL}"
           echo "- AI_SCHEMA_SMOKE_LOCALE=${AI_SCHEMA_SMOKE_LOCALE}"
           echo "- AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION=${AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION}"
@@ -249,5 +263,5 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ai-schema-smoke-server-log-${{ matrix.locale }}
+          name: ai-schema-smoke-server-log-${{ matrix.auth-mode }}-${{ matrix.locale }}
           path: ai-schema-smoke-server.log

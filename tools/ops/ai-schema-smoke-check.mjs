@@ -3,6 +3,7 @@ const LOCALE = process.env.AI_SCHEMA_SMOKE_LOCALE ?? 'es-MX';
 const AGENT_ID = process.env.AI_SCHEMA_SMOKE_AGENT_ID ?? 'smoke_agent';
 const AGENT_ROLE = process.env.AI_SCHEMA_SMOKE_AGENT_ROLE ?? 'agent';
 const EXPECTED_SCHEMA_VERSION = process.env.AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION ?? 'ai-proposal.v1';
+const AUTH_MODE = process.env.AI_SCHEMA_SMOKE_AUTH_MODE ?? 'header';
 
 function headers(userId, role, contentType = 'application/json') {
   return {
@@ -23,6 +24,10 @@ function assert(condition, message) {
 
 function expectedMessage(spanish, english) {
   return LOCALE === 'en-US' ? english : spanish;
+}
+
+function isTokenMode() {
+  return AUTH_MODE === 'token';
 }
 
 function expectArray(value, name) {
@@ -64,12 +69,41 @@ function assertSectionOrder(sectionOrder) {
 
 async function assertUnauthorizedScenarios() {
   const anonymousResponse = await request(`/ai/schema/proposal?locale=${encodeURIComponent(LOCALE)}`, {
-    method: 'GET'
+    method: 'GET',
+    headers: { 'x-locale': LOCALE }
   });
   assert(
     anonymousResponse.status === 401,
     `anonymous schema request should return 401, got ${anonymousResponse.status}`
   );
+  const anonymousPayload = await anonymousResponse.json();
+  assert(
+    anonymousPayload?.message === expectedMessage('No autenticado', 'Unauthenticated'),
+    'anonymous schema request message localization mismatch'
+  );
+
+  if (isTokenMode()) {
+    const invalidTokenResponse = await request(`/ai/schema/proposal?locale=${encodeURIComponent(LOCALE)}`, {
+      method: 'GET',
+      headers: {
+        authorization: 'Bearer smoke_invalid_token',
+        'x-locale': LOCALE
+      }
+    });
+
+    assert(
+      invalidTokenResponse.status === 401,
+      `invalid token schema request should return 401, got ${invalidTokenResponse.status}`
+    );
+
+    const invalidTokenPayload = await invalidTokenResponse.json();
+    assert(
+      invalidTokenPayload?.message === expectedMessage('No autenticado', 'Unauthenticated'),
+      'invalid token schema request message localization mismatch'
+    );
+
+    return;
+  }
 
   const invalidRoleResponse = await request(`/ai/schema/proposal?locale=${encodeURIComponent(LOCALE)}`, {
     method: 'GET',
@@ -87,10 +121,36 @@ async function assertUnauthorizedScenarios() {
   );
 }
 
-async function assertMethodNotAllowedScenario() {
+async function resolveSchemaAuthHeaders() {
+  if (!isTokenMode()) {
+    return headers(AGENT_ID, AGENT_ROLE);
+  }
+
+  const tokenIssueResponse = await request('/auth/token', {
+    method: 'POST',
+    headers: headers(AGENT_ID, AGENT_ROLE)
+  });
+
+  assert(
+    tokenIssueResponse.status === 200,
+    `token issue for schema smoke failed: expected 200, got ${tokenIssueResponse.status}`
+  );
+
+  const tokenIssuePayload = await tokenIssueResponse.json();
+  const accessToken = tokenIssuePayload?.data?.accessToken;
+  assert(typeof accessToken === 'string' && accessToken.length > 0, 'token issue for schema smoke returned no accessToken');
+
+  return {
+    authorization: `Bearer ${accessToken}`,
+    'content-type': 'application/json',
+    'x-locale': LOCALE
+  };
+}
+
+async function assertMethodNotAllowedScenario(schemaAuthHeaders) {
   const invalidMethodResponse = await request(`/ai/schema/proposal?locale=${encodeURIComponent(LOCALE)}`, {
     method: 'POST',
-    headers: headers(AGENT_ID, AGENT_ROLE),
+    headers: schemaAuthHeaders,
     body: JSON.stringify({})
   });
 
@@ -107,17 +167,19 @@ async function assertMethodNotAllowedScenario() {
 }
 
 async function run() {
-  console.log(`Running AI schema smoke-check against ${BASE_URL} (locale=${LOCALE})`);
+  console.log(`Running AI schema smoke-check against ${BASE_URL} (locale=${LOCALE}, authMode=${AUTH_MODE})`);
 
   const health = await request('/health');
   assert(health.status === 200, `health failed: expected 200, got ${health.status}`);
 
   await assertUnauthorizedScenarios();
-  await assertMethodNotAllowedScenario();
+
+  const schemaAuthHeaders = await resolveSchemaAuthHeaders();
+  await assertMethodNotAllowedScenario(schemaAuthHeaders);
 
   const schemaResponse = await request(`/ai/schema/proposal?locale=${encodeURIComponent(LOCALE)}`, {
     method: 'GET',
-    headers: headers(AGENT_ID, AGENT_ROLE)
+    headers: schemaAuthHeaders
   });
 
   assert(schemaResponse.status === 200, `schema endpoint failed: expected 200, got ${schemaResponse.status}`);
@@ -163,6 +225,7 @@ async function run() {
   );
 
   const summary = {
+    authMode: AUTH_MODE,
     locale: LOCALE,
     schemaVersion: data.schemaVersion,
     warningsCatalogCount: data.warningsCatalog.length,
