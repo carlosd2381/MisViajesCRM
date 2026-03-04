@@ -134,6 +134,7 @@ Construir un CRM de agencia de viajes AI-native con interfaz primaria en `es-MX`
 - Endpoint de esquema AI ahora soporta `?locale=es-MX|en-US` para descripciones localizadas de warnings en tooling UI.
 - Endpoint de esquema AI ahora incluye bloque `examples` (request/success/blocked) para bootstrap de UI mock y pruebas contract-first.
 - Script operativo `npm run ai:schema:smoke` agregado para validar contrato de `/ai/schema/proposal` en smoke checks.
+- Job CI `ai-schema-smoke` agregado en workflow de quality con filtro de cambios, matriz de locale (`es-MX|en-US`) y ejecución manual forzada.
 
 ## Mantenimiento del documento
 
@@ -203,3 +204,4 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 - 2026-03-04: Se agregó localización por query param en `/ai/schema/proposal` para documentación de warnings en `es-MX` y `en-US`.
 - 2026-03-04: Se agregaron ejemplos de payload en metadata de esquema AI para acelerar integración de frontend/tooling.
 - 2026-03-04: Se agregó smoke-check operativo para esquema AI (`ai:schema:smoke`) orientado a verificación rápida en entornos/CI.
+- 2026-03-04: Se integró `ai-schema-smoke` al workflow CI de calidad con path filtering y opciones de `workflow_dispatch`.
