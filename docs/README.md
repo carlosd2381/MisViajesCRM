@@ -178,7 +178,7 @@ Tanto `auth:smoke` como `ai:schema:smoke` imprimen una línea JSON para diagnós
 - `AI_RENDER_SMOKE_SUMMARY {...}`
 	- `authMode`: modo auth efectivo del render smoke (`header` o `token`).
 	- `locale`: locale efectivo del render smoke (`es-MX` o `en-US`).
-	- `checks`: lista de checks negativos/positivos validados para `render/web` y `render/pdf`.
+	- `checks`: lista de checks negativos/positivos validados para `render/web` y `render/pdf` (incluye rechazo `400` para `renderOptions` inválido).
 
 Si falta la línea summary o cambia su estructura, tratar el run como sospechoso y revisar artifacts/logs del job.
 

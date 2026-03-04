@@ -156,6 +156,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 ## Registro de cambios
 
+- 2026-03-04: `ai:render:smoke` ahora valida también payload inválido de `renderOptions` en `render/web` y `render/pdf` (`400` + mensaje localizado + detalle de error), reforzando detección temprana en CI.
 - 2026-03-04: Se endureció contrato de transporte en render AI con pruebas de integración negativas para `renderOptions` inválido en `POST /ai/proposal/render/web` y `POST /ai/proposal/render/pdf` (respuesta `400` + errores de campo).
 - 2026-03-04: Metadata de render AI (`/ai/proposal/render/schema`) ahora expone capacidades explícitas de `renderOptions` por endpoint (`web`/`pdf`: `supported` + `defaults`) y se reforzó `ai:render:smoke` para validar ese contrato.
 - 2026-03-04: Proposal Experience PDF render ahora también aplica `renderOptions` (`includeWarnings`, `compactMode`) en `POST /ai/proposal/render/pdf`, alineado con web render y cubierto con pruebas unitarias/integración.

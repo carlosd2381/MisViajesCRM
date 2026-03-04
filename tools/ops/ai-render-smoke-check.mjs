@@ -156,6 +156,46 @@ async function assertRenderSchemaOptions(authHeaders) {
   assert(supportedPdf.includes('compactMode'), 'render/schema pdf compactMode capability missing');
 }
 
+async function assertInvalidRenderOptions(authHeaders) {
+  const webInvalid = await request('/ai/proposal/render/web', {
+    method: 'POST',
+    headers: authHeaders,
+    body: JSON.stringify({
+      ...validProposalBody(),
+      renderOptions: {
+        includeWarnings: 'false'
+      }
+    })
+  });
+
+  assert(webInvalid.status === 400, `invalid renderOptions on render/web should return 400, got ${webInvalid.status}`);
+  const webPayload = await webInvalid.json();
+  assert(
+    webPayload?.message === expectedMessage('Solicitud inválida', 'Invalid request'),
+    'invalid renderOptions render/web message localization mismatch'
+  );
+  assert(Array.isArray(webPayload?.errors), 'invalid renderOptions render/web errors missing');
+  assert(webPayload.errors.some((value) => String(value).includes('renderOptions')), 'invalid renderOptions render/web error detail missing');
+
+  const pdfInvalid = await request('/ai/proposal/render/pdf', {
+    method: 'POST',
+    headers: authHeaders,
+    body: JSON.stringify({
+      ...validProposalBody(),
+      renderOptions: []
+    })
+  });
+
+  assert(pdfInvalid.status === 400, `invalid renderOptions on render/pdf should return 400, got ${pdfInvalid.status}`);
+  const pdfPayload = await pdfInvalid.json();
+  assert(
+    pdfPayload?.message === expectedMessage('Solicitud inválida', 'Invalid request'),
+    'invalid renderOptions render/pdf message localization mismatch'
+  );
+  assert(Array.isArray(pdfPayload?.errors), 'invalid renderOptions render/pdf errors missing');
+  assert(pdfPayload.errors.some((value) => String(value).includes('renderOptions')), 'invalid renderOptions render/pdf error detail missing');
+}
+
 async function run() {
   console.log(`Running AI render smoke-check against ${BASE_URL} (locale=${LOCALE}, authMode=${AUTH_MODE})`);
 
@@ -168,6 +208,7 @@ async function run() {
   await assertMethodNotAllowed(authHeaders);
   await assertForbiddenScenario();
   await assertRenderSchemaOptions(authHeaders);
+  await assertInvalidRenderOptions(authHeaders);
   await assertWebRender(authHeaders);
   await assertPdfRender(authHeaders);
 
@@ -180,6 +221,8 @@ async function run() {
       'method_not_allowed_405_pdf',
       'forbidden_external_403',
       'render_schema_options_contract',
+      'invalid_render_options_400_web',
+      'invalid_render_options_400_pdf',
       'web_render_200_html',
       'pdf_render_200_pdf'
     ]
