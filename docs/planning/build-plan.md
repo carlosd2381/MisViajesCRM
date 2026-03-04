@@ -156,6 +156,8 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 ## Registro de cambios
 
+- 2026-03-04: [Resumen] Bloque de endurecimiento CI/contratos completado: preflight `smoke:matrix:contract`, validadores runtime de summaries (`AUTH/AI_SCHEMA/AI_RENDER`), publicación en `GITHUB_STEP_SUMMARY` y pruebas de regresión de workflow.
+
 - 2026-03-04: Se refactorizó `tools/quality/check-workflow-yaml.test.mjs` con helpers compartidos de assertions para pasos/orden (`assertStepExists`, `assertStepOrder`) manteniendo la misma cobertura de regresión.
 - 2026-03-04: Se reforzó prueba de regresión de workflow para exigir orden en `quality.yml`: `Run smoke contract preflight` debe ejecutarse antes de `Run quality checks`.
 - 2026-03-04: Se agregó prueba de regresión en `tools/quality/check-workflow-yaml.test.mjs` para asegurar que `quality.yml` conserve los pasos `Run smoke contract preflight` y `Smoke contract preflight summary`.
