@@ -51,7 +51,7 @@ export interface AiProposalResponse {
     narrative: string;
     qualityChecks: string[];
     warnings: AiProposalWarning[];
-    sectionOrder: Array<'storyteller' | 'auditor' | 'ghost_writer' | 'local_insider'>;
+    sectionOrder: ReadonlyArray<'storyteller' | 'auditor' | 'ghost_writer' | 'local_insider'>;
     sections: AiProfileSections;
   };
 }
