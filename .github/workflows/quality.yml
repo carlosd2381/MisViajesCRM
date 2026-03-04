@@ -211,6 +211,7 @@ jobs:
         env:
           AI_SCHEMA_SMOKE_BASE_URL: http://127.0.0.1:3000
           AI_SCHEMA_SMOKE_LOCALE: ${{ matrix.locale }}
+          AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION: ai-proposal.v1
         run: npm run ai:schema:smoke
 
       - name: AI schema smoke summary
@@ -218,10 +219,12 @@ jobs:
         env:
           AI_SCHEMA_SMOKE_LOCALE: ${{ matrix.locale }}
           AI_SCHEMA_SMOKE_BASE_URL: http://127.0.0.1:3000
+          AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION: ai-proposal.v1
         run: |
           echo "AI schema smoke run summary"
           echo "- AI_SCHEMA_SMOKE_BASE_URL=${AI_SCHEMA_SMOKE_BASE_URL}"
           echo "- AI_SCHEMA_SMOKE_LOCALE=${AI_SCHEMA_SMOKE_LOCALE}"
+          echo "- AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION=${AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION}"
 
       - name: Stop API
         if: always()
