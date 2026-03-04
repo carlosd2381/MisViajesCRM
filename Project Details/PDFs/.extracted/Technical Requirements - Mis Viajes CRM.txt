@@ -1,0 +1,79 @@
+📑 Technical Requirements Document:
+AI-Native Travel CRM
+Project Name: [Your Agency Name] Custom CRM
+
+Core Model: Kimi k2.5 (Logic, Narrative, & Document Agent)
+
+Primary Channels: Web, PDF, WhatsApp Business API
+
+
+
+
+1. System Architecture & Tech Stack
+   ●​   Backend: Node.js (Express/NestJS) or Python (FastAPI).
+   ●​   Frontend: React.js or Next.js (Optimized for the "Three-Pane Builder").
+   ●​   Database: PostgreSQL (Relational data for Financials/Commissions).
+   ●​   AI Engine: Integration with Kimi k2.5 API for long-context reasoning.
+   ●​   Integrations: WhatsApp Business API (Meta), SendGrid (Email), SAT PAC (Mexico
+        Facturación).
+
+
+
+
+2. Core Modules & Functional Specs
+
+🏢 Module 1: Lead & Client "DNA"
+   ●​ AI Intake: Automated parsing of WhatsApp/Email text to create Lead profiles.
+   ●​ Travel DNA: Structured storage of preferences (e.g., "Non-smoker," "Window seat," "Nut
+      Allergy").
+   ●​ Document Vault: AES-256 encrypted storage for Passports/IDs with AI-driven expiry
+      alerts.
+
+
+🤝 Module 2: Supplier & Commission Hub
+   ●​ Profiles: Storage for Legal Name (RFC), Bank Details (CLABE), and Contact Directory.
+   ●​ Commission Engine: Auto-pulls % rates into itineraries based on the selected supplier.
+   ●​ Bank Reconciliation: AI-powered matching of bank statements to pending
+      commissions.
+🎨 Module 3: The AI Itinerary Builder (Three-Pane UI)
+   ●​   Left: Drag-and-drop library of flights, hotels, and activities.
+   ●​   Middle: Interactive timeline.
+   ●​   Right: Real-time Live Preview (Mobile/Web).
+   ●​   AI Magic Wand: One-click generation of luxury narratives and "Insider Tips" via Kimi
+        k2.5.
+
+
+💰 Module 4: Financials & SAT Compliance
+   ●​ Multi-Currency: Automatic conversion between USD/EUR and MXN using custom
+      agency rates.
+   ●​ Invoicing: Generation of CFDI 4.0 for Service Fees.
+   ●​ Payment Tracking: "Pay Now" links integrated into the web proposal.
+
+
+
+
+3. AI Agentic Requirements (Kimi k2.5)
+The developer must implement a Prompt Library (as drafted in our previous session) to handle:
+
+   1.​ The Storyteller: Converts raw logistical data into a luxury travel narrative.
+   2.​ The Layout Artist: Optimizes Markdown/HTML content for high-design PDF exports.
+   3.​ The Auditor: Checks for logical errors (e.g., flight/transfer time overlaps).
+   4.​ The Ghost Writer: Drafts WhatsApp/Email responses based on current itinerary status.
+
+
+
+
+4. Security & Compliance
+   ●​ LFPDPPP (Mexico): Ensure the system includes a "Privacy Notice" checkbox and data
+      deletion protocols.
+   ●​ RBAC: Role-Based Access Control (Owner vs. Agent vs. Accountant).
+   ●​ Audit Logs: Track every change made to a price or a client's sensitive data.
+
+
+
+
+5. Deployment Phases
+   ●​ Phase 1 (MVP): Leads, Clients, Suppliers, and Basic Messaging.
+   ●​ Phase 2 (AI Core): Three-Pane Builder, Kimi k2.5 integration, Web/PDF generation.
+   ●​ Phase 3 (Enterprise): Financials, SAT Invoicing, Advanced Marketing Automations.
+

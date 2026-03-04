@@ -1,0 +1,97 @@
+🏗️ Master Blueprint: Travel Agency CRM
+(Lead & Client Modules)
+I. Global Logic & Database Architecture
+   ●​ Relationship Model: One-to-Many (1 Client can have many Loyalty Programs, many
+      Documents, and many Contacts).
+   ●​ The "Mirror" Logic: If Client A is linked to Client B as "Spouse," the system must
+      auto-generate the reciprocal link on Client B's profile.
+   ●​ Encryption: The Documents and Vaccine tables must use At-Rest Encryption
+      (AES-256) for PII (Personally Identifiable Information) compliance.
+
+
+
+
+II. Module 1: The Lead Engine (The Intake)
+This is the "Waiting Room" before someone becomes a permanent Client.
+
+
+1. Lead Data Fields
+   ●​ Lead Status: [New, Contacted, Proposal Sent, Follow-up, Closed-Won, Closed-Lost]
+   ●​ Source: [WhatsApp, Instagram, Facebook, Referral, Website Form, Walk-in]
+   ●​ Priority Score: [Low, Medium, High, VIP]
+   ●​ Inquiry Details:
+         ○​ Destination: (Searchable Text/Tags)
+         ○​ Travel Dates: (Start Date, End Date, Flexibility Toggle)
+         ○​ Traveler Count: (Adults, Children + Ages)
+         ○​ Budget Range: (Min Amount, Max Amount, Currency: MXN/USD/EUR)
+         ○​ Trip Type: (Honeymoon, Corporate, Family, Solo, Group)
+   ●​ Notes: (Rich text area for the "Story" of the trip)
+
+
+
+
+III. Module 2: The Professional Client Profile
+Once a Lead is "Closed-Won," it converts into this rich data structure.
+Tab 1: Identity & Contact (The Core)
+  ●​ Legal Name: First, Middle, Paternal Last, Maternal Last.
+  ●​ Personal: Gender, DOB (with Age Auto-calc), Anniversary Date.
+  ●​ Communication Table: (Multi-entry {+Add})
+         ○​ Type: [Home, Cell, Office, WhatsApp-Primary]
+         ○​ Value: [Number or Email]
+  ●​ Physical Address: (Multi-entry {+Add})
+         ○​ Type: [Personal, Office, Billing]
+        ○​ Fields: Street 1, Street 2, City, State/Province, PC/Zip, Country.
+  ●​ Work Details: Company Name, Job Title, Website.
+  ●​ Social Footprint: Handles for FB, IG, TikTok, LinkedIn.
+
+
+Tab 2: Relationships (The Family Tree)
+  ●​ Linked Client: (Search dropdown of existing Clients)
+  ●​ Relation Type: [Spouse, Child, Parent, Sibling, Friend, Relative, Partner, Co-Worker]
+  ●​ Sync Toggle: [ ] Sync Itineraries [ ] Sync Preferences
+
+
+Tab 3: Loyalty & Rewards (The Master List)
+  ●​ Category: [Airlines, Hotels, Cruise, Car Rental, Rail/Bus]
+  ●​ Program Name: (Use your provided list: Marriott Bonvoy, Club Premier, Fiesta Rewards,
+     etc.)
+  ●​ Member Number: (Text)
+  ●​ Tier Status: [Silver, Gold, Platinum, Diamond, etc.] (Text)
+  ●​ Expiration: (Date)
+
+
+Tab 4: Travel Preferences (The "Vibe")
+  ●​ Flight: * Seat: [Window, Aisle, Opposite Aisle]
+         ○​ Meal: (Text - e.g., Vegan, Kosher, Nut Allergy)
+  ●​ Hotel: * Bedding: [King, 2 Double/Queen, Twin]
+        ○​ Class: [Economy, Moderate, Luxury, Boutique, BnB]
+  ●​ Style (Tags): [Romantic, R&R, Off-beat, Party, Culture, Family, Food/Wine, Adventure,
+     LGBT]
+  ●​ Activities (Tags): [Beach, Gambling, Scuba, Golf, Nightlife, Arts/Theatre]
+
+
+Tab 5: The Secure Vault (Documents & Health)
+  ●​ Passports: Full Name, Number, Country, Issue Date, Expiry Date, Nationality,
+     Citizenship, Place of Birth, Sex, Photo Upload.
+  ●​ Visas: Full Name, Number, Country, Issue Date, Expiry Date, Photo Upload.
+  ●​ Trusted Traveler: [TSA PreCheck, Global Entry, Sentri] + Number.
+  ●​ Vaccine/Health: Vaccine Type, Date, Dose #, Allergy Notes, Accessibility Needs.
+
+
+Tab 6: Files, Notes & History
+  ●​ File Manager: Upload for PDFs (Vouchers, Invoices).
+  ●​ Internal Notes: Time-stamped logs of agent interactions.
+  ●​ Past Trips: (Read-only view pulled from the "Bookings" module).
+
+
+
+
+IV. Developer Logic Requirements (The "Secret Sauce")
+  1.​ Date Watchers: * Flag if Passport Expiry < 180 days from Today.
+        ○​ Flag if Client Birthday is within the next 14 days.
+  2.​ Smart Form Population:
+        ○​ If a Lead provides a WhatsApp number that already exists in the Clients table,
+             the system must show a "Merge with Existing Record" alert.
+  3.​ Audit Trail:
+        ○​ Log which Agent viewed/edited sensitive data (Passport/Visa) and when.
+

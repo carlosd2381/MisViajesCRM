@@ -1,0 +1,98 @@
+🏗️ Master Blueprint: Agency Insights &
+Owner Dashboard
+I. Global Logic & Database Architecture
+  ●​ Data Refresh: Real-time sync with the Financial Engine of the Itinerary Builder.
+  ●​ Role-Based Access (RBAC): Agents see their own stats; Managers see their team; the
+     Owner sees the entire agency, including sensitive Net Costs and Agency Profit.
+  ●​ The "TTV" Metric: The system tracks Total Transaction Value (TTV) (total client
+     spend) vs. Gross Profit (actual agency earnings).
+
+
+
+
+II. Module Structure: The "Command Center" View
+  1.​ Top Row (The Pulse): High-level "Counter" widgets (Total Sales, Active Leads, Pending
+      Commissions).
+  2.​ Middle Row (The Performance): Comparison charts (Sales this month vs. last month)
+      and Agent Leaderboards.
+  3.​ Bottom Row (The AI Intelligence): Kimi-generated insights and "Risk Alerts."
+
+
+
+
+III. Key Performance Indicators (KPIs) & Data Fields
+
+1. Financial Performance (The "Money" Pillar)
+  ●​ Gross Profit Margin: (TTV - Net Cost) / TTV.
+  ●​ Commission Tracking: * Expected Commission: Based on booked status.
+         ○​ Received Commission: Based on supplier payout.
+        ○​ Pending/Overdue: Flagged if a supplier hasn't paid within 30 days post-travel.
+  ●​ Average Booking Value (ABV): Helps identify if agents are upselling to luxury.
+
+
+2. Operational Efficiency (The "Speed" Pillar)
+  ●​ Lead Conversion Rate: % of Leads that move to "Closed-Won."
+  ●​ Average Response Time: Time from Lead intake to first message (WhatsApp/Email).
+   ●​ Proposal-to-Booking Ratio: How many AI-generated proposals are actually getting
+      signed.
+
+
+3. Agent Productivity (The "Team" Pillar)
+   ●​ Sales by Agent: Total revenue generated per team member.
+   ●​ Client Retention Rate: % of "Repeat Clients" assigned to each agent.
+   ●​ AI Usage Score: How often the agent is using Kimi to generate content (helps you see
+      who is working efficiently).
+
+
+
+
+IV. The AI "Executive Assistant" (Kimi k2.5 Integration)
+
+1. The "Monday Morning" Briefing
+Every Monday, Kimi generates a 4-paragraph report for the owner:
+
+   ●​ "Overall sales are up 12% this week, largely driven by a surge in Oaxaca bookings."
+   ●​ "Agent Sofia has a 90% conversion rate this month—consider having her mentor the
+      new hires."
+   ●​ "Warning: Three suppliers in your 'Europe' category have pending commissions older
+      than 60 days."
+
+
+2. The "Trend Spotter"
+Kimi scans all Lead destinations and Trip_Intent fields to detect shifts:
+
+   ●​ "I noticed an 18% increase in inquiries for 'Wellness Retreats' in Tulum. You may want to
+      add more Wellness-focused suppliers to the database."
+
+
+
+
+V. Functional Requirements for the Developer
+
+1. The "Commission Reconciliation" Tool
+   ●​ Requirement: A dedicated screen where the accountant can check off commissions as
+      "Paid" by the supplier.
+   ●​ AI Task: Kimi automatically matches incoming bank statement descriptions to specific
+      Itinerary_IDs.
+2. Custom Date Filtering
+  ●​ Requirement: Allow the owner to filter all data by "Travel Date" (when the trip happens)
+     vs. "Booking Date" (when the money was paid).
+
+
+3. Export Engine
+  ●​ Requirement: One-click export to Excel/PDF for accounting (SAT compliance in
+     Mexico).
+
+
+
+
+VI. Database Schema (For the Developer)
+
+Table: agency_targets
+  ●​ id, year, month, target_revenue, target_margin
+
+
+Table: commissions_ledger
+  ●​ id, itinerary_id (FK), supplier_id (FK)
+  ●​ amount_due, currency, due_date, status [Pending, Paid, Disputed]
+

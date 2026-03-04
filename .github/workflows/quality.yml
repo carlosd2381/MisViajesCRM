@@ -1,0 +1,146 @@
+name: Quality Gates
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      force_auth_smoke:
+        description: 'Run auth-smoke even if path filters do not match'
+        required: false
+        default: 'false'
+      auth_smoke_modes:
+        description: 'Auth smoke mode scope for manual runs'
+        required: false
+        default: 'both'
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      auth_related: ${{ steps.filter.outputs.auth_related }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changed paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            auth_related:
+              - 'src/core/auth/**'
+              - 'src/core/observability/**'
+              - 'src/modules/auth/**'
+              - 'src/integration/**'
+              - 'tools/ops/**'
+              - '.github/workflows/**'
+              - 'package.json'
+              - 'package-lock.json'
+
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run quality checks
+        run: npm run quality
+
+  auth-smoke:
+    needs: changes
+    if: |
+      (
+        needs.changes.outputs.auth_related == 'true' ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.force_auth_smoke == 'true')
+      ) && (
+        github.event_name != 'workflow_dispatch' ||
+        github.event.inputs.auth_smoke_modes == 'both' ||
+        github.event.inputs.auth_smoke_modes == matrix.auth-mode
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        auth-mode: [header, token]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Start API
+        env:
+          AUTH_MODE: ${{ matrix.auth-mode }}
+        run: |
+          npm run dev:api > auth-smoke-server.log 2>&1 &
+          echo $! > auth-smoke-server.pid
+
+      - name: Wait for API readiness
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:3000/health >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "API did not become ready in time"
+          exit 1
+
+      - name: Run auth smoke check
+        env:
+          AUTH_SMOKE_BASE_URL: http://127.0.0.1:3000
+          AUTH_SMOKE_VERIFY_TOKEN_MODE: ${{ matrix.auth-mode == 'token' }}
+        run: npm run auth:smoke
+
+      - name: Auth smoke summary
+        if: always()
+        env:
+          AUTH_MODE_VALUE: ${{ matrix.auth-mode }}
+          AUTH_SMOKE_VERIFY_TOKEN_MODE: ${{ matrix.auth-mode == 'token' }}
+          AUTH_SMOKE_BASE_URL: http://127.0.0.1:3000
+        run: |
+          echo "Auth smoke run summary"
+          echo "- AUTH_MODE=${AUTH_MODE_VALUE}"
+          echo "- AUTH_SMOKE_BASE_URL=${AUTH_SMOKE_BASE_URL}"
+          echo "- AUTH_SMOKE_VERIFY_TOKEN_MODE=${AUTH_SMOKE_VERIFY_TOKEN_MODE}"
+
+      - name: Stop API
+        if: always()
+        run: |
+          if [ -f auth-smoke-server.pid ]; then
+            kill "$(cat auth-smoke-server.pid)" || true
+          fi
+
+      - name: Upload API logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: auth-smoke-server-log-${{ matrix.auth-mode }}
+          path: auth-smoke-server.log

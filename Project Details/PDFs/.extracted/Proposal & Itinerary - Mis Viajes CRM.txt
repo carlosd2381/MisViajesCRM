@@ -1,0 +1,135 @@
+🏗️ Master Blueprint: AI-Powered Proposal
+& Itinerary Builder
+I. Global Logic & Database Architecture
+  ●​ The "Clone" Feature: Agents can "Clone" past trips or "Master Templates." AI
+     Enhancement: Kimi can "Smart-Clone"—adjusting a summer itinerary for winter dates
+     by swapping seasonal activities or checking if previously used hotels are still "Preferred
+     Suppliers."
+  ●​ State Management: Draft $\rightarrow$ Proposal (Sent) $\rightarrow$ Booked
+     (Confirmed) $\rightarrow$ Itinerary (Final Docs).
+  ●​ Dynamic Pricing: Handles Net Price, Markup/Service Fee, and Total Price. AI
+     Enhancement: Kimi monitors profit margins and alerts agents if the current markup falls
+     below agency KPIs.
+  ●​ AI Context Awareness: Kimi "reads" the linked Client Profile (preferences, allergies,
+     history) and the Supplier Profile (commission, amenities) to ensure every item added to
+     the timeline is a perfect match.
+
+
+
+II. Module Structure: The Three-Pane Builder
+  1.​ Left Pane (Component Library): Drag-and-drop Flights, Hotels, Tours, and Notes.
+      Includes an "AI Suggest" Search Bar where Kimi suggests suppliers based on the
+      trip's "Vibe."
+  2.​ Middle Pane (The Timeline): The interactive "Day" builder. Includes an "AI Magic
+      Wand" button on each day to auto-write descriptions.
+  3.​ Right Pane (Live Preview): A real-time rendering of the Web Proposal. AI
+      Enhancement: A toggle to "Preview as PDF" where Kimi optimizes the layout for page
+      breaks and visual flow.
+
+
+
+III. Data Fields & Components
+1. Header & Logistics
+  ●​   Trip Name: (e.g., "The Rodriguez Family Oaxaca Discovery").
+  ●​   Client Link: (Search/Select from Clients Table).
+  ●​   Dates: (Fixed or Flexible).
+  ●​   Status: [Draft, Sent, Accepted, Paid, Completed, Cancelled].
+  ●​   AI Summary: Kimi generates a 3-sentence "Executive Summary" at the top of the
+       proposal to "hook" the client.
+
+2. The "Day" Builder (Timeline Objects)
+Each object contains a "Kimi Narrative" field for the AI-generated customer-facing text.
+
+   ●​ A. Flight Object: Carrier, Flight #, Route, Times, PNR. AI Task: Check for schedule
+      changes and auto-calculate "Buffer Time" for transfers.
+   ●​ B. Accommodation Object: Property Name, Room Type, Dates, Inclusions, Address.
+      AI Task: Pull "Hidden Perks" from Supplier notes (e.g., "Mention the complimentary
+      sunset mezcal tasting").
+   ●​ C. Activity / Tour Object: Provider, Meeting Point, Duration, What to Bring. AI Task:
+      Write an evocative "Experience Description" (e.g., "Descend into the crystal clear waters
+      of Cenote Azul...").
+   ●​ D. Note / Logistics Object: Restaurant recommendations, packing lists, customs info.
+      AI Task: Auto-generate these based on the destination and the client's "Travel DNA."
+
+
+
+IV. The Financial "Engine" (Internal Only)
+ Field                  Logic / AI Enhancement
+
+
+
+ Gross Total            Sum of all line items (Client View).
+
+
+
+ Net Total              Amount owed to Suppliers.
+
+
+
+ Markup %               Applied to Net price.
+
+
+
+ Service Fee            Flat fee (e.g., "Concierge Fee").
+
+
+
+ Agency Profit          $Gross - Net$.
+
+
+
+ Commission Est.        Pulls from Supplier profile %.
+
+
+
+ AI Price Guard         Kimi alerts if total exceeds the Lead's "Budget Max."
+V. Functional Requirements: The "Kimi k2.5" Suite
+1. The Interactive Client Link (Web Proposal)
+  ●​ AI Narrative: Kimi writes the entire web page in a "Storytelling" format.
+  ●​ Conversion Optimization: Kimi suggests the best "Cover Image" based on the client's
+     aesthetic preferences (e.g., Boutique vs. Ultra-Modern).
+
+2. PDF/Voucher Generator (The Layout Artist)
+  ●​ Requirement: Kimi acts as a design agent. When the agent clicks "Generate PDF,"
+     Kimi:
+        1.​ Formats the text into a clean, luxury layout.
+        2.​ Ensures "Flight Objects" look like tickets and "Hotel Objects" look like brochures.
+        3.​ Automates page-breaking so a hotel description isn't cut in half.
+
+3. Live Supplier Sync & Smart Checks
+  ●​ Requirement: System pulls contact/commission info. AI Task: Kimi checks the "Incident
+     Log" of the supplier and warns the agent: "This transport provider has had 2 late pickups
+     this month; suggest an alternative?"
+
+4. Currency Switcher (Mexico Focus)
+  ●​ Logic: Input in USD, display in MXN. AI Task: Kimi monitors exchange rate volatility and
+     suggests an "Agency Rate" that protects the profit margin.
+
+
+
+VI. Database Schema (For the Developer)
+Table: itineraries
+  ●​   id, client_id, agent_id
+  ●​   title, status, cover_image_url
+  ●​   ai_narrative_intro (LongText - Kimi generated)
+  ●​   total_price, currency, markup_amount
+
+Table: itinerary_items
+  ●​   id, itinerary_id, supplier_id
+  ●​   day_number, sort_order
+  ●​   item_type (Flight, Hotel, Activity, Transport, Note)
+  ●​   details (JSON - flight/hotel specific info)
+  ●​   ai_description (Text - The "Kimi" version of the item description)
+  ●​   cost_net, cost_gross
+Table: ai_prompts
+   ●​ id, section_target (e.g., 'PDF_Layout', 'Day_Summary')
+   ●​ prompt_text (The specific instructions for Kimi k2.5)
+
+
+
+Implementation Note for the Developer:
+To implement Kimi k2.5, use an Asynchronous Queue. When the agent hits "Magic Wand,"
+send the JSON of the Day/Itinerary to Kimi. Store the returned Markdown in the ai_description
+field. Use a library like Puppeteer or React-PDF to render Kimi's Markdown/HTML output into
+the final branded PDF.
+

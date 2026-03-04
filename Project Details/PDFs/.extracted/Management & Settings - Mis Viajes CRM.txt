@@ -1,0 +1,96 @@
+🏗️ Master Blueprint: The Management &
+Settings Hub
+I. Management (The Agency Brain)
+Goal: High-level oversight and operational control.
+
+   ●​ Branch/Office Management: If you expand to multiple locations (e.g., CDMX and
+      Cancún), manage separate addresses, tax IDs (RFCs), and local bank accounts.
+   ●​ Supplier Master List: A global view of all partners with a "Kimi Reliability Score"
+      (AI-calculated based on past booking issues vs. successful trips).
+   ●​ Document Templates: Centralized storage for:
+          ○​ Terms & Conditions: (Mexican Consumer Protection / PROFECO compliant).
+          ○​ Privacy Notices: (LFPDPPP compliant).
+          ○​ Service Agreements: Branded with your logo.
+
+
+
+II. Marketing (Automation & AI Campaigns)
+Goal: Turn "One-Time Travelers" into "Lifetime Clients" without manual effort.
+
+1. AI-Driven Segmentation
+   ●​ Traditional Segments: [Honeymooners, Luxury, Budget, Families, Adventure].
+   ●​ Kimi "Smart" Segments: AI analyzes behavior to create groups like: "Clients who travel
+      every November" or "Users who opened the Japan proposal but didn't book."
+
+2. Automation Workflows (The "Set & Forget")
+   ●​ The "Welcome Home" Loop:
+         ○​ T+1 Day: WhatsApp: "Welcome back! How was the flight?"
+         ○​ T+7 Days: Email: "We'd love your feedback (and a Google Review)."
+         ○​ T+14 Days: Email: "Based on your trip to Paris, here are 3 similar 'Culture' trips
+             for next year."
+   ●​ Abandoned Proposal Recovery: If a client hasn't clicked their "Magic Link" in 48 hours,
+      Kimi drafts a gentle follow-up: "Hi Juan, I saw you haven't had a chance to look at the
+      Oaxaca plan. Prices for the hotel we picked are rising—should we lock it in?"
+
+3. Campaign Builder
+   ●​ Blast WhatsApp/Email: Send seasonal promos (e.g., "Buen Fin" or "Black Friday") to
+      specific segments.
+   ●​ AI Content Generator: Kimi writes the subject lines and body text to ensure high open
+      rates.
+III. Settings (Team Roles & Permissions)
+Goal: Security and accountability.
+
+1. Team Roles (RBAC - Role-Based Access Control)
+ Role              Access Level
+
+
+
+ Owner             Full access to everything (Financials, Deleting Records, Settings).
+
+
+
+ Manager           View all team leads, approve proposals, view agency-wide reports.
+
+
+
+ Agent             View/Edit only their assigned Leads and Clients. No access to "Agency
+                   Profit" stats.
+
+
+
+ Accountant        Access to Financials and Commissions only. Read-only on Itineraries.
+
+
+
+ External DMC      (Optional) Restricted view for local partners to see only the clients they are
+                   hosting.
+
+
+
+2. Team Tracking
+   ●​ Lead Rotation: Define how new leads are assigned (Round Robin, by Specialty, or
+      "First to Claim").
+   ●​ Activity Logs: See exactly who changed a price or edited a passport number.
+
+
+
+IV. Integrations (The Tech Stack)
+Goal: Connectivity with the tools you already use.
+
+   ●​ Communication: WhatsApp Business API, SendGrid (Email), Twilio (SMS).
+   ●​ Financials: QuickBooks / Xero (Accounting) and Stripe / Openpay (Mexico-friendly
+      payments).
+   ●​ Travel Tools: GDS (Amadeus/Sabre), Bedsonline API, or Travefy.
+   ●​ Productivity: Google Workspace (Calendar/Drive), Slack (Internal alerts).
+   ●​ Kimi k2.5 API: The central logic engine connecting all the above.
+
+
+
+V. Developer Logic: The "AI Maintenance" Tab
+Your developer should add a "Kimi Health" section in Settings where you can:
+
+   1.​ Adjust the "Voice": (e.g., "Switch tone from 'Formal' to 'Friendly/Adventurous'").
+   2.​ Prompt Training: Upload your agency's best past itineraries so Kimi "learns" exactly
+       how you like to plan.
+   3.​ Audit AI Usage: Track how many tokens/requests Kimi is using to manage costs.
+

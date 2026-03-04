@@ -1,0 +1,106 @@
+🏗️ Master Blueprint: Supplier & Provider
+Module
+I. Global Logic & Database Architecture
+   ●​ Categorization: Suppliers must be filterable by Type (Hotel, Airline, DMC, etc.) and
+      Region (Cancun, Europe, Asia).
+   ●​ Payment Logic: A dedicated sub-table for Banking Info (essential for wire
+      transfers/CLABE) and Commission Structures.
+   ●​ Preferred Status: A "Star" or "Tier" system (e.g., Preferred, Standard, Do Not Book).
+
+
+
+
+II. Module 3: Supplier Profile Structure
+
+Tab 1: Company Identity (The Core)
+   ●​ Legal Name: Registered Business Name.
+   ●​ Trade Name: (e.g., "The Royal Cancun" vs. Legal Entity Name).
+   ●​ Supplier Type: [Wholesaler, Hotel, Airline, DMC/Inbound, Car Rental, Insurance, Tour
+      Operator, Private Transport, Cruise Line].
+   ●​ RFC / Tax ID: (Critical for Mexican invoicing/Facturación).
+   ●​ Website: URL for agent portal login.
+   ●​ Physical Address: Street, City, State, Country, Zip.
+
+
+Tab 2: Contact Directory (The "Who to Call")
+This needs to be a multi-entry list because you talk to different people for Sales vs. Accounting.
+
+   ●​ Primary Contact: Name, Title, Email, Phone, WhatsApp.
+   ●​ Department Tags: [Sales/Rep, Reservations, Accounting/Commissions,
+      Emergency/24-7].
+   ●​ Notes: (e.g., "Always ask for Maria for room upgrades").
+
+
+Tab 3: Financials & Commissions (The "Money" Tab)
+This is the most important section for the Agency Owner.
+   ●​ Commission Rate: [% Percentage or Fixed Fee].
+   ●​ Payout Terms: [Pre-paid, Post-travel (30 days), Post-travel (60 days), Upon Booking].
+   ●​ Payment Method: [Credit Card, Wire Transfer/CLABE, PayPal, Check].
+   ●​ Banking Details: Bank Name, Account Number, CLABE (18 digits), SWIFT/BIC,
+      Currency (MXN/USD/EUR).
+   ●​ Tax Status: [IVA Registered, Non-IVA, International].
+
+
+Tab 4: Agent Portal & Credentials
+Avoids agents constantly asking "What's our login for Bedsonline?"
+
+   ●​   Portal URL: Link to the booking engine.
+   ●​   Username/Agency ID: (Text).
+   ●​   Password Hint/Note: (Securely stored or integrated with a password manager).
+   ●​   Contract/Agreement: PDF upload for the signed partnership contract.
+
+
+Tab 5: Inventory & Specialties (The "Expertise")
+   ●​ Destinations Covered: (Multi-select Tags - e.g., "Riviera Maya", "Oaxaca", "Global").
+   ●​ Service Level: [Budget, Mid-range, Luxury, Ultra-Luxe].
+   ●​ Top Selling Products: (Text - e.g., "Best for Private Catamarans", "Best for
+      Honeymoons").
+   ●​ Blackout Dates / Notes: (Text).
+
+
+Tab 6: Internal Reviews & Ratings
+
+                                🔴              🟡                  🟢
+   ●​ Agent Rating: (1–5 Stars).
+   ●​ Internal Warning Flag: [     High Risk /    Use Caution /      Reliable].
+   ●​ Incident Log: A history of "Service Failures" (e.g., "Driver was late 3 times in 2025").
+
+
+
+
+III. Developer Logic Requirements
+   1.​ The "Commission Link":
+          ○​ Requirement: When a Booking is created, the system must pull the
+              Commission Rate and Payout Terms from this Supplier profile automatically
+              to calculate the agency’s expected profit.
+   2.​ Portal Quick-Launch:
+          ○​ Requirement: A button next to the "Portal URL" that copies the
+              Username/Agency ID to the clipboard with one click.
+   3.​ Document Expiry (Insurance/Contracts):
+         ○​ Requirement: Flag if a supplier's contract or liability insurance is expiring (similar
+            to the Client Passport alert).
+  4.​ Currency Default:
+         ○​ Requirement: Assign a default currency to the supplier (e.g., "Xcaret" = MXN,
+            "Expedia" = USD).
+
+
+
+
+IV. Database Schema Extension (For the Developer)
+
+Table: suppliers
+  ●​ id (UUID)
+  ●​ name, trade_name, rfc, type (Enum)
+  ●​ status (Enum: Active, Inactive, Blacklisted)
+  ●​ address (JSON)
+
+
+Table: supplier_bank_info
+  ●​ id, supplier_id (FK)
+  ●​ bank_name, clabe, account_num, currency
+
+
+Table: supplier_contacts
+  ●​ id, supplier_id (FK)
+  ●​ name, department, phone, email, is_primary (Boolean)
+

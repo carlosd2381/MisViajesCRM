@@ -1,0 +1,94 @@
+🏗️ Master Blueprint: AI-Omnichannel
+Messaging Hub
+I. Global Logic & Database Architecture
+   ●​ The "Unified Inbox": All messages (WhatsApp, Email, FB Messenger, Instagram DM)
+      flow into a single chronological thread per client.
+   ●​ Thread Ownership: Only one agent is "Active" on a thread to prevent
+      double-messaging, but others can "Follow" or "Internal Note" for collaboration.
+   ●​ Message Status Tracking: Every message must track four states: Sent, Delivered,
+       Read, and Replied.
+
+
+
+
+II. Module Structure: The "Conversation View"
+   1.​ Left Sidebar: Active Conversations list (Sorted by "Last Reply" and "Priority Score").
+   2.​ Center Pane: The Chat Thread. Bubbles are color-coded by channel (e.g., Green for
+       WhatsApp, Blue for Email).
+   3.​ Right Sidebar: "The Context Card." Shows the client’s Travel DNA, current Itinerary
+       Status, and Loyalty Numbers so the agent never has to leave the screen.
+
+
+
+
+III. The AI Messaging Engine (Kimi k2.5 Integration)
+
+1. The "Ghost Writer" (Agent Assistant)
+Instead of typing from scratch, the agent sees an AI Draft based on the current context.
+
+   ●​ Scenario: A client asks on WhatsApp: "Is breakfast included?"
+   ●​ Kimi Action: Scans the Accommodation Object in the Itinerary and drafts: "Yes,
+      Maria! You have a full buffet breakfast included at Casa Oaxaca. They are famous for
+      their hot chocolate!"
+
+
+2. Auto-Summary & Sentiment Analysis
+  ●​ The "TL;DR": If a thread has 50+ messages, Kimi provides a 3-bullet summary for a
+     manager or new agent.
+  ●​ Sentiment Alert: Kimi flags a thread if a client seems frustrated (e.g., "Warning: Client is
+     expressing concern about the flight delay").
+
+
+
+
+IV. Functional Requirements: The "Big Three" Channels
+
+1. WhatsApp Business API (The Core)
+  ●​ Template Support: Official "HSM" templates for sending Proposals (e.g., "Hola {{1}},
+     here is your updated itinerary for {{2}}: {{link}}").
+  ●​ 24-Hour Window Logic: CRM must alert the agent if they are approaching the 24-hour
+     mark to reply (after which WhatsApp requires a template).
+  ●​ Read Receipts: Real-time visual feedback in the CRM when the client opens the
+     message.
+
+
+2. Email Integration (IMAP/SMTP/SendGrid)
+  ●​ Rich HTML Support: Emails must render the AI-Narrative headers beautifully.
+  ●​ Open Tracking: A "Pixel Tracker" tells the agent if the client has opened the proposal
+     email and how many times.
+
+
+3. Internal "Agent Chat" (The Handoff)
+  ●​ Private Mentions: Agents can @mention a colleague or a manager inside the client
+     thread. The client never sees this.
+  ●​ Task Linking: "Turn this message into a Task" button—Kimi extracts the action item
+     (e.g., "Change hotel to King Bed") and adds it to the agent's To-Do list.
+
+
+
+
+V. Developer Logic & Database Schema
+
+Table: communication_logs
+  ●​ id, client_id (FK), agent_id (FK)
+  ●​ channel: [WhatsApp, Email, SMS, Internal_Note]
+  ●​ direction: [Inbound, Outbound]
+  ●​ content: (Text/HTML)
+  ●​ status: [Sent, Delivered, Read]
+  ●​ metadata: (JSON - stores Email Subject or WhatsApp Template ID)
+
+
+Table: message_templates
+  ●​ id, name, body_text
+  ●​ ai_tone_instruction: (e.g., "Make this sound excited for a honeymooner")
+
+
+
+
+VI. The "Magic Link" Workflow (The Final Interaction)
+  1.​ Agent finishes the Itinerary.
+  2.​ Kimi generates a WhatsApp-friendly "Teaser" message.
+  3.​ Agent hits "Send via WhatsApp."
+  4.​ Client clicks the unique link.
+  5.​ CRM Dashboard flashes: "Client [Maria] is currently viewing the [Oaxaca Proposal]!"
+

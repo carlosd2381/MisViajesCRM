@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "mdls": true,
+        "command": true,
+        "pdftotext": true,
+        "npm install": true
+    }
+}

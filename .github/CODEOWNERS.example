@@ -1,0 +1,20 @@
+# Example aligned to current single-owner setup.
+# Copy this file to .github/CODEOWNERS.
+# If/when team grows, replace with GitHub team handles.
+# Format: <path> <owner> [owner...]
+
+# Default reviewers
+* @carlosd2381
+
+# Authentication and session security
+/src/core/auth/** @carlosd2381
+/src/modules/auth/** @carlosd2381
+
+# Observability and operational tooling
+/src/core/observability/** @carlosd2381
+/tools/ops/** @carlosd2381
+
+# CI/CD workflows and governance
+/.github/workflows/** @carlosd2381
+/docs/operations/** @carlosd2381
+/docs/governance/** @carlosd2381

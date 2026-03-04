@@ -1,0 +1,101 @@
+🏗️ Master Blueprint: Financials &
+Commission Engine
+I. Global Logic & Database Architecture
+   ●​ Dual-Currency Ledger: Every transaction must store the Original Currency (e.g., USD
+      for a cruise) and the Local Currency (MXN for the client invoice) using the exchange
+      rate at the time of the transaction.
+   ●​ The "Net-Gross-Profit" Triangle:
+          ○​ Net: What the supplier charges the agency.
+          ○​ Gross: What the client pays.
+          ○​ Commission: Gross - Net (or a fixed % of Gross).
+   ●​ Tax Compliance (Mexico): Native support for CFDI 4.0. The system must distinguish
+      between "Intermediate Services" (commission-based) and "Direct Sales" (service fees)
+      for SAT reporting.
+
+
+
+II. Module 1: Commissions (Tracker & Reconciliation)
+Goal: Ensure the agency actually receives the money it's owed.
+
+1. The Commission Tracker (Pending vs. Received)
+   ●​ Fields: Supplier_ID, Expected_Amount, Due_Date (Auto-set to X days after client
+      travel), Status (Unclaimed, Claimed, Paid, Disputed).
+   ●​ AI Feature (Kimi "The Auditor"): Kimi scans all "Completed" trips. If a commission
+      hasn't been marked as paid 30 days after the travel date, it moves to the "Chasing List"
+      and drafts a follow-up email to the supplier.
+
+2. Smart Reconciliation (The "Bank Sync")
+   ●​ The Process: Upload a CSV or PDF of your bank statement or an EFT (Electronic
+      Funds Transfer) from a supplier (e.g., a Marriott commission statement).
+   ●​ AI Task: Kimi k2.5 reads the statement, identifies the PNR or Client Name, and
+      matches it to the Itinerary_ID.
+   ●​ Result: Instead of manual entry, the agent just clicks "Confirm" on the matches Kimi
+      found.
+
+
+
+III. Module 2: Invoicing (Service Fees & Payments)
+Goal: Professional, tax-compliant billing for the client.
+
+1. Service Fee Management
+  ●​ Types: Flat Fee (e.g., $50 USD per person), Percentage (e.g., 10% of total), or
+     "Consulting Retainer."
+  ●​ Logic: Service fees are usually 100% profit. The CRM must track these separately from
+     "Supplier Payments" to give an accurate view of the agency's pure margin.
+
+2. The Payment Portal
+  ●​ Fields: Payment_Method (Transfer, Credit Card, Cash), Transaction_ID, Deposit_Date.
+  ●​ Client View: The "Interactive Link" (from the Itinerary Builder) includes a "Pay Now"
+     section showing:
+         ○​ Total Trip Cost.
+         ○​ Amount Paid to Date.
+         ○​ Remaining Balance + Due Date.
+
+
+
+IV. Functional Requirements: Mexico SAT Integration
+(CFDI)
+Feature                 Logic / Requirement
+
+
+
+RFC Validation          Automatically check the client's RFC against the SAT database.
+
+
+
+CFDI Generation         Integration with a PAC (Authorized Provider) to "stamp" invoices for
+                        Service Fees.
+
+
+
+Complemento de          Logic to generate payment supplements when the client pays in
+Pago                    installments.
+
+
+
+Tax Separation          Clearly break down IVA (16%) on service fees vs.
+                        exempt/zero-rated international travel.
+
+
+
+
+V. Developer's Database Schema (Financials)
+Table: financial_transactions
+  ●​ id, itinerary_id (FK), type [Supplier_Payment, Client_Receipt, Service_Fee]
+  ●​ amount_original, currency_original, exchange_rate
+  ●​ amount_mxn (Standardized for reporting)
+  ●​ status [Pending, Cleared, Cancelled]
+
+Table: commissions
+  ●​ id, itinerary_id (FK), supplier_id (FK)
+  ●​ expected_amount, actual_received, received_date
+  ●​ commission_rate (Pulls from Supplier Profile)
+
+
+
+VI. AI Financial Insights (Owner View)
+  ●​ "Profit Leakage" Alert: Kimi flags if an agent forgot to add a service fee or if a
+     supplier's commission is lower than the agency's negotiated rate.
+  ●​ Cash Flow Forecast: Kimi predicts the next 90 days of revenue based on "Final
+     Payment" due dates from active itineraries.
+
