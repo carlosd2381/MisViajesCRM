@@ -156,6 +156,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 ## Registro de cambios
 
+- 2026-03-04: Se revirtió uso de `.github/actions/setup-node-deps` en `quality.yml` para recuperar estabilidad en GitHub Actions, manteniendo setup/install explícito por job.
 - 2026-03-04: Se extrajo acción compuesta local para publicación de artifacts en CI (`.github/actions/upload-artifact`) y se migraron jobs smoke para usarla.
 - 2026-03-04: Se extrajo acción compuesta local para bootstrap de Node en CI (`.github/actions/setup-node-deps`) y se migraron jobs de `quality` y smoke para usarla.
 - 2026-03-04: Se extrajo helper de summary para jobs smoke en CI (`tools/ops/ci-smoke-summary.sh`) y se aplicó a `auth-smoke`, `ai-schema-smoke`, `ai-render-smoke` y `smoke-matrix`.

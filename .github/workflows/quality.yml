@@ -103,10 +103,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node and dependencies
-        uses: ./.github/actions/setup-node-deps
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
 
       - name: Run quality checks
         run: npm run quality
@@ -157,11 +160,15 @@ jobs:
         if: steps.scope.outputs.run_combo == 'true'
         uses: actions/checkout@v4
 
-      - name: Setup Node and dependencies
+      - name: Setup Node
         if: steps.scope.outputs.run_combo == 'true'
-        uses: ./.github/actions/setup-node-deps
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
+
+      - name: Install dependencies
+        if: steps.scope.outputs.run_combo == 'true'
+        run: npm install
 
       - name: Start API
         if: steps.scope.outputs.run_combo == 'true'
@@ -225,11 +232,15 @@ jobs:
         if: steps.scope.outputs.run_combo == 'true'
         uses: actions/checkout@v4
 
-      - name: Setup Node and dependencies
+      - name: Setup Node
         if: steps.scope.outputs.run_combo == 'true'
-        uses: ./.github/actions/setup-node-deps
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
+
+      - name: Install dependencies
+        if: steps.scope.outputs.run_combo == 'true'
+        run: npm install
 
       - name: Start API
         if: steps.scope.outputs.run_combo == 'true'
@@ -294,11 +305,15 @@ jobs:
         if: steps.scope.outputs.run_combo == 'true'
         uses: actions/checkout@v4
 
-      - name: Setup Node and dependencies
+      - name: Setup Node
         if: steps.scope.outputs.run_combo == 'true'
-        uses: ./.github/actions/setup-node-deps
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
+
+      - name: Install dependencies
+        if: steps.scope.outputs.run_combo == 'true'
+        run: npm install
 
       - name: Start API
         if: steps.scope.outputs.run_combo == 'true'
@@ -348,10 +363,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node and dependencies
-        uses: ./.github/actions/setup-node-deps
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
 
       - name: Run smoke matrix with JSON export
         env:

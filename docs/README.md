@@ -101,7 +101,6 @@ CI:
 - Los bloques de publicación en `GITHUB_STEP_SUMMARY` usan `tools/ops/ci-step-summary.sh` para formato homogéneo y menor duplicación en workflow YAML.
 - Los filtros por combinación matriz/selector manual en jobs smoke se unifican con `tools/ops/ci-matrix-scope.sh` para evitar drift entre jobs.
 - La extracción/parse/publicación de `*_SMOKE_SUMMARY` en CI se unifica con `tools/ops/ci-smoke-summary.sh` para reducir duplicación de bloques shell en workflow.
-- La preparación de runtime en CI (`setup-node` + `npm install`) se centraliza con la acción compuesta local `.github/actions/setup-node-deps` para evitar repetición entre jobs.
 - La publicación de artifacts en CI se centraliza con la acción compuesta local `.github/actions/upload-artifact` para reducir duplicación en jobs de smoke.
 - El job `quality` publica `QUALITY_HELPER_TESTS_SUMMARY {pass,fail}` en logs y `GITHUB_STEP_SUMMARY` para triage rápido de regresiones en checks auxiliares.
 - El contrato de `QUALITY_HELPER_TESTS_SUMMARY` se centraliza en `tools/quality/quality-summary-helpers.mjs` con cobertura de pruebas dedicada.
