@@ -1,18 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseSmokeSummaryLine } from './smoke-summary-helpers.mjs';
-
-const REQUIRED_AI_RENDER_CHECKS = [
-  'unauthorized_401',
-  'method_not_allowed_405_web',
-  'method_not_allowed_405_pdf',
-  'forbidden_external_403',
-  'render_schema_options_contract',
-  'invalid_render_options_400_web',
-  'invalid_render_options_400_pdf',
-  'web_render_200_html',
-  'pdf_render_200_pdf'
-];
+import {
+  REQUIRED_AI_RENDER_CHECKS,
+  assertAiRenderSmokeSummaryContract
+} from './smoke-matrix-summary-contract.mjs';
 
 test('AI render smoke summary contract includes required checks for matrix consumers', () => {
   const line =
@@ -24,6 +16,8 @@ test('AI render smoke summary contract includes required checks for matrix consu
   assert.equal(parsed.authMode, 'header');
   assert.equal(parsed.locale, 'es-MX');
   assert.ok(Array.isArray(parsed.checks));
+
+  assert.doesNotThrow(() => assertAiRenderSmokeSummaryContract(parsed));
 
   for (const requiredCheck of REQUIRED_AI_RENDER_CHECKS) {
     assert.ok(parsed.checks.includes(requiredCheck), `missing required AI render smoke check: ${requiredCheck}`);
@@ -38,4 +32,8 @@ test('AI render smoke summary contract fails completeness check when a required 
 
   assert.ok(parsed);
   assert.equal(parsed.checks.includes('invalid_render_options_400_pdf'), false);
+  assert.throws(
+    () => assertAiRenderSmokeSummaryContract(parsed),
+    /missing required check invalid_render_options_400_pdf/
+  );
 });
