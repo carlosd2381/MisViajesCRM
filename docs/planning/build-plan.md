@@ -156,6 +156,8 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 ## Registro de cambios
 
+Nota de lectura: entradas con `[Resumen]` agrupan lotes de cambios relacionados para escaneo rápido; los bullets detallados que siguen conservan el historial completo y son la referencia operativa principal.
+
 - 2026-03-04: [Resumen] Bloque de endurecimiento CI/contratos completado: preflight `smoke:matrix:contract`, validadores runtime de summaries (`AUTH/AI_SCHEMA/AI_RENDER`), publicación en `GITHUB_STEP_SUMMARY` y pruebas de regresión de workflow.
 
 - 2026-03-04: Se refactorizó `tools/quality/check-workflow-yaml.test.mjs` con helpers compartidos de assertions para pasos/orden (`assertStepExists`, `assertStepOrder`) manteniendo la misma cobertura de regresión.
