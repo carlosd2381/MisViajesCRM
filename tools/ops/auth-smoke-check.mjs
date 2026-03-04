@@ -1,4 +1,9 @@
 import { issueSmokeTokenPair, smokeHeaders } from './smoke-auth-helpers.mjs';
+import {
+  smokeExpectedMessage,
+  smokeExpectLocalizedMessage,
+  smokeExpectStatus
+} from './smoke-common-helpers.mjs';
 
 const BASE_URL = process.env.AUTH_SMOKE_BASE_URL ?? 'http://127.0.0.1:3000';
 const LOCALE = process.env.AUTH_SMOKE_LOCALE ?? 'es-MX';
@@ -9,7 +14,7 @@ const MANAGER_ROLE = process.env.AUTH_SMOKE_MANAGER_ROLE ?? 'manager';
 const VERIFY_TOKEN_MODE = (process.env.AUTH_SMOKE_VERIFY_TOKEN_MODE ?? 'false').toLowerCase() === 'true';
 
 function expectedMessage(spanish, english) {
-  return LOCALE === 'en-US' ? english : spanish;
+  return smokeExpectedMessage(LOCALE, spanish, english);
 }
 
 function headers(userId, role, contentType = 'application/json') {
@@ -21,45 +26,31 @@ async function request(path, options = {}) {
   return response;
 }
 
-async function expectStatus(name, response, status) {
-  if (response.status !== status) {
-    const text = await response.text();
-    throw new Error(`${name} failed: expected ${status}, got ${response.status}. Body: ${text}`);
-  }
-}
-
-async function expectLocalizedMessage(name, response, spanish, english) {
-  const payload = await response.json();
-  const expected = expectedMessage(spanish, english);
-  if (payload?.message !== expected) {
-    throw new Error(`${name} failed: expected message \"${expected}\", got \"${payload?.message ?? ''}\"`);
-  }
-}
-
 async function assertNegativeAuthScenarios() {
   const unauthMetrics = await request('/auth/metrics', {
     method: 'GET',
     headers: { 'x-locale': LOCALE }
   });
-  await expectStatus('unauth metrics', unauthMetrics, 401);
-  await expectLocalizedMessage('unauth metrics message', unauthMetrics, 'No autenticado', 'Unauthenticated');
+  await smokeExpectStatus('unauth metrics', unauthMetrics, 401);
+  await smokeExpectLocalizedMessage('unauth metrics message', unauthMetrics, LOCALE, 'No autenticado', 'Unauthenticated');
 
   const forbiddenMetrics = await request('/auth/metrics', {
     method: 'GET',
     headers: headers(AGENT_ID, AGENT_ROLE)
   });
-  await expectStatus('forbidden metrics', forbiddenMetrics, 403);
-  await expectLocalizedMessage('forbidden metrics message', forbiddenMetrics, 'Acceso denegado', 'Access denied');
+  await smokeExpectStatus('forbidden metrics', forbiddenMetrics, 403);
+  await smokeExpectLocalizedMessage('forbidden metrics message', forbiddenMetrics, LOCALE, 'Acceso denegado', 'Access denied');
 
   const invalidRefresh = await request('/auth/refresh', {
     method: 'POST',
     headers: headers(AGENT_ID, AGENT_ROLE),
     body: JSON.stringify({ refreshToken: 'smoke_invalid_refresh_token' })
   });
-  await expectStatus('invalid refresh', invalidRefresh, 401);
-  await expectLocalizedMessage(
+  await smokeExpectStatus('invalid refresh', invalidRefresh, 401);
+  await smokeExpectLocalizedMessage(
     'invalid refresh message',
     invalidRefresh,
+    LOCALE,
     'Refresh token inválido o expirado',
     'Invalid or expired refresh token'
   );
@@ -71,10 +62,11 @@ async function assertTokenModeNegativeScenario() {
     headers: { 'x-locale': LOCALE }
   });
 
-  await expectStatus('token mode unauth protected route', unauthProtectedRoute, 401);
-  await expectLocalizedMessage(
+  await smokeExpectStatus('token mode unauth protected route', unauthProtectedRoute, 401);
+  await smokeExpectLocalizedMessage(
     'token mode unauth protected route message',
     unauthProtectedRoute,
+    LOCALE,
     'No autenticado',
     'Unauthenticated'
   );
@@ -84,7 +76,7 @@ async function run() {
   console.log(`Running auth smoke-check against ${BASE_URL}`);
 
   const health = await request('/health');
-  await expectStatus('health', health, 200);
+  await smokeExpectStatus('health', health, 200);
 
   await assertNegativeAuthScenarios();
 
@@ -109,7 +101,7 @@ async function run() {
       }
     });
 
-    await expectStatus('token mode protected route', protectedRoute, 200);
+    await smokeExpectStatus('token mode protected route', protectedRoute, 200);
   }
 
   const refresh = await request('/auth/refresh', {
@@ -117,7 +109,7 @@ async function run() {
     headers: headers(AGENT_ID, AGENT_ROLE),
     body: JSON.stringify({ refreshToken: firstRefreshToken })
   });
-  await expectStatus('refresh token', refresh, 200);
+  await smokeExpectStatus('refresh token', refresh, 200);
 
   const refreshData = await refresh.json();
   const secondRefreshToken = refreshData?.data?.refreshToken;
@@ -130,19 +122,19 @@ async function run() {
     headers: headers(AGENT_ID, AGENT_ROLE),
     body: JSON.stringify({ refreshToken: secondRefreshToken })
   });
-  await expectStatus('revoke token', revoke, 200);
+  await smokeExpectStatus('revoke token', revoke, 200);
 
   const metrics = await request('/auth/metrics', {
     method: 'GET',
     headers: headers(MANAGER_ID, MANAGER_ROLE, 'application/json')
   });
-  await expectStatus('metrics json', metrics, 200);
+  await smokeExpectStatus('metrics json', metrics, 200);
 
   const prom = await request('/auth/metrics/prom', {
     method: 'GET',
     headers: headers(MANAGER_ID, MANAGER_ROLE, 'application/json')
   });
-  await expectStatus('metrics prom', prom, 200);
+  await smokeExpectStatus('metrics prom', prom, 200);
 
   const summary = {
     locale: LOCALE,

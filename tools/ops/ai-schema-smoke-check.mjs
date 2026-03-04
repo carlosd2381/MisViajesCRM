@@ -1,4 +1,5 @@
 import { resolveSmokeAuthHeaders, smokeHeaders } from './smoke-auth-helpers.mjs';
+import { smokeAssert, smokeExpectedMessage } from './smoke-common-helpers.mjs';
 
 const BASE_URL = process.env.AI_SCHEMA_SMOKE_BASE_URL ?? 'http://127.0.0.1:3000';
 const LOCALE = process.env.AI_SCHEMA_SMOKE_LOCALE ?? 'es-MX';
@@ -16,11 +17,11 @@ async function request(path, options = {}) {
 }
 
 function assert(condition, message) {
-  if (!condition) throw new Error(message);
+  smokeAssert(condition, message);
 }
 
 function expectedMessage(spanish, english) {
-  return LOCALE === 'en-US' ? english : spanish;
+  return smokeExpectedMessage(LOCALE, spanish, english);
 }
 
 function isTokenMode() {
