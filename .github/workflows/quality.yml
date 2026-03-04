@@ -145,6 +145,11 @@ jobs:
       (github.event_name == 'workflow_dispatch' && github.event.inputs.force_auth_smoke == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      SERVER_LOG_FILE: auth-smoke-server.log
+      SERVER_PID_FILE: auth-smoke-server.pid
+      SMOKE_OUTPUT_FILE: auth-smoke-output.log
+      FAILURE_ARTIFACT_NAME: auth-smoke-server-log-${{ matrix.auth-mode }}-${{ matrix.locale }}
     strategy:
       fail-fast: false
       matrix:
@@ -173,7 +178,7 @@ jobs:
         if: steps.scope.outputs.run_combo == 'true'
         env:
           AUTH_MODE: ${{ matrix.auth-mode }}
-        run: bash tools/ops/ci-api-lifecycle.sh start "$AUTH_MODE" auth-smoke-server.log auth-smoke-server.pid
+        run: bash tools/ops/ci-api-lifecycle.sh start "$AUTH_MODE" "$SERVER_LOG_FILE" "$SERVER_PID_FILE"
 
       - name: Wait for API readiness
         if: steps.scope.outputs.run_combo == 'true'
@@ -185,7 +190,7 @@ jobs:
           AUTH_SMOKE_BASE_URL: http://127.0.0.1:3000
           AUTH_SMOKE_VERIFY_TOKEN_MODE: ${{ matrix.auth-mode == 'token' }}
           AUTH_SMOKE_LOCALE: ${{ matrix.locale }}
-        run: npm run auth:smoke | tee auth-smoke-output.log
+        run: npm run auth:smoke | tee "$SMOKE_OUTPUT_FILE"
 
       - name: Auth smoke summary
         if: always() && steps.scope.outputs.run_combo == 'true'
@@ -194,20 +199,20 @@ jobs:
           AUTH_SMOKE_LOCALE: ${{ matrix.locale }}
           AUTH_SMOKE_VERIFY_TOKEN_MODE: ${{ matrix.auth-mode == 'token' }}
           AUTH_SMOKE_BASE_URL: http://127.0.0.1:3000
-        run: bash tools/ops/ci-smoke-summary.sh "Auth smoke (${AUTH_MODE_VALUE}, ${AUTH_SMOKE_LOCALE})" AUTH_SMOKE_SUMMARY auth-smoke-output.log "AUTH_MODE=${AUTH_MODE_VALUE}" "AUTH_SMOKE_LOCALE=${AUTH_SMOKE_LOCALE}" "AUTH_SMOKE_BASE_URL=${AUTH_SMOKE_BASE_URL}" "AUTH_SMOKE_VERIFY_TOKEN_MODE=${AUTH_SMOKE_VERIFY_TOKEN_MODE}"
+        run: bash tools/ops/ci-smoke-summary.sh "Auth smoke (${AUTH_MODE_VALUE}, ${AUTH_SMOKE_LOCALE})" AUTH_SMOKE_SUMMARY "$SMOKE_OUTPUT_FILE" "AUTH_MODE=${AUTH_MODE_VALUE}" "AUTH_SMOKE_LOCALE=${AUTH_SMOKE_LOCALE}" "AUTH_SMOKE_BASE_URL=${AUTH_SMOKE_BASE_URL}" "AUTH_SMOKE_VERIFY_TOKEN_MODE=${AUTH_SMOKE_VERIFY_TOKEN_MODE}"
 
       - name: Stop API
         if: always() && steps.scope.outputs.run_combo == 'true'
-        run: bash tools/ops/ci-api-lifecycle.sh stop auth-smoke-server.pid
+        run: bash tools/ops/ci-api-lifecycle.sh stop "$SERVER_PID_FILE"
 
       - name: Upload API logs on failure
         if: failure() && steps.scope.outputs.run_combo == 'true'
         uses: ./.github/actions/upload-artifact
         with:
-          name: auth-smoke-server-log-${{ matrix.auth-mode }}-${{ matrix.locale }}
+          name: ${{ env.FAILURE_ARTIFACT_NAME }}
           path: |
-            auth-smoke-server.log
-            auth-smoke-output.log
+            ${{ env.SERVER_LOG_FILE }}
+            ${{ env.SMOKE_OUTPUT_FILE }}
 
   ai-schema-smoke:
     needs: changes
@@ -216,6 +221,11 @@ jobs:
       (github.event_name == 'workflow_dispatch' && github.event.inputs.force_ai_schema_smoke == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      SERVER_LOG_FILE: ai-schema-smoke-server.log
+      SERVER_PID_FILE: ai-schema-smoke-server.pid
+      SMOKE_OUTPUT_FILE: ai-schema-smoke-output.log
+      FAILURE_ARTIFACT_NAME: ai-schema-smoke-server-log-${{ matrix.auth-mode }}-${{ matrix.locale }}
     strategy:
       fail-fast: false
       matrix:
@@ -244,7 +254,7 @@ jobs:
         if: steps.scope.outputs.run_combo == 'true'
         env:
           AUTH_MODE: ${{ matrix.auth-mode }}
-        run: bash tools/ops/ci-api-lifecycle.sh start "$AUTH_MODE" ai-schema-smoke-server.log ai-schema-smoke-server.pid
+        run: bash tools/ops/ci-api-lifecycle.sh start "$AUTH_MODE" "$SERVER_LOG_FILE" "$SERVER_PID_FILE"
 
       - name: Wait for API readiness
         if: steps.scope.outputs.run_combo == 'true'
@@ -257,7 +267,7 @@ jobs:
           AI_SCHEMA_SMOKE_LOCALE: ${{ matrix.locale }}
           AI_SCHEMA_SMOKE_AUTH_MODE: ${{ matrix.auth-mode }}
           AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION: ai-proposal.v1
-        run: npm run ai:schema:smoke | tee ai-schema-smoke-output.log
+        run: npm run ai:schema:smoke | tee "$SMOKE_OUTPUT_FILE"
 
       - name: AI schema smoke summary
         if: always() && steps.scope.outputs.run_combo == 'true'
@@ -266,20 +276,20 @@ jobs:
           AI_SCHEMA_SMOKE_LOCALE: ${{ matrix.locale }}
           AI_SCHEMA_SMOKE_BASE_URL: http://127.0.0.1:3000
           AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION: ai-proposal.v1
-        run: bash tools/ops/ci-smoke-summary.sh "AI schema smoke (${AI_SCHEMA_SMOKE_AUTH_MODE}, ${AI_SCHEMA_SMOKE_LOCALE})" AI_SCHEMA_SMOKE_SUMMARY ai-schema-smoke-output.log "AI_SCHEMA_SMOKE_AUTH_MODE=${AI_SCHEMA_SMOKE_AUTH_MODE}" "AI_SCHEMA_SMOKE_BASE_URL=${AI_SCHEMA_SMOKE_BASE_URL}" "AI_SCHEMA_SMOKE_LOCALE=${AI_SCHEMA_SMOKE_LOCALE}" "AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION=${AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION}"
+        run: bash tools/ops/ci-smoke-summary.sh "AI schema smoke (${AI_SCHEMA_SMOKE_AUTH_MODE}, ${AI_SCHEMA_SMOKE_LOCALE})" AI_SCHEMA_SMOKE_SUMMARY "$SMOKE_OUTPUT_FILE" "AI_SCHEMA_SMOKE_AUTH_MODE=${AI_SCHEMA_SMOKE_AUTH_MODE}" "AI_SCHEMA_SMOKE_BASE_URL=${AI_SCHEMA_SMOKE_BASE_URL}" "AI_SCHEMA_SMOKE_LOCALE=${AI_SCHEMA_SMOKE_LOCALE}" "AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION=${AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION}"
 
       - name: Stop API
         if: always() && steps.scope.outputs.run_combo == 'true'
-        run: bash tools/ops/ci-api-lifecycle.sh stop ai-schema-smoke-server.pid
+        run: bash tools/ops/ci-api-lifecycle.sh stop "$SERVER_PID_FILE"
 
       - name: Upload API logs on failure
         if: failure() && steps.scope.outputs.run_combo == 'true'
         uses: ./.github/actions/upload-artifact
         with:
-          name: ai-schema-smoke-server-log-${{ matrix.auth-mode }}-${{ matrix.locale }}
+          name: ${{ env.FAILURE_ARTIFACT_NAME }}
           path: |
-            ai-schema-smoke-server.log
-            ai-schema-smoke-output.log
+            ${{ env.SERVER_LOG_FILE }}
+            ${{ env.SMOKE_OUTPUT_FILE }}
 
   ai-render-smoke:
     needs: changes
@@ -288,6 +298,11 @@ jobs:
       (github.event_name == 'workflow_dispatch' && github.event.inputs.force_ai_render_smoke == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      SERVER_LOG_FILE: ai-render-smoke-server.log
+      SERVER_PID_FILE: ai-render-smoke-server.pid
+      SMOKE_OUTPUT_FILE: ai-render-smoke-output.log
+      FAILURE_ARTIFACT_NAME: ai-render-smoke-server-log-${{ matrix.auth-mode }}-${{ matrix.locale }}
     strategy:
       fail-fast: false
       matrix:
@@ -316,7 +331,7 @@ jobs:
         if: steps.scope.outputs.run_combo == 'true'
         env:
           AUTH_MODE: ${{ matrix.auth-mode }}
-        run: bash tools/ops/ci-api-lifecycle.sh start "$AUTH_MODE" ai-render-smoke-server.log ai-render-smoke-server.pid
+        run: bash tools/ops/ci-api-lifecycle.sh start "$AUTH_MODE" "$SERVER_LOG_FILE" "$SERVER_PID_FILE"
 
       - name: Wait for API readiness
         if: steps.scope.outputs.run_combo == 'true'
@@ -328,7 +343,7 @@ jobs:
           AI_RENDER_SMOKE_BASE_URL: http://127.0.0.1:3000
           AI_RENDER_SMOKE_LOCALE: ${{ matrix.locale }}
           AI_RENDER_SMOKE_AUTH_MODE: ${{ matrix.auth-mode }}
-        run: npm run ai:render:smoke | tee ai-render-smoke-output.log
+        run: npm run ai:render:smoke | tee "$SMOKE_OUTPUT_FILE"
 
       - name: AI render smoke summary
         if: always() && steps.scope.outputs.run_combo == 'true'
@@ -336,20 +351,20 @@ jobs:
           AI_RENDER_SMOKE_AUTH_MODE: ${{ matrix.auth-mode }}
           AI_RENDER_SMOKE_LOCALE: ${{ matrix.locale }}
           AI_RENDER_SMOKE_BASE_URL: http://127.0.0.1:3000
-        run: bash tools/ops/ci-smoke-summary.sh "AI render smoke (${AI_RENDER_SMOKE_AUTH_MODE}, ${AI_RENDER_SMOKE_LOCALE})" AI_RENDER_SMOKE_SUMMARY ai-render-smoke-output.log "AI_RENDER_SMOKE_AUTH_MODE=${AI_RENDER_SMOKE_AUTH_MODE}" "AI_RENDER_SMOKE_BASE_URL=${AI_RENDER_SMOKE_BASE_URL}" "AI_RENDER_SMOKE_LOCALE=${AI_RENDER_SMOKE_LOCALE}"
+        run: bash tools/ops/ci-smoke-summary.sh "AI render smoke (${AI_RENDER_SMOKE_AUTH_MODE}, ${AI_RENDER_SMOKE_LOCALE})" AI_RENDER_SMOKE_SUMMARY "$SMOKE_OUTPUT_FILE" "AI_RENDER_SMOKE_AUTH_MODE=${AI_RENDER_SMOKE_AUTH_MODE}" "AI_RENDER_SMOKE_BASE_URL=${AI_RENDER_SMOKE_BASE_URL}" "AI_RENDER_SMOKE_LOCALE=${AI_RENDER_SMOKE_LOCALE}"
 
       - name: Stop API
         if: always() && steps.scope.outputs.run_combo == 'true'
-        run: bash tools/ops/ci-api-lifecycle.sh stop ai-render-smoke-server.pid
+        run: bash tools/ops/ci-api-lifecycle.sh stop "$SERVER_PID_FILE"
 
       - name: Upload API logs on failure
         if: failure() && steps.scope.outputs.run_combo == 'true'
         uses: ./.github/actions/upload-artifact
         with:
-          name: ai-render-smoke-server-log-${{ matrix.auth-mode }}-${{ matrix.locale }}
+          name: ${{ env.FAILURE_ARTIFACT_NAME }}
           path: |
-            ai-render-smoke-server.log
-            ai-render-smoke-output.log
+            ${{ env.SERVER_LOG_FILE }}
+            ${{ env.SMOKE_OUTPUT_FILE }}
 
   smoke-matrix:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.force_smoke_matrix == 'true'
