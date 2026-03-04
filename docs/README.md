@@ -77,6 +77,7 @@ Además, si se exceden límites soft de tamaño de archivo/función, el PR debe 
 - Ejecutar matriz reutilizando API externa en `AUTH_MODE=token`: `npm run smoke:matrix:external:token`
 - Ejecutar todas las pruebas: `npm run test`
 - Ejecutar pruebas de utilidades operativas (`tools/ops`): `npm run test:ops`
+- Ejecutar pruebas de utilidades de quality (`tools/quality`): `npm run test:quality`
 - Ejecutar pruebas unitarias: `npm run test:unit`
 - Ejecutar pruebas de integración HTTP: `npm run test:integration`
 - Validar tipos TypeScript: `npm run typecheck`
