@@ -58,11 +58,32 @@ function assertSectionOrder(sectionOrder) {
   }
 }
 
+async function assertUnauthorizedScenarios() {
+  const anonymousResponse = await request(`/ai/schema/proposal?locale=${encodeURIComponent(LOCALE)}`, {
+    method: 'GET'
+  });
+  assert(
+    anonymousResponse.status === 401,
+    `anonymous schema request should return 401, got ${anonymousResponse.status}`
+  );
+
+  const invalidRoleResponse = await request(`/ai/schema/proposal?locale=${encodeURIComponent(LOCALE)}`, {
+    method: 'GET',
+    headers: headers(AGENT_ID, 'invalid_role')
+  });
+  assert(
+    invalidRoleResponse.status === 401,
+    `invalid role schema request should return 401, got ${invalidRoleResponse.status}`
+  );
+}
+
 async function run() {
   console.log(`Running AI schema smoke-check against ${BASE_URL} (locale=${LOCALE})`);
 
   const health = await request('/health');
   assert(health.status === 200, `health failed: expected 200, got ${health.status}`);
+
+  await assertUnauthorizedScenarios();
 
   const schemaResponse = await request(`/ai/schema/proposal?locale=${encodeURIComponent(LOCALE)}`, {
     method: 'GET',

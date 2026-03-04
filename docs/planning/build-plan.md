@@ -136,6 +136,7 @@ Construir un CRM de agencia de viajes AI-native con interfaz primaria en `es-MX`
 - Script operativo `npm run ai:schema:smoke` agregado para validar contrato de `/ai/schema/proposal` en smoke checks.
 - Job CI `ai-schema-smoke` agregado en workflow de quality con filtro de cambios, matriz de locale (`es-MX|en-US`) y ejecución manual forzada.
 - Smoke-check AI endurecido con validación explícita de `schemaVersion`, contrato `qualityGate`, orden de secciones y localización por locale.
+- Smoke-check AI ahora incluye validaciones negativas de autorización para `/ai/schema/proposal` (sin credenciales y rol inválido).
 
 ## Mantenimiento del documento
 
@@ -207,3 +208,4 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 - 2026-03-04: Se agregó smoke-check operativo para esquema AI (`ai:schema:smoke`) orientado a verificación rápida en entornos/CI.
 - 2026-03-04: Se integró `ai-schema-smoke` al workflow CI de calidad con path filtering y opciones de `workflow_dispatch`.
 - 2026-03-04: Se endureció `ai:schema:smoke` con validaciones de contrato/localización y configuración explícita de `schemaVersion` esperada en CI.
+- 2026-03-04: Se agregaron checks negativos de auth en `ai:schema:smoke` para detectar aperturas accidentales de `/ai/schema/proposal`.
