@@ -191,6 +191,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 - 2026-03-03: Se agregó tabla de quick triage en `docs/operations/auth-incident-runbook.md` para mapear señales de summaries (`AUTH_SMOKE_SUMMARY`/`AI_SCHEMA_SMOKE_SUMMARY`) a acciones operativas.
 - 2026-03-03: Se endurecieron jobs CI de smoke para fallar si no aparece `*_SMOKE_SUMMARY` y publicar dicha línea en `GITHUB_STEP_SUMMARY`.
 - 2026-03-03: Se agregaron aliases npm para smoke-checks frecuentes (`auth:smoke:token`, `auth:smoke:en`, `ai:schema:smoke:token`, `ai:schema:smoke:en`).
+- 2026-03-03: Se agregaron aliases combinados `token+en-US` para smoke-check rápido (`auth:smoke:token:en`, `ai:schema:smoke:token:en`).
 - 2026-03-03: Se documentaron ejemplos de ejecución manual de `auth-smoke` para escenarios de incidente.
 - 2026-03-03: Se agregó plantilla de PR con checklist de validación y recordatorio de `auth-smoke` manual.
 - 2026-03-03: Se agregó plantilla `.github/CODEOWNERS.example` para ownership de rutas críticas (auth/ops/CI).
