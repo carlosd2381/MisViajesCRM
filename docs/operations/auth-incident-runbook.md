@@ -40,8 +40,9 @@ Atajo recomendado:
 
 - Ejecutar `npm run auth:smoke` para validar flujo mínimo auth/session/metrics.
 - Para validar explícitamente token-mode en ruta protegida: `AUTH_SMOKE_VERIFY_TOKEN_MODE=true npm run auth:smoke`.
+- Para validar localización de respuestas: `AUTH_SMOKE_LOCALE=en-US npm run auth:smoke` (o `es-MX`).
 - Confirmar que el job CI `auth-smoke` del workflow de calidad también esté pasando.
-- En incidente sin cambios de código, lanzar `workflow_dispatch` con `force_auth_smoke=true` y `auth_smoke_modes=token` (o `both`).
+- En incidente sin cambios de código, lanzar `workflow_dispatch` con `force_auth_smoke=true`, `auth_smoke_modes=token|both` y `auth_smoke_locales=en-US|es-MX|both`.
 - Variables opcionales para el smoke-check:
    - `AUTH_SMOKE_BASE_URL`
    - `AUTH_SMOKE_AGENT_ID`, `AUTH_SMOKE_AGENT_ROLE`

@@ -66,12 +66,13 @@ Además, si se exceden límites soft de tamaño de archivo/función, el PR debe 
 
 CI:
 
-- Workflow `.github/workflows/quality.yml` ejecuta `quality` y `auth-smoke` en matriz `AUTH_MODE=header|token`.
+- Workflow `.github/workflows/quality.yml` ejecuta `quality` y `auth-smoke` en matriz `AUTH_MODE=header|token` y locale `es-MX|en-US`.
 - El job `auth-smoke` imprime un resumen de modo/flags para facilitar diagnóstico en logs de CI.
 - El workflow usa `concurrency` (cancelación de runs previos por rama) y `timeout` por job para evitar ejecuciones colgadas/duplicadas.
 - El job `auth-smoke` se ejecuta solo si hay cambios en rutas relevantes de auth/backend/ops/CI.
 - También se puede ejecutar manualmente por `workflow_dispatch` usando `force_auth_smoke=true`.
 - En ejecución manual, `auth_smoke_modes` permite correr `header`, `token` o `both`.
+- En ejecución manual, `auth_smoke_locales` permite correr `es-MX`, `en-US` o `both`.
 
 ### Ejemplos de ejecución manual (CI)
 
@@ -80,12 +81,19 @@ Casos recomendados al lanzar `workflow_dispatch` del workflow de calidad:
 1. Validar rápidamente modo token tras cambio en JWT:
 	- `force_auth_smoke=true`
 	- `auth_smoke_modes=token`
+	- `auth_smoke_locales=both`
 2. Verificar regresión general auth sin cambios detectados por path filter:
 	- `force_auth_smoke=true`
 	- `auth_smoke_modes=both`
+	- `auth_smoke_locales=both`
 3. Verificar solo compatibilidad legacy por headers:
 	- `force_auth_smoke=true`
 	- `auth_smoke_modes=header`
+	- `auth_smoke_locales=es-MX`
+4. Verificar localización auth en inglés sin ampliar cobertura:
+	- `force_auth_smoke=true`
+	- `auth_smoke_modes=token`
+	- `auth_smoke_locales=en-US`
 
 ## Persistencia (modo de almacenamiento)
 
