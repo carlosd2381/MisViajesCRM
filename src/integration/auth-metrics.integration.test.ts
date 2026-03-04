@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { integrationTestHeaders, startIntegrationServer, stopIntegrationServer } from './test-harness';
+import {
+  integrationTestHeaders,
+  issueIntegrationTokenPair,
+  startIntegrationServer,
+  stopIntegrationServer
+} from './test-harness';
 
 function testHeaders(role = 'agent'): Record<string, string> {
   return integrationTestHeaders(role);
@@ -35,10 +40,7 @@ test('auth metrics includes counters after auth operations', async () => {
   const { server, baseUrl } = await startServer();
 
   try {
-    await fetch(`${baseUrl}/auth/token`, {
-      method: 'POST',
-      headers: testHeaders('agent')
-    });
+    await issueIntegrationTokenPair(baseUrl, 'agent');
 
     const metricsResponse = await fetch(`${baseUrl}/auth/metrics`, {
       method: 'GET',
@@ -83,10 +85,7 @@ test('auth prometheus metrics exports counters', async () => {
   const { server, baseUrl } = await startServer();
 
   try {
-    await fetch(`${baseUrl}/auth/token`, {
-      method: 'POST',
-      headers: testHeaders('agent')
-    });
+    await issueIntegrationTokenPair(baseUrl, 'agent');
 
     const response = await fetch(`${baseUrl}/auth/metrics/prom`, {
       method: 'GET',

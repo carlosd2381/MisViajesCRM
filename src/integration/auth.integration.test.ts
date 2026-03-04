@@ -1,7 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { signAuthToken } from '../core/auth/token-service';
-import { integrationTestHeaders, startIntegrationServer, stopIntegrationServer } from './test-harness';
+import {
+  bearerHeaders,
+  integrationTestHeaders,
+  issueIntegrationTokenPair,
+  startIntegrationServer,
+  stopIntegrationServer
+} from './test-harness';
 
 function testHeaders(role = 'agent'): Record<string, string> {
   return integrationTestHeaders(role);
@@ -30,10 +36,7 @@ test('token mode accepts valid bearer token', async () => {
   try {
     const token = signAuthToken({ userId: 'u_token', role: 'agent' }, 300);
     const response = await fetch(`${baseUrl}/leads`, {
-      headers: {
-        authorization: `Bearer ${token}`,
-        'x-locale': 'es-MX'
-      }
+      headers: bearerHeaders(token)
     });
 
     assert.equal(response.status, 200);
@@ -46,18 +49,9 @@ test('auth token endpoint issues access and refresh pair', async () => {
   const { server, baseUrl } = await startServer();
 
   try {
-    const response = await fetch(`${baseUrl}/auth/token`, {
-      method: 'POST',
-      headers: testHeaders('manager')
-    });
-
-    assert.equal(response.status, 200);
-    const payload = (await response.json()) as {
-      data: { accessToken: string; refreshToken: string };
-    };
-
-    assert.equal(typeof payload.data.accessToken, 'string');
-    assert.equal(typeof payload.data.refreshToken, 'string');
+    const tokenPair = await issueIntegrationTokenPair(baseUrl, 'manager');
+    assert.equal(typeof tokenPair.accessToken, 'string');
+    assert.equal(typeof tokenPair.refreshToken, 'string');
   } finally {
     await stopServer(server);
   }
@@ -67,16 +61,8 @@ test('auth refresh rotates refresh token and revocation blocks reuse', async () 
   const { server, baseUrl } = await startServer();
 
   try {
-    const issue = await fetch(`${baseUrl}/auth/token`, {
-      method: 'POST',
-      headers: testHeaders('agent')
-    });
-
-    const issuePayload = (await issue.json()) as {
-      data: { refreshToken: string };
-    };
-
-    const firstRefresh = issuePayload.data.refreshToken;
+    const firstIssue = await issueIntegrationTokenPair(baseUrl, 'agent');
+    const firstRefresh = firstIssue.refreshToken;
 
     const refresh = await fetch(`${baseUrl}/auth/refresh`, {
       method: 'POST',
@@ -116,18 +102,8 @@ test('auth revoke-all invalidates all user refresh sessions', async () => {
   const { server, baseUrl } = await startServer();
 
   try {
-    const issue1 = await fetch(`${baseUrl}/auth/token`, {
-      method: 'POST',
-      headers: testHeaders('agent')
-    });
-
-    const issue2 = await fetch(`${baseUrl}/auth/token`, {
-      method: 'POST',
-      headers: testHeaders('agent')
-    });
-
-    const one = (await issue1.json()) as { data: { refreshToken: string } };
-    const two = (await issue2.json()) as { data: { refreshToken: string } };
+    const one = await issueIntegrationTokenPair(baseUrl, 'agent');
+    const two = await issueIntegrationTokenPair(baseUrl, 'agent');
 
     const revokeAll = await fetch(`${baseUrl}/auth/revoke-all`, {
       method: 'POST',
@@ -140,13 +116,13 @@ test('auth revoke-all invalidates all user refresh sessions', async () => {
     const reuseOne = await fetch(`${baseUrl}/auth/refresh`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-locale': 'es-MX' },
-      body: JSON.stringify({ refreshToken: one.data.refreshToken })
+      body: JSON.stringify({ refreshToken: one.refreshToken })
     });
 
     const reuseTwo = await fetch(`${baseUrl}/auth/refresh`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-locale': 'es-MX' },
-      body: JSON.stringify({ refreshToken: two.data.refreshToken })
+      body: JSON.stringify({ refreshToken: two.refreshToken })
     });
 
     assert.equal(reuseOne.status, 401);

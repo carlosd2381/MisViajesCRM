@@ -1,3 +1,5 @@
+import { issueSmokeTokenPair, smokeHeaders } from './smoke-auth-helpers.mjs';
+
 const BASE_URL = process.env.AUTH_SMOKE_BASE_URL ?? 'http://127.0.0.1:3000';
 const LOCALE = process.env.AUTH_SMOKE_LOCALE ?? 'es-MX';
 const AGENT_ID = process.env.AUTH_SMOKE_AGENT_ID ?? 'smoke_agent';
@@ -11,12 +13,7 @@ function expectedMessage(spanish, english) {
 }
 
 function headers(userId, role, contentType = 'application/json') {
-  return {
-    'content-type': contentType,
-    'x-user-id': userId,
-    'x-user-role': role,
-    'x-locale': LOCALE
-  };
+  return smokeHeaders(LOCALE, userId, role, contentType);
 }
 
 async function request(path, options = {}) {
@@ -91,22 +88,15 @@ async function run() {
 
   await assertNegativeAuthScenarios();
 
-  const issue = await request('/auth/token', {
-    method: 'POST',
-    headers: headers(AGENT_ID, AGENT_ROLE)
+  const issuedPair = await issueSmokeTokenPair({
+    request,
+    locale: LOCALE,
+    userId: AGENT_ID,
+    role: AGENT_ROLE,
+    context: 'issue token'
   });
-  await expectStatus('issue token', issue, 200);
-
-  const issueData = await issue.json();
-  const accessToken = issueData?.data?.accessToken;
-  const firstRefreshToken = issueData?.data?.refreshToken;
-  if (!accessToken) {
-    throw new Error('issue token failed: accessToken missing');
-  }
-
-  if (!firstRefreshToken) {
-    throw new Error('issue token failed: refreshToken missing');
-  }
+  const accessToken = issuedPair.accessToken;
+  const firstRefreshToken = issuedPair.refreshToken;
 
   if (VERIFY_TOKEN_MODE) {
     await assertTokenModeNegativeScenario();

@@ -167,6 +167,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 - 2026-03-04: Se agregó prueba unitaria de contrato para orden estable de despacho en `src/core/http/module-route-dispatcher.test.ts` y export explícito de `MODULE_ROUTE_DISPATCH_ORDER`.
 - 2026-03-04: Se agregó harness compartido de integración (`src/integration/test-harness.ts`) y se migraron suites `ai`, `ai-render` e `itinerary-items` para reducir boilerplate de setup/teardown.
 - 2026-03-04: Se completó migración de suites de integración restantes (`auth`, `auth-metrics`, `http`, `itinerary`, `suppliers`, `commissions`, `financials`, `messaging`, `dashboard`, `management`) al harness compartido.
+- 2026-03-04: Se agregaron helpers compartidos de auth para pruebas/smoke (`issueIntegrationTokenPair`, `bearerHeaders`, `tools/ops/smoke-auth-helpers.mjs`) y se migraron scripts `auth/ai-schema/ai-render` a esas utilidades.
 - 2026-03-03: Versión inicial creada desde análisis de requerimientos PDFs.
 - 2026-03-03: Se inicializó estructura feature-first, base i18n y workflow de quality gates.
 - 2026-03-03: Se agregaron contratos Leads/Clients, RBAC base y borrador de migración SQL inicial.

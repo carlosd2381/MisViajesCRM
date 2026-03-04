@@ -1,3 +1,5 @@
+import { resolveSmokeAuthHeaders, smokeHeaders } from './smoke-auth-helpers.mjs';
+
 const BASE_URL = process.env.AI_RENDER_SMOKE_BASE_URL ?? 'http://127.0.0.1:3000';
 const LOCALE = process.env.AI_RENDER_SMOKE_LOCALE ?? 'es-MX';
 const AUTH_MODE = process.env.AI_RENDER_SMOKE_AUTH_MODE ?? 'header';
@@ -7,12 +9,7 @@ const EXTERNAL_ID = process.env.AI_RENDER_SMOKE_EXTERNAL_ID ?? 'smoke_external';
 const EXTERNAL_ROLE = process.env.AI_RENDER_SMOKE_EXTERNAL_ROLE ?? 'external_dmc';
 
 function headers(userId, role, contentType = 'application/json') {
-  return {
-    'content-type': contentType,
-    'x-user-id': userId,
-    'x-user-role': role,
-    'x-locale': LOCALE
-  };
+  return smokeHeaders(LOCALE, userId, role, contentType);
 }
 
 function expectedMessage(spanish, english) {
@@ -23,34 +20,19 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-function isTokenMode() {
-  return AUTH_MODE === 'token';
-}
-
 async function request(path, options = {}) {
   return fetch(`${BASE_URL}${path}`, options);
 }
 
 async function resolveAuthHeaders(userId, role) {
-  if (!isTokenMode()) {
-    return headers(userId, role);
-  }
-
-  const tokenIssueResponse = await request('/auth/token', {
-    method: 'POST',
-    headers: headers(userId, role)
+  return resolveSmokeAuthHeaders({
+    authMode: AUTH_MODE,
+    request,
+    locale: LOCALE,
+    userId,
+    role,
+    context: `token issue failed for ${role}`
   });
-
-  assert(tokenIssueResponse.status === 200, `token issue failed for ${role}: expected 200, got ${tokenIssueResponse.status}`);
-  const tokenIssuePayload = await tokenIssueResponse.json();
-  const accessToken = tokenIssuePayload?.data?.accessToken;
-  assert(typeof accessToken === 'string' && accessToken.length > 0, `accessToken missing for ${role}`);
-
-  return {
-    authorization: `Bearer ${accessToken}`,
-    'content-type': 'application/json',
-    'x-locale': LOCALE
-  };
 }
 
 function validProposalBody() {

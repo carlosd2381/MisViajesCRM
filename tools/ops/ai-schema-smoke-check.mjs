@@ -1,3 +1,5 @@
+import { resolveSmokeAuthHeaders, smokeHeaders } from './smoke-auth-helpers.mjs';
+
 const BASE_URL = process.env.AI_SCHEMA_SMOKE_BASE_URL ?? 'http://127.0.0.1:3000';
 const LOCALE = process.env.AI_SCHEMA_SMOKE_LOCALE ?? 'es-MX';
 const AGENT_ID = process.env.AI_SCHEMA_SMOKE_AGENT_ID ?? 'smoke_agent';
@@ -6,12 +8,7 @@ const EXPECTED_SCHEMA_VERSION = process.env.AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERS
 const AUTH_MODE = process.env.AI_SCHEMA_SMOKE_AUTH_MODE ?? 'header';
 
 function headers(userId, role, contentType = 'application/json') {
-  return {
-    'content-type': contentType,
-    'x-user-id': userId,
-    'x-user-role': role,
-    'x-locale': LOCALE
-  };
+  return smokeHeaders(LOCALE, userId, role, contentType);
 }
 
 async function request(path, options = {}) {
@@ -122,29 +119,14 @@ async function assertUnauthorizedScenarios() {
 }
 
 async function resolveSchemaAuthHeaders() {
-  if (!isTokenMode()) {
-    return headers(AGENT_ID, AGENT_ROLE);
-  }
-
-  const tokenIssueResponse = await request('/auth/token', {
-    method: 'POST',
-    headers: headers(AGENT_ID, AGENT_ROLE)
+  return resolveSmokeAuthHeaders({
+    authMode: AUTH_MODE,
+    request,
+    locale: LOCALE,
+    userId: AGENT_ID,
+    role: AGENT_ROLE,
+    context: 'token issue for schema smoke'
   });
-
-  assert(
-    tokenIssueResponse.status === 200,
-    `token issue for schema smoke failed: expected 200, got ${tokenIssueResponse.status}`
-  );
-
-  const tokenIssuePayload = await tokenIssueResponse.json();
-  const accessToken = tokenIssuePayload?.data?.accessToken;
-  assert(typeof accessToken === 'string' && accessToken.length > 0, 'token issue for schema smoke returned no accessToken');
-
-  return {
-    authorization: `Bearer ${accessToken}`,
-    'content-type': 'application/json',
-    'x-locale': LOCALE
-  };
 }
 
 async function assertMethodNotAllowedScenario(schemaAuthHeaders) {

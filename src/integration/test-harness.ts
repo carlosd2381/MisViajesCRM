@@ -55,3 +55,40 @@ export async function stopIntegrationServer(server: Server): Promise<void> {
     });
   });
 }
+
+export async function issueIntegrationTokenPair(
+  baseUrl: string,
+  role = 'agent',
+  locale = 'es-MX',
+  userId = 'user_test'
+): Promise<{ accessToken: string; refreshToken: string }> {
+  const response = await fetch(`${baseUrl}/auth/token`, {
+    method: 'POST',
+    headers: integrationTestHeaders(role, locale, userId)
+  });
+
+  if (response.status !== 200) {
+    const body = await response.text();
+    throw new Error(`issueIntegrationTokenPair failed: expected 200, got ${response.status}. Body: ${body}`);
+  }
+
+  const payload = (await response.json()) as {
+    data?: { accessToken?: string; refreshToken?: string };
+  };
+
+  const accessToken = payload.data?.accessToken;
+  const refreshToken = payload.data?.refreshToken;
+
+  if (!accessToken || !refreshToken) {
+    throw new Error('issueIntegrationTokenPair failed: token pair missing in response');
+  }
+
+  return { accessToken, refreshToken };
+}
+
+export function bearerHeaders(accessToken: string, locale = 'es-MX'): Record<string, string> {
+  return {
+    authorization: `Bearer ${accessToken}`,
+    'x-locale': locale
+  };
+}
