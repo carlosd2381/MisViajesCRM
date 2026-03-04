@@ -24,6 +24,8 @@
     "ai:schema:smoke:token:en": "AI_SCHEMA_SMOKE_AUTH_MODE=token AI_SCHEMA_SMOKE_LOCALE=en-US npm run ai:schema:smoke",
     "smoke:matrix": "node tools/ops/smoke-matrix-check.mjs",
     "smoke:matrix:json": "SMOKE_MATRIX_SUMMARY_FILE=./tmp/smoke-matrix-summary.json npm run smoke:matrix",
+    "smoke:matrix:token": "SMOKE_MATRIX_AUTH_MODES=token npm run smoke:matrix",
+    "smoke:matrix:en": "SMOKE_MATRIX_LOCALES=en-US npm run smoke:matrix",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "tsx --test src/core/**/*.test.ts src/modules/**/*.test.ts",
     "test:integration": "tsx --test src/integration/**/*.test.ts",

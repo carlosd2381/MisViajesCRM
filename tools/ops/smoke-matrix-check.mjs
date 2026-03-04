@@ -4,6 +4,36 @@ import { dirname } from 'node:path';
 
 const BASE_URL = process.env.SMOKE_MATRIX_BASE_URL ?? 'http://127.0.0.1:3000';
 const SUMMARY_FILE = process.env.SMOKE_MATRIX_SUMMARY_FILE;
+const AUTH_MODES_INPUT = process.env.SMOKE_MATRIX_AUTH_MODES ?? 'header,token';
+const LOCALES_INPUT = process.env.SMOKE_MATRIX_LOCALES ?? 'es-MX,en-US';
+
+const SUPPORTED_AUTH_MODES = ['header', 'token'];
+const SUPPORTED_LOCALES = ['es-MX', 'en-US'];
+
+function parseList(raw) {
+  return raw
+    .split(',')
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0);
+}
+
+function resolveSelection(raw, allowedValues, label) {
+  const selected = parseList(raw);
+  if (selected.length === 0) {
+    throw new Error(`${label} selection is empty`);
+  }
+
+  for (const value of selected) {
+    if (!allowedValues.includes(value)) {
+      throw new Error(`Unsupported ${label} value: ${value}`);
+    }
+  }
+
+  return selected;
+}
+
+const SELECTED_AUTH_MODES = resolveSelection(AUTH_MODES_INPUT, SUPPORTED_AUTH_MODES, 'auth mode');
+const SELECTED_LOCALES = resolveSelection(LOCALES_INPUT, SUPPORTED_LOCALES, 'locale');
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -106,24 +136,31 @@ async function runHeaderMatrix() {
   try {
     await waitForApiReady(BASE_URL);
 
-    return [
-      {
+    const runs = [];
+
+    if (SELECTED_LOCALES.includes('es-MX')) {
+      runs.push({
         script: 'auth:smoke',
         summary: await runNpmScript('auth:smoke', 'AUTH_SMOKE_SUMMARY ')
-      },
-      {
-        script: 'auth:smoke:en',
-        summary: await runNpmScript('auth:smoke:en', 'AUTH_SMOKE_SUMMARY ')
-      },
-      {
+      });
+      runs.push({
         script: 'ai:schema:smoke',
         summary: await runNpmScript('ai:schema:smoke', 'AI_SCHEMA_SMOKE_SUMMARY ')
-      },
-      {
+      });
+    }
+
+    if (SELECTED_LOCALES.includes('en-US')) {
+      runs.push({
+        script: 'auth:smoke:en',
+        summary: await runNpmScript('auth:smoke:en', 'AUTH_SMOKE_SUMMARY ')
+      });
+      runs.push({
         script: 'ai:schema:smoke:en',
         summary: await runNpmScript('ai:schema:smoke:en', 'AI_SCHEMA_SMOKE_SUMMARY ')
-      }
-    ];
+      });
+    }
+
+    return runs;
   } finally {
     await stopApi(api);
   }
@@ -136,24 +173,31 @@ async function runTokenMatrix() {
   try {
     await waitForApiReady(BASE_URL);
 
-    return [
-      {
+    const runs = [];
+
+    if (SELECTED_LOCALES.includes('es-MX')) {
+      runs.push({
         script: 'auth:smoke:token',
         summary: await runNpmScript('auth:smoke:token', 'AUTH_SMOKE_SUMMARY ')
-      },
-      {
-        script: 'auth:smoke:token:en',
-        summary: await runNpmScript('auth:smoke:token:en', 'AUTH_SMOKE_SUMMARY ')
-      },
-      {
+      });
+      runs.push({
         script: 'ai:schema:smoke:token',
         summary: await runNpmScript('ai:schema:smoke:token', 'AI_SCHEMA_SMOKE_SUMMARY ')
-      },
-      {
+      });
+    }
+
+    if (SELECTED_LOCALES.includes('en-US')) {
+      runs.push({
+        script: 'auth:smoke:token:en',
+        summary: await runNpmScript('auth:smoke:token:en', 'AUTH_SMOKE_SUMMARY ')
+      });
+      runs.push({
         script: 'ai:schema:smoke:token:en',
         summary: await runNpmScript('ai:schema:smoke:token:en', 'AI_SCHEMA_SMOKE_SUMMARY ')
-      }
-    ];
+      });
+    }
+
+    return runs;
   } finally {
     await stopApi(api);
   }
@@ -162,10 +206,12 @@ async function runTokenMatrix() {
 async function run() {
   console.log(`Running smoke matrix against ${BASE_URL}`);
 
-  const headerRuns = await runHeaderMatrix();
-  const tokenRuns = await runTokenMatrix();
+  const headerRuns = SELECTED_AUTH_MODES.includes('header') ? await runHeaderMatrix() : [];
+  const tokenRuns = SELECTED_AUTH_MODES.includes('token') ? await runTokenMatrix() : [];
   const summary = {
     baseUrl: BASE_URL,
+    selectedAuthModes: SELECTED_AUTH_MODES,
+    selectedLocales: SELECTED_LOCALES,
     totalRuns: headerRuns.length + tokenRuns.length,
     runs: [...headerRuns, ...tokenRuns]
   };

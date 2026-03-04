@@ -195,6 +195,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 - 2026-03-03: Se agregó script operativo `npm run smoke:matrix` para ejecutar smoke-checks auth+AI en matriz completa (`header/token` × `es-MX/en-US`).
 - 2026-03-03: `smoke:matrix` ahora emite `SMOKE_MATRIX_SUMMARY` con consolidado JSON de todas las corridas ejecutadas.
 - 2026-03-03: `smoke:matrix` ahora soporta exportar consolidado a archivo (`SMOKE_MATRIX_SUMMARY_FILE`) y alias `smoke:matrix:json`.
+- 2026-03-03: `smoke:matrix` ahora soporta selección parcial por `SMOKE_MATRIX_AUTH_MODES` y `SMOKE_MATRIX_LOCALES` (con aliases `smoke:matrix:token` y `smoke:matrix:en`).
 - 2026-03-03: Se agregó job manual `smoke-matrix` en CI (`workflow_dispatch` con `force_smoke_matrix=true`) con artifact `smoke-matrix-summary`.
 - 2026-03-03: Se endureció job `smoke-matrix` para exigir `SMOKE_MATRIX_SUMMARY`, publicarlo en `GITHUB_STEP_SUMMARY` y adjuntar `smoke-matrix-output.log`.
 - 2026-03-03: Se agregó `tmp/` a `.gitignore` para evitar ruido local por artefactos de `smoke:matrix:json`.
