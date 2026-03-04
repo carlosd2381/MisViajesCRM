@@ -32,6 +32,10 @@ on:
         description: 'AI schema smoke auth mode scope for manual runs'
         required: false
         default: 'both'
+      force_smoke_matrix:
+        description: 'Run consolidated smoke matrix job (auth+ai, all modes/locales)'
+        required: false
+        default: 'false'
 
 concurrency:
   group: quality-${{ github.workflow }}-${{ github.ref }}
@@ -295,3 +299,30 @@ jobs:
           path: |
             ai-schema-smoke-server.log
             ai-schema-smoke-output.log
+
+  smoke-matrix:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.force_smoke_matrix == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run smoke matrix with JSON export
+        run: npm run smoke:matrix:json
+
+      - name: Upload smoke matrix summary artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-matrix-summary
+          path: tmp/smoke-matrix-summary.json

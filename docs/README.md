@@ -87,6 +87,7 @@ CI:
 - En ejecución manual, `auth_smoke_locales` permite correr `es-MX`, `en-US` o `both`.
 - En ejecución manual, `ai_schema_smoke_auth_modes` permite correr `header`, `token` o `both`.
 - En ejecución manual, `ai_schema_smoke_locales` permite correr `es-MX`, `en-US` o `both`.
+- En ejecución manual, `force_smoke_matrix=true` ejecuta un job consolidado (`smoke:matrix`) y adjunta `tmp/smoke-matrix-summary.json` como artifact.
 
 ### Ejemplos de ejecución manual (CI)
 
@@ -119,6 +120,8 @@ Casos recomendados para `ai-schema-smoke`:
 	- `force_ai_schema_smoke=true`
 	- `ai_schema_smoke_auth_modes=header`
 	- `ai_schema_smoke_locales=en-US`
+7. Ejecutar validación consolidada auth+AI en un solo job:
+	- `force_smoke_matrix=true`
 
 ### Lectura rápida de summaries (logs CI)
 
