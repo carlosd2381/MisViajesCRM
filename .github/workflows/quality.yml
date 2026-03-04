@@ -146,6 +146,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
+      API_BASE_URL: http://127.0.0.1:3000
       SERVER_LOG_FILE: auth-smoke-server.log
       SERVER_PID_FILE: auth-smoke-server.pid
       SMOKE_OUTPUT_FILE: auth-smoke-output.log
@@ -182,12 +183,12 @@ jobs:
 
       - name: Wait for API readiness
         if: steps.scope.outputs.run_combo == 'true'
-        run: bash tools/ops/ci-api-lifecycle.sh wait http://127.0.0.1:3000 30 1
+        run: bash tools/ops/ci-api-lifecycle.sh wait "$API_BASE_URL" 30 1
 
       - name: Run auth smoke check
         if: steps.scope.outputs.run_combo == 'true'
         env:
-          AUTH_SMOKE_BASE_URL: http://127.0.0.1:3000
+          AUTH_SMOKE_BASE_URL: ${{ env.API_BASE_URL }}
           AUTH_SMOKE_VERIFY_TOKEN_MODE: ${{ matrix.auth-mode == 'token' }}
           AUTH_SMOKE_LOCALE: ${{ matrix.locale }}
         run: npm run auth:smoke | tee "$SMOKE_OUTPUT_FILE"
@@ -198,7 +199,7 @@ jobs:
           AUTH_MODE_VALUE: ${{ matrix.auth-mode }}
           AUTH_SMOKE_LOCALE: ${{ matrix.locale }}
           AUTH_SMOKE_VERIFY_TOKEN_MODE: ${{ matrix.auth-mode == 'token' }}
-          AUTH_SMOKE_BASE_URL: http://127.0.0.1:3000
+          AUTH_SMOKE_BASE_URL: ${{ env.API_BASE_URL }}
         run: bash tools/ops/ci-smoke-summary.sh "Auth smoke (${AUTH_MODE_VALUE}, ${AUTH_SMOKE_LOCALE})" AUTH_SMOKE_SUMMARY "$SMOKE_OUTPUT_FILE" "AUTH_MODE=${AUTH_MODE_VALUE}" "AUTH_SMOKE_LOCALE=${AUTH_SMOKE_LOCALE}" "AUTH_SMOKE_BASE_URL=${AUTH_SMOKE_BASE_URL}" "AUTH_SMOKE_VERIFY_TOKEN_MODE=${AUTH_SMOKE_VERIFY_TOKEN_MODE}"
 
       - name: Stop API
@@ -222,6 +223,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
+      API_BASE_URL: http://127.0.0.1:3000
       SERVER_LOG_FILE: ai-schema-smoke-server.log
       SERVER_PID_FILE: ai-schema-smoke-server.pid
       SMOKE_OUTPUT_FILE: ai-schema-smoke-output.log
@@ -258,12 +260,12 @@ jobs:
 
       - name: Wait for API readiness
         if: steps.scope.outputs.run_combo == 'true'
-        run: bash tools/ops/ci-api-lifecycle.sh wait http://127.0.0.1:3000 30 1
+        run: bash tools/ops/ci-api-lifecycle.sh wait "$API_BASE_URL" 30 1
 
       - name: Run AI schema smoke check
         if: steps.scope.outputs.run_combo == 'true'
         env:
-          AI_SCHEMA_SMOKE_BASE_URL: http://127.0.0.1:3000
+          AI_SCHEMA_SMOKE_BASE_URL: ${{ env.API_BASE_URL }}
           AI_SCHEMA_SMOKE_LOCALE: ${{ matrix.locale }}
           AI_SCHEMA_SMOKE_AUTH_MODE: ${{ matrix.auth-mode }}
           AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION: ai-proposal.v1
@@ -274,7 +276,7 @@ jobs:
         env:
           AI_SCHEMA_SMOKE_AUTH_MODE: ${{ matrix.auth-mode }}
           AI_SCHEMA_SMOKE_LOCALE: ${{ matrix.locale }}
-          AI_SCHEMA_SMOKE_BASE_URL: http://127.0.0.1:3000
+          AI_SCHEMA_SMOKE_BASE_URL: ${{ env.API_BASE_URL }}
           AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION: ai-proposal.v1
         run: bash tools/ops/ci-smoke-summary.sh "AI schema smoke (${AI_SCHEMA_SMOKE_AUTH_MODE}, ${AI_SCHEMA_SMOKE_LOCALE})" AI_SCHEMA_SMOKE_SUMMARY "$SMOKE_OUTPUT_FILE" "AI_SCHEMA_SMOKE_AUTH_MODE=${AI_SCHEMA_SMOKE_AUTH_MODE}" "AI_SCHEMA_SMOKE_BASE_URL=${AI_SCHEMA_SMOKE_BASE_URL}" "AI_SCHEMA_SMOKE_LOCALE=${AI_SCHEMA_SMOKE_LOCALE}" "AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION=${AI_SCHEMA_SMOKE_EXPECTED_SCHEMA_VERSION}"
 
@@ -299,6 +301,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
+      API_BASE_URL: http://127.0.0.1:3000
       SERVER_LOG_FILE: ai-render-smoke-server.log
       SERVER_PID_FILE: ai-render-smoke-server.pid
       SMOKE_OUTPUT_FILE: ai-render-smoke-output.log
@@ -335,12 +338,12 @@ jobs:
 
       - name: Wait for API readiness
         if: steps.scope.outputs.run_combo == 'true'
-        run: bash tools/ops/ci-api-lifecycle.sh wait http://127.0.0.1:3000 30 1
+        run: bash tools/ops/ci-api-lifecycle.sh wait "$API_BASE_URL" 30 1
 
       - name: Run AI render smoke check
         if: steps.scope.outputs.run_combo == 'true'
         env:
-          AI_RENDER_SMOKE_BASE_URL: http://127.0.0.1:3000
+          AI_RENDER_SMOKE_BASE_URL: ${{ env.API_BASE_URL }}
           AI_RENDER_SMOKE_LOCALE: ${{ matrix.locale }}
           AI_RENDER_SMOKE_AUTH_MODE: ${{ matrix.auth-mode }}
         run: npm run ai:render:smoke | tee "$SMOKE_OUTPUT_FILE"
@@ -350,7 +353,7 @@ jobs:
         env:
           AI_RENDER_SMOKE_AUTH_MODE: ${{ matrix.auth-mode }}
           AI_RENDER_SMOKE_LOCALE: ${{ matrix.locale }}
-          AI_RENDER_SMOKE_BASE_URL: http://127.0.0.1:3000
+          AI_RENDER_SMOKE_BASE_URL: ${{ env.API_BASE_URL }}
         run: bash tools/ops/ci-smoke-summary.sh "AI render smoke (${AI_RENDER_SMOKE_AUTH_MODE}, ${AI_RENDER_SMOKE_LOCALE})" AI_RENDER_SMOKE_SUMMARY "$SMOKE_OUTPUT_FILE" "AI_RENDER_SMOKE_AUTH_MODE=${AI_RENDER_SMOKE_AUTH_MODE}" "AI_RENDER_SMOKE_BASE_URL=${AI_RENDER_SMOKE_BASE_URL}" "AI_RENDER_SMOKE_LOCALE=${AI_RENDER_SMOKE_LOCALE}"
 
       - name: Stop API
