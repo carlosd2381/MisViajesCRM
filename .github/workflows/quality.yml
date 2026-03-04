@@ -32,6 +32,18 @@ on:
         description: 'AI schema smoke auth mode scope for manual runs'
         required: false
         default: 'both'
+      force_ai_render_smoke:
+        description: 'Run ai-render-smoke even if path filters do not match'
+        required: false
+        default: 'false'
+      ai_render_smoke_locales:
+        description: 'AI render smoke locale scope for manual runs'
+        required: false
+        default: 'both'
+      ai_render_smoke_auth_modes:
+        description: 'AI render smoke auth mode scope for manual runs'
+        required: false
+        default: 'both'
       force_smoke_matrix:
         description: 'Run consolidated smoke matrix job (auth+ai, all modes/locales)'
         required: false
@@ -78,6 +90,7 @@ jobs:
               - 'src/modules/ai/**'
               - 'src/integration/ai.integration.test.ts'
               - 'tools/ops/ai-schema-smoke-check.mjs'
+              - 'tools/ops/ai-render-smoke-check.mjs'
               - '.github/workflows/**'
               - 'package.json'
               - 'package-lock.json'
@@ -104,18 +117,8 @@ jobs:
   auth-smoke:
     needs: changes
     if: |
-      (
-        needs.changes.outputs.auth_related == 'true' ||
-        (github.event_name == 'workflow_dispatch' && github.event.inputs.force_auth_smoke == 'true')
-      ) && (
-        github.event_name != 'workflow_dispatch' ||
-        github.event.inputs.auth_smoke_modes == 'both' ||
-        github.event.inputs.auth_smoke_modes == matrix.auth-mode
-      ) && (
-        github.event_name != 'workflow_dispatch' ||
-        github.event.inputs.auth_smoke_locales == 'both' ||
-        github.event.inputs.auth_smoke_locales == matrix.locale
-      )
+      needs.changes.outputs.auth_related == 'true' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.force_auth_smoke == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
@@ -125,18 +128,37 @@ jobs:
         locale: [es-MX, en-US]
 
     steps:
+      - name: Evaluate matrix selection
+        id: scope
+        run: |
+          RUN_COMBO=true
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ github.event.inputs.auth_smoke_modes }}" != "both" ] && [ "${{ github.event.inputs.auth_smoke_modes }}" != "${{ matrix.auth-mode }}" ]; then
+              RUN_COMBO=false
+            fi
+            if [ "${{ github.event.inputs.auth_smoke_locales }}" != "both" ] && [ "${{ github.event.inputs.auth_smoke_locales }}" != "${{ matrix.locale }}" ]; then
+              RUN_COMBO=false
+            fi
+          fi
+
+          echo "run_combo=${RUN_COMBO}" >> "$GITHUB_OUTPUT"
+
       - name: Checkout
+        if: steps.scope.outputs.run_combo == 'true'
         uses: actions/checkout@v4
 
       - name: Setup Node
+        if: steps.scope.outputs.run_combo == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Install dependencies
+        if: steps.scope.outputs.run_combo == 'true'
         run: npm install
 
       - name: Start API
+        if: steps.scope.outputs.run_combo == 'true'
         env:
           AUTH_MODE: ${{ matrix.auth-mode }}
         run: |
@@ -144,6 +166,7 @@ jobs:
           echo $! > auth-smoke-server.pid
 
       - name: Wait for API readiness
+        if: steps.scope.outputs.run_combo == 'true'
         run: |
           for i in {1..30}; do
             if curl -fsS http://127.0.0.1:3000/health >/dev/null; then
@@ -155,6 +178,7 @@ jobs:
           exit 1
 
       - name: Run auth smoke check
+        if: steps.scope.outputs.run_combo == 'true'
         env:
           AUTH_SMOKE_BASE_URL: http://127.0.0.1:3000
           AUTH_SMOKE_VERIFY_TOKEN_MODE: ${{ matrix.auth-mode == 'token' }}
@@ -162,7 +186,7 @@ jobs:
         run: npm run auth:smoke | tee auth-smoke-output.log
 
       - name: Auth smoke summary
-        if: always()
+        if: always() && steps.scope.outputs.run_combo == 'true'
         env:
           AUTH_MODE_VALUE: ${{ matrix.auth-mode }}
           AUTH_SMOKE_LOCALE: ${{ matrix.locale }}
@@ -189,14 +213,14 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Stop API
-        if: always()
+        if: always() && steps.scope.outputs.run_combo == 'true'
         run: |
           if [ -f auth-smoke-server.pid ]; then
             kill "$(cat auth-smoke-server.pid)" || true
           fi
 
       - name: Upload API logs on failure
-        if: failure()
+        if: failure() && steps.scope.outputs.run_combo == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: auth-smoke-server-log-${{ matrix.auth-mode }}-${{ matrix.locale }}
@@ -207,18 +231,8 @@ jobs:
   ai-schema-smoke:
     needs: changes
     if: |
-      (
-        needs.changes.outputs.ai_related == 'true' ||
-        (github.event_name == 'workflow_dispatch' && github.event.inputs.force_ai_schema_smoke == 'true')
-      ) && (
-        github.event_name != 'workflow_dispatch' ||
-        github.event.inputs.ai_schema_smoke_locales == 'both' ||
-        github.event.inputs.ai_schema_smoke_locales == matrix.locale
-      ) && (
-        github.event_name != 'workflow_dispatch' ||
-        github.event.inputs.ai_schema_smoke_auth_modes == 'both' ||
-        github.event.inputs.ai_schema_smoke_auth_modes == matrix.auth-mode
-      )
+      needs.changes.outputs.ai_related == 'true' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.force_ai_schema_smoke == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
@@ -228,18 +242,37 @@ jobs:
         locale: [es-MX, en-US]
 
     steps:
+      - name: Evaluate matrix selection
+        id: scope
+        run: |
+          RUN_COMBO=true
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ github.event.inputs.ai_schema_smoke_auth_modes }}" != "both" ] && [ "${{ github.event.inputs.ai_schema_smoke_auth_modes }}" != "${{ matrix.auth-mode }}" ]; then
+              RUN_COMBO=false
+            fi
+            if [ "${{ github.event.inputs.ai_schema_smoke_locales }}" != "both" ] && [ "${{ github.event.inputs.ai_schema_smoke_locales }}" != "${{ matrix.locale }}" ]; then
+              RUN_COMBO=false
+            fi
+          fi
+
+          echo "run_combo=${RUN_COMBO}" >> "$GITHUB_OUTPUT"
+
       - name: Checkout
+        if: steps.scope.outputs.run_combo == 'true'
         uses: actions/checkout@v4
 
       - name: Setup Node
+        if: steps.scope.outputs.run_combo == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Install dependencies
+        if: steps.scope.outputs.run_combo == 'true'
         run: npm install
 
       - name: Start API
+        if: steps.scope.outputs.run_combo == 'true'
         env:
           AUTH_MODE: ${{ matrix.auth-mode }}
         run: |
@@ -247,6 +280,7 @@ jobs:
           echo $! > ai-schema-smoke-server.pid
 
       - name: Wait for API readiness
+        if: steps.scope.outputs.run_combo == 'true'
         run: |
           for i in {1..30}; do
             if curl -fsS http://127.0.0.1:3000/health >/dev/null; then
@@ -258,6 +292,7 @@ jobs:
           exit 1
 
       - name: Run AI schema smoke check
+        if: steps.scope.outputs.run_combo == 'true'
         env:
           AI_SCHEMA_SMOKE_BASE_URL: http://127.0.0.1:3000
           AI_SCHEMA_SMOKE_LOCALE: ${{ matrix.locale }}
@@ -266,7 +301,7 @@ jobs:
         run: npm run ai:schema:smoke | tee ai-schema-smoke-output.log
 
       - name: AI schema smoke summary
-        if: always()
+        if: always() && steps.scope.outputs.run_combo == 'true'
         env:
           AI_SCHEMA_SMOKE_AUTH_MODE: ${{ matrix.auth-mode }}
           AI_SCHEMA_SMOKE_LOCALE: ${{ matrix.locale }}
@@ -293,20 +328,132 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Stop API
-        if: always()
+        if: always() && steps.scope.outputs.run_combo == 'true'
         run: |
           if [ -f ai-schema-smoke-server.pid ]; then
             kill "$(cat ai-schema-smoke-server.pid)" || true
           fi
 
       - name: Upload API logs on failure
-        if: failure()
+        if: failure() && steps.scope.outputs.run_combo == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ai-schema-smoke-server-log-${{ matrix.auth-mode }}-${{ matrix.locale }}
           path: |
             ai-schema-smoke-server.log
             ai-schema-smoke-output.log
+
+  ai-render-smoke:
+    needs: changes
+    if: |
+      needs.changes.outputs.ai_related == 'true' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.force_ai_render_smoke == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        auth-mode: [header, token]
+        locale: [es-MX, en-US]
+
+    steps:
+      - name: Evaluate matrix selection
+        id: scope
+        run: |
+          RUN_COMBO=true
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ github.event.inputs.ai_render_smoke_auth_modes }}" != "both" ] && [ "${{ github.event.inputs.ai_render_smoke_auth_modes }}" != "${{ matrix.auth-mode }}" ]; then
+              RUN_COMBO=false
+            fi
+            if [ "${{ github.event.inputs.ai_render_smoke_locales }}" != "both" ] && [ "${{ github.event.inputs.ai_render_smoke_locales }}" != "${{ matrix.locale }}" ]; then
+              RUN_COMBO=false
+            fi
+          fi
+
+          echo "run_combo=${RUN_COMBO}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout
+        if: steps.scope.outputs.run_combo == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        if: steps.scope.outputs.run_combo == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        if: steps.scope.outputs.run_combo == 'true'
+        run: npm install
+
+      - name: Start API
+        if: steps.scope.outputs.run_combo == 'true'
+        env:
+          AUTH_MODE: ${{ matrix.auth-mode }}
+        run: |
+          npm run dev:api > ai-render-smoke-server.log 2>&1 &
+          echo $! > ai-render-smoke-server.pid
+
+      - name: Wait for API readiness
+        if: steps.scope.outputs.run_combo == 'true'
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:3000/health >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "API did not become ready in time"
+          exit 1
+
+      - name: Run AI render smoke check
+        if: steps.scope.outputs.run_combo == 'true'
+        env:
+          AI_RENDER_SMOKE_BASE_URL: http://127.0.0.1:3000
+          AI_RENDER_SMOKE_LOCALE: ${{ matrix.locale }}
+          AI_RENDER_SMOKE_AUTH_MODE: ${{ matrix.auth-mode }}
+        run: npm run ai:render:smoke | tee ai-render-smoke-output.log
+
+      - name: AI render smoke summary
+        if: always() && steps.scope.outputs.run_combo == 'true'
+        env:
+          AI_RENDER_SMOKE_AUTH_MODE: ${{ matrix.auth-mode }}
+          AI_RENDER_SMOKE_LOCALE: ${{ matrix.locale }}
+          AI_RENDER_SMOKE_BASE_URL: http://127.0.0.1:3000
+        run: |
+          SUMMARY_LINE=$(grep 'AI_RENDER_SMOKE_SUMMARY ' ai-render-smoke-output.log | tail -n 1 || true)
+          if [ -z "$SUMMARY_LINE" ]; then
+            echo "AI_RENDER_SMOKE_SUMMARY line not found in output"
+            exit 1
+          fi
+
+          echo "AI render smoke run summary"
+          echo "- AI_RENDER_SMOKE_AUTH_MODE=${AI_RENDER_SMOKE_AUTH_MODE}"
+          echo "- AI_RENDER_SMOKE_BASE_URL=${AI_RENDER_SMOKE_BASE_URL}"
+          echo "- AI_RENDER_SMOKE_LOCALE=${AI_RENDER_SMOKE_LOCALE}"
+          echo "- ${SUMMARY_LINE}"
+
+          {
+            echo "### AI render smoke (${AI_RENDER_SMOKE_AUTH_MODE}, ${AI_RENDER_SMOKE_LOCALE})"
+            echo ""
+            echo "- ${SUMMARY_LINE}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Stop API
+        if: always() && steps.scope.outputs.run_combo == 'true'
+        run: |
+          if [ -f ai-render-smoke-server.pid ]; then
+            kill "$(cat ai-render-smoke-server.pid)" || true
+          fi
+
+      - name: Upload API logs on failure
+        if: failure() && steps.scope.outputs.run_combo == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-render-smoke-server-log-${{ matrix.auth-mode }}-${{ matrix.locale }}
+          path: |
+            ai-render-smoke-server.log
+            ai-render-smoke-output.log
 
   smoke-matrix:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.force_smoke_matrix == 'true'

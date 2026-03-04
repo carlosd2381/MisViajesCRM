@@ -58,6 +58,7 @@ Atajo recomendado:
 | `checkedNegativeScenarios` sin `token_mode_unauth_protected_401` en corrida token | Cobertura token negativa no se ejecutó | Confirmar que el job corre con `AUTH_MODE=token` y `AUTH_SMOKE_VERIFY_TOKEN_MODE=true` |
 | `locale` distinto al esperado | Se corrió locale incorrecto o sin selector manual | Revisar matriz/inputs (`auth_smoke_locales`) y `AUTH_SMOKE_LOCALE` |
 | Falta `AI_SCHEMA_SMOKE_SUMMARY` | El schema smoke no completó validación de contrato | Revisar paso `Run AI schema smoke check` y artifact del job `ai-schema-smoke` |
+| Falta `AI_RENDER_SMOKE_SUMMARY` | El render smoke no completó validaciones web/pdf | Revisar paso `Run AI render smoke check` y artifact del job `ai-render-smoke` |
 
 ## Escenario A — falla de validación JWT
 

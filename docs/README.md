@@ -65,6 +65,10 @@ Además, si se exceden límites soft de tamaño de archivo/función, el PR debe 
 - Ejecutar smoke-check de schema AI en token-mode: `npm run ai:schema:smoke:token`
 - Ejecutar smoke-check de schema AI en `en-US`: `npm run ai:schema:smoke:en`
 - Ejecutar smoke-check de schema AI en token-mode + `en-US`: `npm run ai:schema:smoke:token:en`
+- Ejecutar smoke-check de render AI (web+pdf): `npm run ai:render:smoke`
+- Ejecutar smoke-check de render AI en token-mode: `npm run ai:render:smoke:token`
+- Ejecutar smoke-check de render AI en `en-US`: `npm run ai:render:smoke:en`
+- Ejecutar smoke-check de render AI en token-mode + `en-US`: `npm run ai:render:smoke:token:en`
 - Ejecutar matriz completa de smoke-checks (auth+AI, `header/token`, `es-MX/en-US`): `npm run smoke:matrix`
 - Ejecutar matriz completa y persistir resumen JSON: `npm run smoke:matrix:json`
 - Ejecutar matriz solo en `AUTH_MODE=token`: `npm run smoke:matrix:token`
@@ -79,16 +83,19 @@ CI:
 
 - Workflow `.github/workflows/quality.yml` ejecuta `quality` y `auth-smoke` en matriz `AUTH_MODE=header|token` y locale `es-MX|en-US`.
 - El workflow ejecuta `ai-schema-smoke` en matriz `AUTH_MODE=header|token` y locale `es-MX|en-US`.
+- El workflow ejecuta `ai-render-smoke` en matriz `AUTH_MODE=header|token` y locale `es-MX|en-US`.
 - El job `auth-smoke` imprime un resumen de modo/flags para facilitar diagnóstico en logs de CI.
 - El workflow usa `concurrency` (cancelación de runs previos por rama) y `timeout` por job para evitar ejecuciones colgadas/duplicadas.
 - El job `auth-smoke` se ejecuta solo si hay cambios en rutas relevantes de auth/backend/ops/CI.
-- Los jobs de smoke validan que exista `AUTH_SMOKE_SUMMARY` / `AI_SCHEMA_SMOKE_SUMMARY` en salida; si falta, el job falla.
+- Los jobs de smoke validan que exista `AUTH_SMOKE_SUMMARY` / `AI_SCHEMA_SMOKE_SUMMARY` / `AI_RENDER_SMOKE_SUMMARY` en salida; si falta, el job falla.
 - Los summaries detectados se publican también en `GITHUB_STEP_SUMMARY` para lectura rápida del run.
 - También se puede ejecutar manualmente por `workflow_dispatch` usando `force_auth_smoke=true`.
 - En ejecución manual, `auth_smoke_modes` permite correr `header`, `token` o `both`.
 - En ejecución manual, `auth_smoke_locales` permite correr `es-MX`, `en-US` o `both`.
 - En ejecución manual, `ai_schema_smoke_auth_modes` permite correr `header`, `token` o `both`.
 - En ejecución manual, `ai_schema_smoke_locales` permite correr `es-MX`, `en-US` o `both`.
+- En ejecución manual, `ai_render_smoke_auth_modes` permite correr `header`, `token` o `both`.
+- En ejecución manual, `ai_render_smoke_locales` permite correr `es-MX`, `en-US` o `both`.
 - En ejecución manual, `force_smoke_matrix=true` ejecuta un job consolidado (`smoke:matrix`) y adjunta `tmp/smoke-matrix-summary.json` como artifact.
 - En ejecución manual, `smoke_matrix_auth_modes` y `smoke_matrix_locales` permiten limitar el job `smoke-matrix` a subconjuntos (`header,token` / `es-MX,en-US`).
 - El job `smoke-matrix` valida que exista `SMOKE_MATRIX_SUMMARY` en salida y publica esa línea en `GITHUB_STEP_SUMMARY`.
@@ -125,9 +132,13 @@ Casos recomendados para `ai-schema-smoke`:
 	- `force_ai_schema_smoke=true`
 	- `ai_schema_smoke_auth_modes=header`
 	- `ai_schema_smoke_locales=en-US`
-7. Ejecutar validación consolidada auth+AI en un solo job:
+7. Validar render AI en modo token para ambos locales:
+	- `force_ai_render_smoke=true`
+	- `ai_render_smoke_auth_modes=token`
+	- `ai_render_smoke_locales=both`
+8. Ejecutar validación consolidada auth+AI en un solo job:
 	- `force_smoke_matrix=true`
-8. Ejecutar validación consolidada solo token + en-US:
+9. Ejecutar validación consolidada solo token + en-US:
 	- `force_smoke_matrix=true`
 	- `smoke_matrix_auth_modes=token`
 	- `smoke_matrix_locales=en-US`
@@ -145,6 +156,10 @@ Tanto `auth:smoke` como `ai:schema:smoke` imprimen una línea JSON para diagnós
 	- `schemaVersion`: versión de contrato validada.
 	- `warningsCatalogCount`: cantidad de warnings esperados en catálogo.
 	- `sectionOrder`: orden estable de secciones para consumidores downstream.
+- `AI_RENDER_SMOKE_SUMMARY {...}`
+	- `authMode`: modo auth efectivo del render smoke (`header` o `token`).
+	- `locale`: locale efectivo del render smoke (`es-MX` o `en-US`).
+	- `checks`: lista de checks negativos/positivos validados para `render/web` y `render/pdf`.
 
 Si falta la línea summary o cambia su estructura, tratar el run como sospechoso y revisar artifacts/logs del job.
 

@@ -163,6 +163,10 @@ async function runHeaderMatrix() {
         script: 'ai:schema:smoke',
         summary: await runNpmScript('ai:schema:smoke', 'AI_SCHEMA_SMOKE_SUMMARY ')
       });
+      runs.push({
+        script: 'ai:render:smoke',
+        summary: await runNpmScript('ai:render:smoke', 'AI_RENDER_SMOKE_SUMMARY ')
+      });
     }
 
     if (SELECTED_LOCALES.includes('en-US')) {
@@ -173,6 +177,10 @@ async function runHeaderMatrix() {
       runs.push({
         script: 'ai:schema:smoke:en',
         summary: await runNpmScript('ai:schema:smoke:en', 'AI_SCHEMA_SMOKE_SUMMARY ')
+      });
+      runs.push({
+        script: 'ai:render:smoke:en',
+        summary: await runNpmScript('ai:render:smoke:en', 'AI_RENDER_SMOKE_SUMMARY ')
       });
     }
 
@@ -200,6 +208,10 @@ async function runTokenMatrix() {
         script: 'ai:schema:smoke:token',
         summary: await runNpmScript('ai:schema:smoke:token', 'AI_SCHEMA_SMOKE_SUMMARY ')
       });
+      runs.push({
+        script: 'ai:render:smoke:token',
+        summary: await runNpmScript('ai:render:smoke:token', 'AI_RENDER_SMOKE_SUMMARY ')
+      });
     }
 
     if (SELECTED_LOCALES.includes('en-US')) {
@@ -210,6 +222,10 @@ async function runTokenMatrix() {
       runs.push({
         script: 'ai:schema:smoke:token:en',
         summary: await runNpmScript('ai:schema:smoke:token:en', 'AI_SCHEMA_SMOKE_SUMMARY ')
+      });
+      runs.push({
+        script: 'ai:render:smoke:token:en',
+        summary: await runNpmScript('ai:render:smoke:token:en', 'AI_RENDER_SMOKE_SUMMARY ')
       });
     }
 

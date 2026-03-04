@@ -1,7 +1,7 @@
 # Build Plan (Documento Vivo)
 
 Estado: Activo
-Última actualización: 2026-03-03
+Última actualización: 2026-03-04
 
 ## Objetivo del producto
 
@@ -107,7 +107,8 @@ Construir un CRM de agencia de viajes AI-native con interfaz primaria en `es-MX`
 - Exportación Prometheus text exposition agregada en `/auth/metrics/prom`.
 - Adaptador opcional OpenTelemetry agregado para contadores de sesión auth (`AUTH_OTEL_ENABLED`).
 - Bootstrap opcional de SDK OTel agregado en runtime (`AUTH_OTEL_SDK_ENABLED`) con exportador `console|otlp`.
-- Pendiente siguiente: definir pipeline de collector/retención por ambiente (dev/staging/prod).
+- Pipeline de collector/retención por ambiente documentado para `dev/staging/prod` en `docs/operations/otel-deployment-profiles.md`.
+- Siguiente foco: iniciar Proposal Experience con render web + primer borrador de PDF desde contrato `ai-proposal.v1`.
 
 ### Estado de implementación de Sprint 2 (en progreso)
 
@@ -133,6 +134,7 @@ Construir un CRM de agencia de viajes AI-native con interfaz primaria en `es-MX`
 - Endpoint de capacidad `GET /ai/schema/proposal` agregado para negociación de contrato por clientes (campos, warnings y quality gate).
 - Endpoint de esquema AI ahora soporta `?locale=es-MX|en-US` para descripciones localizadas de warnings en tooling UI.
 - Endpoint de esquema AI ahora incluye bloque `examples` (request/success/blocked) para bootstrap de UI mock y pruebas contract-first.
+- Proposal Experience iniciada con render web (`POST /ai/proposal/render/web`) y borrador PDF (`POST /ai/proposal/render/pdf`) derivados del contrato `ai-proposal.v1`.
 - Script operativo `npm run ai:schema:smoke` agregado para validar contrato de `/ai/schema/proposal` en smoke checks.
 - Job CI `ai-schema-smoke` agregado en workflow de quality con filtro de cambios, matriz de locale (`es-MX|en-US`) y ejecución manual forzada.
 - Smoke-check AI endurecido con validación explícita de `schemaVersion`, contrato `qualityGate`, orden de secciones y localización por locale.
@@ -140,6 +142,8 @@ Construir un CRM de agencia de viajes AI-native con interfaz primaria en `es-MX`
 - Smoke-check AI ahora valida también método inválido en `/ai/schema/proposal` (`POST` debe responder `405`).
 - Smoke-check AI valida localización de mensajes de error en escenarios negativos (`401` y `405`) según locale activo.
 - Smoke-check AI valida también localización del mensaje exitoso (`200`) en `/ai/schema/proposal` por locale activo.
+- Smoke-check de render AI agregado para `POST /ai/proposal/render/web` y `POST /ai/proposal/render/pdf`, con matriz `header|token` y `es-MX|en-US`.
+- Refactor de enrutamiento aplicado: `app.ts` delega rutas de módulos a `src/core/http/module-route-dispatcher.ts` para reducir tamaño de archivo/función y mantener comportamiento.
 
 ## Mantenimiento del documento
 
@@ -152,6 +156,14 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 ## Registro de cambios
 
+- 2026-03-04: Se cerró pendiente de pipeline OTel al documentar perfiles `dev/staging/prod` y se definió siguiente foco en Proposal Experience (render web + borrador PDF).
+- 2026-03-04: Se implementó primer slice de Proposal Experience con endpoints de render `web` (HTML) y `pdf` (borrador) basados en `ai-proposal.v1`.
+- 2026-03-04: Se agregó `ai-render-smoke` (script + CI + documentación) para validar render web/pdf con checks negativos de auth/método y matriz `AUTH_MODE`/locale.
+- 2026-03-04: Se amplió quick triage operativo en runbook para incluir `AI_RENDER_SMOKE_SUMMARY` y diagnóstico rápido de fallas render web/pdf en CI.
+- 2026-03-04: Se refactorizó despacho de rutas HTTP a `module-route-dispatcher` y se eliminó alerta soft de tamaño en `src/app.ts`.
+- 2026-03-04: Se separaron pruebas de render AI a `src/integration/ai-render.integration.test.ts`, eliminando alerta soft de tamaño en `src/integration/ai.integration.test.ts`.
+- 2026-03-04: Se separó prueba de items de itinerario a `src/integration/itinerary-items.integration.test.ts`, eliminando alerta soft remanente en integración y dejando `quality:file-size` en verde.
+- 2026-03-04: Se completó sweep de verificación final con `npm run quality`, `npm run typecheck` y `npm run test` en verde.
 - 2026-03-03: Versión inicial creada desde análisis de requerimientos PDFs.
 - 2026-03-03: Se inicializó estructura feature-first, base i18n y workflow de quality gates.
 - 2026-03-03: Se agregaron contratos Leads/Clients, RBAC base y borrador de migración SQL inicial.
