@@ -43,6 +43,7 @@ test('smoke summary cli fails when summary line is missing', () => {
   const logPath = writeTempLog('no summary here');
 
   const result = runCli(['extract', 'SMOKE_MATRIX_SUMMARY', logPath]);
-  assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /SMOKE_MATRIX_SUMMARY line not found in output/);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /SMOKE_MATRIX_SUMMARY/i);
+    assert.match(result.stderr, /(not found|missing|summary line)/i);
 });

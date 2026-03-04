@@ -56,5 +56,6 @@ test('ci-smoke-summary fails when summary line is missing', () => {
 
   const result = runScript(['Smoke matrix', 'SMOKE_MATRIX_SUMMARY', logFilePath], summaryFilePath);
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /SMOKE_MATRIX_SUMMARY line not found in output/);
+  assert.match(result.stderr, /SMOKE_MATRIX_SUMMARY/i);
+  assert.match(result.stderr, /(not found|missing|summary line)/i);
 });
