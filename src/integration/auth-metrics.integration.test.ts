@@ -10,6 +10,7 @@ import { InMemorySupplierRepository } from '../modules/suppliers/infrastructure/
 import { InMemoryCommissionRepository } from '../modules/commissions/infrastructure/in-memory-commission-repository';
 import { InMemoryFinancialRepository } from '../modules/financials/infrastructure/in-memory-financial-repository';
 import { InMemoryMessagingRepository } from '../modules/messaging/infrastructure/in-memory-messaging-repository';
+import { InMemoryDashboardRepository } from '../modules/dashboard/infrastructure/in-memory-dashboard-repository';
 
 function testHeaders(role = 'agent'): Record<string, string> {
   return {
@@ -28,7 +29,8 @@ async function startServer(): Promise<{ server: Server; baseUrl: string }> {
     commissions: new InMemoryCommissionRepository(),
     financials: new InMemoryFinancialRepository(),
     messaging: new InMemoryMessagingRepository(),
-    itineraries: new InMemoryItineraryRepository()
+    itineraries: new InMemoryItineraryRepository(),
+    dashboard: new InMemoryDashboardRepository()
   }, { authMode: 'header' });
 
   await new Promise<void>((resolve) => {

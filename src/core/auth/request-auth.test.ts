@@ -4,6 +4,7 @@ import { getUserContextFromHeaders } from './request-auth';
 import {
   permissionForCommissions,
   permissionForClients,
+  permissionForDashboard,
   permissionForFinancials,
   permissionForItineraries,
   permissionForLeads,
@@ -76,4 +77,11 @@ test('permissionForMessaging maps methods correctly', () => {
   assert.equal(permissionForMessaging('POST'), 'write:messaging');
   assert.equal(permissionForMessaging('PATCH'), 'write:messaging');
   assert.equal(permissionForMessaging('DELETE'), null);
+});
+
+test('permissionForDashboard maps methods correctly', () => {
+  assert.equal(permissionForDashboard('GET'), 'read:dashboard');
+  assert.equal(permissionForDashboard('POST'), 'write:dashboard');
+  assert.equal(permissionForDashboard('PATCH'), 'write:dashboard');
+  assert.equal(permissionForDashboard('DELETE'), null);
 });

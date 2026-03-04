@@ -213,7 +213,27 @@ Campos clave:
 
 ---
 
-## 8) authorization_audit
+## 8) dashboard_snapshots
+
+Descripción: snapshot periódico de KPIs operativos y financieros para dashboard.
+
+Campos clave:
+- `id` (uuid, PK)
+- `period_start` (date)
+- `period_end` (date)
+- `leads_total` (integer)
+- `leads_won` (integer)
+- `itineraries_accepted` (integer)
+- `commissions_pending` (integer)
+- `commissions_paid` (integer)
+- `revenue_mxn` (numeric)
+- `profit_mxn` (numeric)
+- `created_at` (timestamptz)
+- `updated_at` (timestamptz)
+
+---
+
+## 9) authorization_audit
 
 Descripción: seguridad, roles y trazabilidad.
 
@@ -290,3 +310,4 @@ Actualizar este archivo en cada cambio de:
 - 2026-03-04: Se documentó implementación de `itinerary_items` y regla de recálculo automático de totales.
 - 2026-03-04: Se documentó implementación de `financial_transactions` y su migración SQL base.
 - 2026-03-04: Se documentó implementación de `communication_logs` y su migración SQL base.
+- 2026-03-04: Se documentó implementación de `dashboard_snapshots` y su migración SQL base.

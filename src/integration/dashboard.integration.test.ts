@@ -9,8 +9,8 @@ import { InMemorySupplierRepository } from '../modules/suppliers/infrastructure/
 import { InMemoryCommissionRepository } from '../modules/commissions/infrastructure/in-memory-commission-repository';
 import { InMemoryFinancialRepository } from '../modules/financials/infrastructure/in-memory-financial-repository';
 import { InMemoryMessagingRepository } from '../modules/messaging/infrastructure/in-memory-messaging-repository';
-import { InMemoryItineraryRepository } from '../modules/itinerary/infrastructure/in-memory-itinerary-repository';
 import { InMemoryDashboardRepository } from '../modules/dashboard/infrastructure/in-memory-dashboard-repository';
+import { InMemoryItineraryRepository } from '../modules/itinerary/infrastructure/in-memory-itinerary-repository';
 
 function testHeaders(role = 'manager'): Record<string, string> {
   return {
@@ -29,8 +29,8 @@ async function startServer(): Promise<{ server: Server; baseUrl: string }> {
     commissions: new InMemoryCommissionRepository(),
     financials: new InMemoryFinancialRepository(),
     messaging: new InMemoryMessagingRepository(),
-    itineraries: new InMemoryItineraryRepository(),
-    dashboard: new InMemoryDashboardRepository()
+    dashboard: new InMemoryDashboardRepository(),
+    itineraries: new InMemoryItineraryRepository()
   }, { authMode: 'header' });
 
   await new Promise<void>((resolve) => {
@@ -50,61 +50,67 @@ async function stopServer(server: Server): Promise<void> {
   });
 }
 
-test('manager can read commissions but cannot write', async () => {
+test('manager can create and update dashboard snapshot', async () => {
   const { server, baseUrl } = await startServer();
 
   try {
-    const listResponse = await fetch(`${baseUrl}/commissions`, {
-      headers: testHeaders('manager')
-    });
-    assert.equal(listResponse.status, 200);
-
-    const createResponse = await fetch(`${baseUrl}/commissions`, {
+    const createResponse = await fetch(`${baseUrl}/dashboard`, {
       method: 'POST',
       headers: testHeaders('manager'),
       body: JSON.stringify({
-        itineraryId: 'it_1',
-        supplierId: 'sup_1',
-        expectedAmount: 1000,
-        dueDate: '2026-04-01'
-      })
-    });
-    assert.equal(createResponse.status, 403);
-  } finally {
-    await stopServer(server);
-  }
-});
-
-test('accountant can create and update commissions', async () => {
-  const { server, baseUrl } = await startServer();
-
-  try {
-    const createResponse = await fetch(`${baseUrl}/commissions`, {
-      method: 'POST',
-      headers: testHeaders('accountant'),
-      body: JSON.stringify({
-        itineraryId: 'it_1',
-        supplierId: 'sup_1',
-        expectedAmount: 1300,
-        dueDate: '2026-04-10',
-        status: 'claimed'
+        periodStart: '2026-03-01',
+        periodEnd: '2026-03-31',
+        leadsTotal: 100,
+        leadsWon: 20,
+        itinerariesAccepted: 14,
+        commissionsPending: 5,
+        commissionsPaid: 9,
+        revenueMxn: 250000,
+        profitMxn: 45000
       })
     });
 
     assert.equal(createResponse.status, 201);
     const created = (await createResponse.json()) as { data: { id: string } };
 
-    const patchResponse = await fetch(`${baseUrl}/commissions/${created.data.id}`, {
+    const patchResponse = await fetch(`${baseUrl}/dashboard/${created.data.id}`, {
       method: 'PATCH',
-      headers: testHeaders('accountant'),
-      body: JSON.stringify({
-        actualReceived: 1300,
-        receivedDate: '2026-04-11',
-        status: 'paid'
-      })
+      headers: testHeaders('manager'),
+      body: JSON.stringify({ revenueMxn: 260000, profitMxn: 47000 })
     });
 
     assert.equal(patchResponse.status, 200);
+  } finally {
+    await stopServer(server);
+  }
+});
+
+test('agent can read dashboard but cannot write', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const readResponse = await fetch(`${baseUrl}/dashboard`, {
+      method: 'GET',
+      headers: testHeaders('agent')
+    });
+    assert.equal(readResponse.status, 200);
+
+    const writeResponse = await fetch(`${baseUrl}/dashboard`, {
+      method: 'POST',
+      headers: testHeaders('agent'),
+      body: JSON.stringify({
+        periodStart: '2026-03-01',
+        periodEnd: '2026-03-31',
+        leadsTotal: 10,
+        leadsWon: 2,
+        itinerariesAccepted: 1,
+        commissionsPending: 1,
+        commissionsPaid: 1,
+        revenueMxn: 10000,
+        profitMxn: 2000
+      })
+    });
+    assert.equal(writeResponse.status, 403);
   } finally {
     await stopServer(server);
   }

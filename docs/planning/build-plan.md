@@ -123,6 +123,7 @@ Construir un CRM de agencia de viajes AI-native con interfaz primaria en `es-MX`
 - Módulo `commissions` v1 implementado (dominio/API/validación/repositorios/rutas RBAC) con migración SQL base y cobertura inicial de integración.
 - Módulo `financials` v1 implementado (dominio/API/validación/repositorios/rutas RBAC) con migración SQL base y cobertura inicial de integración.
 - Módulo `messaging` v1 implementado (dominio/API/validación/repositorios/rutas RBAC) con migración SQL base y cobertura inicial de integración.
+- Módulo `dashboard` v1 implementado (dominio/API/validación/repositorios/rutas RBAC) con migración SQL base y cobertura inicial de integración.
 
 ## Mantenimiento del documento
 
@@ -181,3 +182,4 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 - 2026-03-04: Se agregó módulo `commissions` v1 (API+validación+repos+RBAC+migración) con cobertura inicial de pruebas de integración.
 - 2026-03-04: Se agregó módulo `financials` v1 (API+validación+repos+RBAC+migración) con cobertura inicial de pruebas de integración.
 - 2026-03-04: Se agregó módulo `messaging` v1 (API+validación+repos+RBAC+migración) con cobertura inicial de pruebas de integración.
+- 2026-03-04: Se agregó módulo `dashboard` v1 (API+validación+repos+RBAC+migración) con cobertura inicial de pruebas de integración.

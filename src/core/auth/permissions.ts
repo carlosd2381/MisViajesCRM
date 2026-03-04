@@ -7,6 +7,7 @@ export type PermissionResource =
   | 'clients'
   | 'suppliers'
   | 'messaging'
+  | 'dashboard'
   | 'itineraries'
   | 'financials'
   | 'commissions'
@@ -28,6 +29,8 @@ export const ROLE_PERMISSIONS: RolePermissions = {
     'write:suppliers',
     'read:messaging',
     'write:messaging',
+    'read:dashboard',
+    'write:dashboard',
     'read:itineraries',
     'write:itineraries',
     'approve:itineraries',
@@ -47,6 +50,8 @@ export const ROLE_PERMISSIONS: RolePermissions = {
     'write:suppliers',
     'read:messaging',
     'write:messaging',
+    'read:dashboard',
+    'write:dashboard',
     'read:itineraries',
     'write:itineraries',
     'approve:itineraries',
@@ -59,12 +64,14 @@ export const ROLE_PERMISSIONS: RolePermissions = {
     'write:clients',
     'read:suppliers',
     'read:messaging',
+    'read:dashboard',
     'write:messaging',
     'read:itineraries',
     'write:itineraries'
   ],
   accountant: [
     'read:suppliers',
+    'read:dashboard',
     'read:financials',
     'write:financials',
     'read:commissions',
