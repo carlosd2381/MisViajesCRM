@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 import { parseSmokeSummaryLine } from './smoke-summary-helpers.mjs';
 import {
   REQUIRED_AI_RENDER_CHECKS,
-  assertAiRenderSmokeSummaryContract
+  REQUIRED_AI_SCHEMA_SECTION_ORDER,
+  REQUIRED_AI_SCHEMA_VERSION,
+  assertAiRenderSmokeSummaryContract,
+  assertAiSchemaSmokeSummaryContract
 } from './smoke-matrix-summary-contract.mjs';
 
 test('AI render smoke summary contract includes required checks for matrix consumers', () => {
@@ -35,5 +38,44 @@ test('AI render smoke summary contract fails completeness check when a required 
   assert.throws(
     () => assertAiRenderSmokeSummaryContract(parsed),
     /missing required check invalid_render_options_400_pdf/
+  );
+});
+
+test('AI schema smoke summary contract accepts required fields and order', () => {
+  const line =
+    'AI_SCHEMA_SMOKE_SUMMARY {"authMode":"header","locale":"es-MX","schemaVersion":"ai-proposal.v1","warningsCatalogCount":4,"sectionOrder":["storyteller","auditor","ghost_writer","local_insider"]}';
+
+  const parsed = parseSmokeSummaryLine(line, 'AI_SCHEMA_SMOKE_SUMMARY');
+
+  assert.ok(parsed);
+  assert.equal(parsed.schemaVersion, REQUIRED_AI_SCHEMA_VERSION);
+  assert.equal(parsed.warningsCatalogCount, 4);
+  assert.deepEqual(parsed.sectionOrder, REQUIRED_AI_SCHEMA_SECTION_ORDER);
+  assert.doesNotThrow(() => assertAiSchemaSmokeSummaryContract(parsed));
+});
+
+test('AI schema smoke summary contract rejects invalid section order', () => {
+  const line =
+    'AI_SCHEMA_SMOKE_SUMMARY {"authMode":"token","locale":"en-US","schemaVersion":"ai-proposal.v1","warningsCatalogCount":4,"sectionOrder":["storyteller","ghost_writer","auditor","local_insider"]}';
+
+  const parsed = parseSmokeSummaryLine(line, 'AI_SCHEMA_SMOKE_SUMMARY');
+
+  assert.ok(parsed);
+  assert.throws(
+    () => assertAiSchemaSmokeSummaryContract(parsed),
+    /sectionOrder mismatch at index 1/
+  );
+});
+
+test('AI schema smoke summary contract rejects invalid schema version', () => {
+  const line =
+    'AI_SCHEMA_SMOKE_SUMMARY {"authMode":"header","locale":"es-MX","schemaVersion":"ai-proposal.v2","warningsCatalogCount":4,"sectionOrder":["storyteller","auditor","ghost_writer","local_insider"]}';
+
+  const parsed = parseSmokeSummaryLine(line, 'AI_SCHEMA_SMOKE_SUMMARY');
+
+  assert.ok(parsed);
+  assert.throws(
+    () => assertAiSchemaSmokeSummaryContract(parsed),
+    /schemaVersion must be ai-proposal.v1/
   );
 });

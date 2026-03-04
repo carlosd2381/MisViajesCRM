@@ -2,7 +2,10 @@ import { spawn } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { formatSmokeSummaryLine, parseSmokeSummaryLine } from './smoke-summary-helpers.mjs';
-import { assertAiRenderSmokeSummaryContract } from './smoke-matrix-summary-contract.mjs';
+import {
+  assertAiRenderSmokeSummaryContract,
+  assertAiSchemaSmokeSummaryContract
+} from './smoke-matrix-summary-contract.mjs';
 
 const BASE_URL = process.env.SMOKE_MATRIX_BASE_URL ?? 'http://127.0.0.1:3000';
 const SUMMARY_FILE = process.env.SMOKE_MATRIX_SUMMARY_FILE;
@@ -111,6 +114,16 @@ function runNpmScript(script, expectedPrefix, envOverrides = {}) {
           } catch (error) {
             settled = true;
             reject(new Error(`npm run ${script} produced invalid AI render summary contract: ${error.message}`));
+            return;
+          }
+        }
+
+        if (expectedPrefix === 'AI_SCHEMA_SMOKE_SUMMARY') {
+          try {
+            assertAiSchemaSmokeSummaryContract(summary);
+          } catch (error) {
+            settled = true;
+            reject(new Error(`npm run ${script} produced invalid AI schema summary contract: ${error.message}`));
             return;
           }
         }
