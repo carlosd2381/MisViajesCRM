@@ -1,56 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import type { AddressInfo } from 'node:net';
-import type { Server } from 'node:http';
-import { createApiServer } from '../app';
-import { InMemoryLeadRepository } from '../modules/leads/infrastructure/in-memory-lead-repository';
-import { InMemoryClientRepository } from '../modules/clients/infrastructure/in-memory-client-repository';
-import { InMemoryItineraryRepository } from '../modules/itinerary/infrastructure/in-memory-itinerary-repository';
-import { InMemorySupplierRepository } from '../modules/suppliers/infrastructure/in-memory-supplier-repository';
-import { InMemoryCommissionRepository } from '../modules/commissions/infrastructure/in-memory-commission-repository';
-import { InMemoryFinancialRepository } from '../modules/financials/infrastructure/in-memory-financial-repository';
-import { InMemoryMessagingRepository } from '../modules/messaging/infrastructure/in-memory-messaging-repository';
-import { InMemoryDashboardRepository } from '../modules/dashboard/infrastructure/in-memory-dashboard-repository';
-import { InMemoryManagementRepository } from '../modules/management/infrastructure/in-memory-management-repository';
+import { integrationTestHeaders, startIntegrationServer, stopIntegrationServer } from './test-harness';
 
 function testHeaders(role = 'agent'): Record<string, string> {
-  return {
-    'content-type': 'application/json',
-    'x-user-id': 'user_test',
-    'x-user-role': role,
-    'x-locale': 'es-MX'
-  };
+  return integrationTestHeaders(role);
 }
 
-async function startServer(): Promise<{ server: Server; baseUrl: string }> {
-  const server = createApiServer({
-    leads: new InMemoryLeadRepository(),
-    clients: new InMemoryClientRepository(),
-    suppliers: new InMemorySupplierRepository(),
-    commissions: new InMemoryCommissionRepository(),
-    financials: new InMemoryFinancialRepository(),
-    messaging: new InMemoryMessagingRepository(),
-    itineraries: new InMemoryItineraryRepository(),
-    dashboard: new InMemoryDashboardRepository(),
-    management: new InMemoryManagementRepository()
-  }, { authMode: 'header' });
-
-  await new Promise<void>((resolve) => {
-    server.listen(0, () => resolve());
-  });
-
-  const address = server.address() as AddressInfo;
-  return { server, baseUrl: `http://127.0.0.1:${address.port}` };
-}
-
-async function stopServer(server: Server): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
-    server.close((error) => {
-      if (error) reject(error);
-      else resolve();
-    });
-  });
-}
+const startServer = startIntegrationServer;
+const stopServer = stopIntegrationServer;
 
 test('itinerary create and fetch flow works', async () => {
   const { server, baseUrl } = await startServer();

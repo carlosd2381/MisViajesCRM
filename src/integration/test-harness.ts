@@ -1,6 +1,7 @@
 import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { createApiServer } from '../app';
+import type { AuthMode } from '../core/auth/request-auth';
 import { InMemoryLeadRepository } from '../modules/leads/infrastructure/in-memory-lead-repository';
 import { InMemoryClientRepository } from '../modules/clients/infrastructure/in-memory-client-repository';
 import { InMemoryItineraryRepository } from '../modules/itinerary/infrastructure/in-memory-itinerary-repository';
@@ -25,7 +26,7 @@ export function integrationTestHeaders(
   };
 }
 
-export async function startIntegrationServer(): Promise<{ server: Server; baseUrl: string }> {
+export async function startIntegrationServer(authMode: AuthMode = 'header'): Promise<{ server: Server; baseUrl: string }> {
   const server = createApiServer({
     leads: new InMemoryLeadRepository(),
     clients: new InMemoryClientRepository(),
@@ -36,7 +37,7 @@ export async function startIntegrationServer(): Promise<{ server: Server; baseUr
     itineraries: new InMemoryItineraryRepository(),
     dashboard: new InMemoryDashboardRepository(),
     management: new InMemoryManagementRepository()
-  }, { authMode: 'header' });
+  }, { authMode });
 
   await new Promise<void>((resolve) => {
     server.listen(0, () => resolve());
