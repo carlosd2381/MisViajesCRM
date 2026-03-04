@@ -70,9 +70,12 @@ test('agent can generate AI proposal mock', async () => {
     assert.equal(response.status, 200);
     const payload = (await response.json()) as {
       data: {
+        schemaVersion: string;
+        generatedAt: string;
         profile: string;
         narrative: string;
         warnings: Array<{ code: string; severity: string; message: string }>;
+        sectionOrder: string[];
         sections: {
           storyteller: { tripHook: string; dayNarrative: string };
           auditor: { operationalChecklist: string[]; riskNotes: string[] };
@@ -81,9 +84,12 @@ test('agent can generate AI proposal mock', async () => {
         };
       };
     };
+    assert.equal(payload.data.schemaVersion, 'ai-proposal.v1');
+    assert.equal(typeof payload.data.generatedAt, 'string');
     assert.equal(payload.data.profile, 'storyteller');
     assert.match(payload.data.narrative, /Oaxaca/);
     assert.ok(Array.isArray(payload.data.warnings));
+    assert.deepEqual(payload.data.sectionOrder, ['storyteller', 'auditor', 'ghost_writer', 'local_insider']);
     assert.equal(typeof payload.data.sections.storyteller.tripHook, 'string');
     assert.ok(Array.isArray(payload.data.sections.auditor.operationalChecklist));
   } finally {

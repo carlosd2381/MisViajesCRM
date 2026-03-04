@@ -22,6 +22,8 @@ function prefixByProfile(profile: PromptProfile, locale: SupportedLocale): strin
 }
 
 export function generateMockProposal(input: CreateAiProposalRequest, locale: SupportedLocale) {
+  const generatedAt = new Date().toISOString();
+  const sectionOrder = ['storyteller', 'auditor', 'ghost_writer', 'local_insider'] as const;
   const prefix = prefixByProfile(input.promptProfile, locale);
   const narrative =
     locale === 'es-MX'
@@ -37,10 +39,13 @@ export function generateMockProposal(input: CreateAiProposalRequest, locale: Sup
   const sections = buildSections(input, locale);
 
   return {
+    schemaVersion: 'ai-proposal.v1' as const,
+    generatedAt,
     profile: input.promptProfile,
     narrative,
     qualityChecks,
     warnings,
+    sectionOrder,
     sections
   };
 }

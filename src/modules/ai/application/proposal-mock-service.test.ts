@@ -13,6 +13,9 @@ test('generateMockProposal returns warnings for short summary and missing destin
   assert.ok(result.warnings.length >= 2);
   assert.ok(result.warnings.some((warning) => warning.code === 'SUMMARY_TOO_SHORT'));
   assert.ok(result.warnings.some((warning) => warning.code === 'DESTINATION_NOT_REFERENCED'));
+  assert.equal(result.schemaVersion, 'ai-proposal.v1');
+  assert.equal(typeof result.generatedAt, 'string');
+  assert.deepEqual(result.sectionOrder, ['storyteller', 'auditor', 'ghost_writer', 'local_insider']);
   assert.equal(typeof result.sections.storyteller.tripHook, 'string');
   assert.ok(Array.isArray(result.sections.auditor.operationalChecklist));
 });

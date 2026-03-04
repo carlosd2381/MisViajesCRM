@@ -44,10 +44,13 @@ export interface CreateAiProposalRequest {
 
 export interface AiProposalResponse {
   data: {
+    schemaVersion: 'ai-proposal.v1';
+    generatedAt: string;
     profile: PromptProfile;
     narrative: string;
     qualityChecks: string[];
     warnings: AiProposalWarning[];
+    sectionOrder: Array<'storyteller' | 'auditor' | 'ghost_writer' | 'local_insider'>;
     sections: AiProfileSections;
   };
 }
