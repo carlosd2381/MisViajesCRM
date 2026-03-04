@@ -72,8 +72,24 @@ test('agent can read AI render schema metadata', async () => {
         schemaVersion: string;
         sourceSchemaVersion: string;
         endpoints: {
-          web: { path: string; method: string; contentType: string };
-          pdf: { path: string; method: string; contentType: string };
+          web: {
+            path: string;
+            method: string;
+            contentType: string;
+            renderOptions: {
+              supported: ReadonlyArray<string>;
+              defaults: { includeWarnings: boolean; compactMode: boolean };
+            };
+          };
+          pdf: {
+            path: string;
+            method: string;
+            contentType: string;
+            renderOptions: {
+              supported: ReadonlyArray<string>;
+              defaults: { includeWarnings: boolean; compactMode: boolean };
+            };
+          };
         };
       };
       message: string;
@@ -85,6 +101,10 @@ test('agent can read AI render schema metadata', async () => {
     assert.equal(payload.data.endpoints.pdf.path, '/ai/proposal/render/pdf');
     assert.equal(payload.data.endpoints.web.contentType, 'text/html; charset=utf-8');
     assert.equal(payload.data.endpoints.pdf.contentType, 'application/pdf');
+    assert.deepEqual(payload.data.endpoints.web.renderOptions.supported, ['includeWarnings', 'compactMode']);
+    assert.deepEqual(payload.data.endpoints.pdf.renderOptions.supported, ['includeWarnings', 'compactMode']);
+    assert.equal(payload.data.endpoints.web.renderOptions.defaults.includeWarnings, true);
+    assert.equal(payload.data.endpoints.web.renderOptions.defaults.compactMode, false);
     assert.equal(payload.message, 'Esquema de render AI disponible');
   } finally {
     await stopIntegrationServer(server);

@@ -137,6 +137,25 @@ async function assertPdfRender(authHeaders) {
   assert(bytes.subarray(0, 8).toString('utf8') === '%PDF-1.4', 'render/pdf payload missing PDF header');
 }
 
+async function assertRenderSchemaOptions(authHeaders) {
+  const response = await request('/ai/proposal/render/schema', {
+    method: 'GET',
+    headers: authHeaders
+  });
+
+  assert(response.status === 200, `render/schema should return 200, got ${response.status}`);
+  const payload = await response.json();
+  const supportedWeb = payload?.data?.endpoints?.web?.renderOptions?.supported;
+  const supportedPdf = payload?.data?.endpoints?.pdf?.renderOptions?.supported;
+
+  assert(Array.isArray(supportedWeb), 'render/schema web renderOptions.supported missing');
+  assert(Array.isArray(supportedPdf), 'render/schema pdf renderOptions.supported missing');
+  assert(supportedWeb.includes('includeWarnings'), 'render/schema web includeWarnings capability missing');
+  assert(supportedWeb.includes('compactMode'), 'render/schema web compactMode capability missing');
+  assert(supportedPdf.includes('includeWarnings'), 'render/schema pdf includeWarnings capability missing');
+  assert(supportedPdf.includes('compactMode'), 'render/schema pdf compactMode capability missing');
+}
+
 async function run() {
   console.log(`Running AI render smoke-check against ${BASE_URL} (locale=${LOCALE}, authMode=${AUTH_MODE})`);
 
@@ -148,6 +167,7 @@ async function run() {
   const authHeaders = await resolveAuthHeaders(AGENT_ID, AGENT_ROLE);
   await assertMethodNotAllowed(authHeaders);
   await assertForbiddenScenario();
+  await assertRenderSchemaOptions(authHeaders);
   await assertWebRender(authHeaders);
   await assertPdfRender(authHeaders);
 
@@ -159,6 +179,7 @@ async function run() {
       'method_not_allowed_405_web',
       'method_not_allowed_405_pdf',
       'forbidden_external_403',
+      'render_schema_options_contract',
       'web_render_200_html',
       'pdf_render_200_pdf'
     ]

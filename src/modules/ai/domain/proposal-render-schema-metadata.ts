@@ -38,18 +38,28 @@ export function buildAiProposalRenderSchemaMetadata(locale: SupportedLocale = 'e
 }
 
 function buildRenderEndpoints(labels: ReturnType<typeof localizedLabels>) {
+  const renderOptions = {
+    supported: ['includeWarnings', 'compactMode'] as const,
+    defaults: {
+      includeWarnings: true,
+      compactMode: false
+    }
+  };
+
   return {
     web: {
       path: '/ai/proposal/render/web',
       method: 'POST' as const,
       contentType: 'text/html; charset=utf-8',
-      description: labels.webDescription
+      description: labels.webDescription,
+      renderOptions
     },
     pdf: {
       path: '/ai/proposal/render/pdf',
       method: 'POST' as const,
       contentType: 'application/pdf',
-      description: labels.pdfDescription
+      description: labels.pdfDescription,
+      renderOptions
     }
   };
 }

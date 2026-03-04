@@ -10,6 +10,9 @@ test('buildAiProposalRenderSchemaMetadata returns localized spanish descriptions
   assert.equal(metadata.endpoints.web.path, '/ai/proposal/render/web');
   assert.equal(metadata.endpoints.pdf.path, '/ai/proposal/render/pdf');
   assert.match(metadata.endpoints.web.description, /Vista previa HTML/);
+  assert.deepEqual(metadata.endpoints.web.renderOptions.supported, ['includeWarnings', 'compactMode']);
+  assert.equal(metadata.endpoints.web.renderOptions.defaults.includeWarnings, true);
+  assert.equal(metadata.endpoints.web.renderOptions.defaults.compactMode, false);
   assert.equal(metadata.examples.webResponse.contentType, 'text/html; charset=utf-8');
   assert.equal(metadata.examples.pdfResponse.contentType, 'application/pdf');
   assert.equal(metadata.examples.request.renderOptions.includeWarnings, true);
@@ -21,6 +24,9 @@ test('buildAiProposalRenderSchemaMetadata returns localized english descriptions
 
   assert.match(metadata.endpoints.web.description, /HTML preview/);
   assert.match(metadata.endpoints.pdf.description, /PDF draft/);
+  assert.deepEqual(metadata.endpoints.pdf.renderOptions.supported, ['includeWarnings', 'compactMode']);
+  assert.equal(metadata.endpoints.pdf.renderOptions.defaults.includeWarnings, true);
+  assert.equal(metadata.endpoints.pdf.renderOptions.defaults.compactMode, false);
   assert.equal(metadata.examples.webResponse.message, 'Proposal preview rendered');
   assert.equal(metadata.examples.pdfResponse.message, 'Proposal PDF draft rendered');
 });
