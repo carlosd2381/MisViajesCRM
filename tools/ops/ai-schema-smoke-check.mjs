@@ -21,6 +21,10 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+function expectedMessage(spanish, english) {
+  return LOCALE === 'en-US' ? english : spanish;
+}
+
 function expectArray(value, name) {
   assert(Array.isArray(value), `${name} should be an array`);
 }
@@ -75,6 +79,12 @@ async function assertUnauthorizedScenarios() {
     invalidRoleResponse.status === 401,
     `invalid role schema request should return 401, got ${invalidRoleResponse.status}`
   );
+
+  const invalidRolePayload = await invalidRoleResponse.json();
+  assert(
+    invalidRolePayload?.message === expectedMessage('No autenticado', 'Unauthenticated'),
+    'invalid role schema request message localization mismatch'
+  );
 }
 
 async function assertMethodNotAllowedScenario() {
@@ -87,6 +97,12 @@ async function assertMethodNotAllowedScenario() {
   assert(
     invalidMethodResponse.status === 405,
     `POST schema request should return 405, got ${invalidMethodResponse.status}`
+  );
+
+  const invalidMethodPayload = await invalidMethodResponse.json();
+  assert(
+    invalidMethodPayload?.message === expectedMessage('Método no permitido', 'Method not allowed'),
+    'POST schema request message localization mismatch'
   );
 }
 
