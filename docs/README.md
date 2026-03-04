@@ -65,6 +65,7 @@ Además, si se exceden límites soft de tamaño de archivo/función, el PR debe 
 - Ejecutar smoke-check de schema AI en token-mode: `npm run ai:schema:smoke:token`
 - Ejecutar smoke-check de schema AI en `en-US`: `npm run ai:schema:smoke:en`
 - Ejecutar smoke-check de schema AI en token-mode + `en-US`: `npm run ai:schema:smoke:token:en`
+- Ejecutar matriz completa de smoke-checks (auth+AI, `header/token`, `es-MX/en-US`): `npm run smoke:matrix`
 - Ejecutar todas las pruebas: `npm run test`
 - Ejecutar pruebas unitarias: `npm run test:unit`
 - Ejecutar pruebas de integración HTTP: `npm run test:integration`
