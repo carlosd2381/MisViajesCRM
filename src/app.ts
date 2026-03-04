@@ -3,6 +3,7 @@ import { extractLocale, notFound, parsePathSegments, sendJson } from './core/htt
 import { buildRepositories, type RepositoryBundle } from './core/bootstrap/repositories';
 import { authorizeRequest, type AuthMode } from './core/auth/request-auth';
 import {
+  permissionForAi,
   permissionForCommissions,
   permissionForClients,
   permissionForDashboard,
@@ -47,6 +48,7 @@ import {
   handleManagementCollection,
   handleManagementResource
 } from './modules/management/api/management-http-handlers';
+import { handleAiProposalCollection } from './modules/ai/api/proposal-http-handlers';
 import {
   handleItineraryItemsCollection,
   handleItinerariesCollection,
@@ -295,6 +297,26 @@ function handleManagementRoute(
   return Promise.resolve();
 }
 
+function handleAiRoute(
+  req: IncomingMessage,
+  res: ServerResponse,
+  pathSegments: string[],
+  locale: string,
+  authMode: AuthMode
+): Promise<void> | null {
+  if (pathSegments[0] !== 'ai') return null;
+
+  const permission = permissionForAi(req.method);
+  if (!canProceed(req, res, locale, permission, authMode)) return Promise.resolve();
+
+  const context = { req, res, pathSegments, locale };
+  if (pathSegments.length === 2 && pathSegments[1] === 'proposal') {
+    return handleAiProposalCollection(context);
+  }
+
+  return Promise.resolve();
+}
+
 function handler(repositories: RepositoryBundle, options: AppOptions) {
   const authMode = options.authMode ?? 'header';
   const refreshTokens = options.refreshTokenService ?? buildRefreshTokenService(tokenServiceOptions());
@@ -337,6 +359,9 @@ function handler(repositories: RepositoryBundle, options: AppOptions) {
 
       const managementRoute = handleManagementRoute(req, res, pathSegments, locale, repositories, authMode);
       if (managementRoute) return managementRoute;
+
+      const aiRoute = handleAiRoute(req, res, pathSegments, locale, authMode);
+      if (aiRoute) return aiRoute;
 
       const itinerariesRoute = handleItinerariesRoute(req, res, pathSegments, locale, repositories, authMode);
       if (itinerariesRoute) return itinerariesRoute;

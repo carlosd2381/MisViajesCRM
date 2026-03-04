@@ -4,6 +4,7 @@ import { getUserContextFromHeaders } from './request-auth';
 import {
   permissionForCommissions,
   permissionForClients,
+  permissionForAi,
   permissionForDashboard,
   permissionForFinancials,
   permissionForItineraries,
@@ -92,4 +93,10 @@ test('permissionForManagement maps methods correctly', () => {
   assert.equal(permissionForManagement('POST'), 'write:settings');
   assert.equal(permissionForManagement('PATCH'), 'write:settings');
   assert.equal(permissionForManagement('DELETE'), null);
+});
+
+test('permissionForAi maps methods correctly', () => {
+  assert.equal(permissionForAi('POST'), 'write:itineraries');
+  assert.equal(permissionForAi('GET'), null);
+  assert.equal(permissionForAi('PATCH'), null);
 });

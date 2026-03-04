@@ -22,3 +22,4 @@ Módulos iniciales:
 - `messaging`
 - `dashboard`
 - `management`
+- `ai`

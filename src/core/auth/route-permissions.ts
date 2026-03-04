@@ -48,6 +48,11 @@ export function permissionForManagement(method: string | undefined): PermissionK
   return null;
 }
 
+export function permissionForAi(method: string | undefined): PermissionKey | null {
+  if (method === 'POST') return 'write:itineraries';
+  return null;
+}
+
 export function permissionForItineraries(method: string | undefined): PermissionKey | null {
   if (method === 'GET') return 'read:itineraries';
   if (method === 'POST' || method === 'PATCH') return 'write:itineraries';
