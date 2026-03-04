@@ -91,6 +91,7 @@ CI:
 - El workflow ejecuta `ai-schema-smoke` en matriz `AUTH_MODE=header|token` y locale `es-MX|en-US`.
 - El workflow ejecuta `ai-render-smoke` en matriz `AUTH_MODE=header|token` y locale `es-MX|en-US`.
 - El job `quality` ejecuta preflight `npm run smoke:matrix:contract` para validar contratos de summaries (`AUTH/AI_SCHEMA/AI_RENDER`) antes de checks más costosos.
+- El preflight `smoke:matrix:contract` también publica su `SMOKE_MATRIX_SUMMARY` parseado en `GITHUB_STEP_SUMMARY` para triage rápido en runs de CI.
 - El job `quality` ejecuta también `npm run test:ops` para validar contrato de utilidades compartidas en `tools/ops`.
 - El job `quality` ejecuta también `npm run test:quality` para validar regresiones de quality gates auxiliares.
 - El job `auth-smoke` imprime un resumen de modo/flags para facilitar diagnóstico en logs de CI.

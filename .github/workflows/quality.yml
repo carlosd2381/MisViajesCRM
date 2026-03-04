@@ -109,7 +109,11 @@ jobs:
           node-version: '20'
 
       - name: Run smoke contract preflight
-        run: npm run smoke:matrix:contract
+        run: npm run smoke:matrix:contract | tee smoke-matrix-contract-output.log
+
+      - name: Smoke contract preflight summary
+        if: always()
+        run: bash tools/ops/ci-smoke-summary.sh "Smoke matrix contract preflight" SMOKE_MATRIX_SUMMARY smoke-matrix-contract-output.log "MODE=contract-only"
 
       - name: Run quality checks
         run: npm run quality

@@ -156,6 +156,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 ## Registro de cambios
 
+- 2026-03-04: Job `quality` ahora publica en `GITHUB_STEP_SUMMARY` el `SMOKE_MATRIX_SUMMARY` del preflight `smoke:matrix:contract` usando `ci-smoke-summary.sh` para visibilidad rápida en CI.
 - 2026-03-04: Workflow de calidad (`quality.yml`) ahora ejecuta `npm run smoke:matrix:contract` como preflight temprano en job `quality` para detectar drift de contratos de summary antes de los smoke jobs completos.
 - 2026-03-04: Se agregó modo `contract-only` en `smoke:matrix` para preflight rápido de contratos `AUTH/AI_SCHEMA/AI_RENDER` sin levantar API ni ejecutar smoke scripts, con alias `npm run smoke:matrix:contract` y pruebas en `tools/ops`.
 - 2026-03-04: `smoke:matrix` ahora valida también en runtime el contrato de `AUTH_SMOKE_SUMMARY` (locale válido, `verifyTokenMode` boolean y negativos requeridos, incluyendo escenario token cuando aplique), con pruebas de contrato en `tools/ops`.
