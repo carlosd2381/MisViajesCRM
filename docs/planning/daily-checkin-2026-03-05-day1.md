@@ -102,14 +102,26 @@ Día de plan: Día 1 (1-10)
   - `P0-DB-01` permanece cerrado.
   - Bloqueador activo único: cierre operativo formal de `P0-CFDI-01` (validación final de compliance/negocio + nota de cierre en roadmap).
 
+## 9) Plantilla de cierre formal (P0-CFDI-01)
+
+Usar este bloque al momento del sign-off final:
+
+```
+[CLOSE][P0-CFDI-01] Aprobado para cierre operativo.
+Fecha de aprobación: <YYYY-MM-DD>
+Aprobado por (Compliance/Negocio): <nombre/rol>
+Evidencia técnica validada: typecheck ✅ | test:integration ✅ | test:integration:postgres ✅
+Notas: <riesgos residuales/observaciones o "sin observaciones">
+```
+
 ---
 
 ## Quick checklist por prioridad
 
 ### P0-DB-01 (Postgres CI)
-- [ ] Corrida `postgres-integration` sin `skip`
-- [ ] Evidence en `GITHUB_STEP_SUMMARY`
-- [ ] Artifact/log adjunto
+- [x] Corrida `postgres-integration` sin `skip`
+- [x] Evidence en `GITHUB_STEP_SUMMARY`
+- [x] Artifact/log adjunto
 
 ### P0-CFDI-01 (SAT/CFDI)
 - [x] Entidades técnicas definidas

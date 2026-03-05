@@ -275,6 +275,18 @@ Seguimiento activo:
 - [x] Barrido de validación ejecutado en verde (`typecheck`, `test:integration`, `test:integration:postgres`).
 - [ ] Cierre operativo formal registrado (aprobación de compliance/negocio + nota final de cierre en este plan).
 
+### Plantilla de cierre formal P0-CFDI-01
+
+Usar este bloque al momento de cierre:
+
+```
+[CLOSE][P0-CFDI-01] Aprobado para cierre operativo.
+Fecha de aprobación: <YYYY-MM-DD>
+Aprobado por (Compliance/Negocio): <nombre/rol>
+Evidencia técnica validada: typecheck ✅ | test:integration ✅ | test:integration:postgres ✅
+Notas: <riesgos residuales/observaciones o "sin observaciones">
+```
+
 ## Mantenimiento del documento
 
 Actualizar este archivo cuando cambie cualquiera de estos puntos:
