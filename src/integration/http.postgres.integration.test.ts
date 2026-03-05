@@ -1212,6 +1212,19 @@ test('cfdi sign stores diagnostic last_error when certificate signing material i
     assert.equal(errorEventResult.rows[0].event_type, 'error');
     assert.equal(errorEventResult.rows[0].reason, 'certificate_signing_material_missing');
 
+    const secondSignResponse = await fetch(`${started.baseUrl}/management/cfdi/sign`, {
+      method: 'POST',
+      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID),
+      body: JSON.stringify({
+        invoiceId,
+        satCertificateId: certificateId,
+        xmlType: 'unsigned',
+        digestAlgorithm: 'sha256'
+      })
+    });
+
+    assert.equal(secondSignResponse.status, 409);
+
     const signingErrorsResponse = await fetch(
       `${started.baseUrl}/management/cfdi/signing/errors?reason=certificate_signing_material_missing&invoiceId=${invoiceId}&limit=5`,
       {
@@ -1226,9 +1239,13 @@ test('cfdi sign stores diagnostic last_error when certificate signing material i
       data: {
         count: number;
         errors: Array<{
+          id: string;
           invoiceId: string;
           reason: string | null;
           invoiceLastError: string | null;
+          detail: Record<string, unknown>;
+          eventAt: string;
+          createdAt: string;
         }>;
       };
     };
@@ -1247,6 +1264,34 @@ test('cfdi sign stores diagnostic last_error when certificate signing material i
     assert.equal(signingErrorsPayload.data.errors[0].invoiceId, invoiceId);
     assert.equal(signingErrorsPayload.data.errors[0].reason, 'certificate_signing_material_missing');
     assert.equal(signingErrorsPayload.data.errors[0].invoiceLastError, 'certificate_signing_material_missing');
+    assert.ok(signingErrorsPayload.data.errors.length >= 2);
+
+    for (let index = 1; index < signingErrorsPayload.data.errors.length; index += 1) {
+      const previousTimestamp = Date.parse(signingErrorsPayload.data.errors[index - 1].eventAt);
+      const currentTimestamp = Date.parse(signingErrorsPayload.data.errors[index].eventAt);
+      assert.ok(previousTimestamp >= currentTimestamp);
+    }
+
+    const signingErrorsLimitOneResponse = await fetch(
+      `${started.baseUrl}/management/cfdi/signing/errors?reason=certificate_signing_material_missing&invoiceId=${invoiceId}&limit=1`,
+      {
+        method: 'GET',
+        headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID)
+      }
+    );
+
+    assert.equal(signingErrorsLimitOneResponse.status, 200);
+    const signingErrorsLimitOnePayload = (await signingErrorsLimitOneResponse.json()) as {
+      data: {
+        count: number;
+        errors: Array<{ invoiceId: string; reason: string | null }>;
+      };
+    };
+
+    assert.equal(signingErrorsLimitOnePayload.data.count, 1);
+    assert.equal(signingErrorsLimitOnePayload.data.errors.length, 1);
+    assert.equal(signingErrorsLimitOnePayload.data.errors[0].invoiceId, invoiceId);
+    assert.equal(signingErrorsLimitOnePayload.data.errors[0].reason, 'certificate_signing_material_missing');
 
     const signingErrorTrendsResponse = await fetch(
       `${started.baseUrl}/management/cfdi/signing/errors/trends?reason=certificate_signing_material_missing&windowDays=30`,
