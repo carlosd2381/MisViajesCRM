@@ -1245,7 +1245,7 @@ test('cfdi sign stores diagnostic last_error when certificate signing material i
     );
 
     const dashboardSummaryResponse = await fetch(
-      `${started.baseUrl}/dashboard/ops/cfdi-signing/errors?reason=certificate_signing_material_missing&windowDays=30`,
+      `${started.baseUrl}/dashboard/ops/cfdi-signing/errors?reason=certificate_signing_material_missing&windowDays=30&limit=1`,
       {
         method: 'GET',
         headers: integrationTestHeaders('manager', 'es-MX', ACTOR_USER_ID)
@@ -1268,6 +1268,7 @@ test('cfdi sign stores diagnostic last_error when certificate signing material i
     assert.ok(dashboardSummaryPayload.data.activeDays >= 1);
     assert.equal(dashboardSummaryPayload.data.topReasons[0].reason, 'certificate_signing_material_missing');
     assert.ok(dashboardSummaryPayload.data.topReasons[0].count >= 1);
+    assert.ok(dashboardSummaryPayload.data.daily.length <= 1);
     assert.ok(dashboardSummaryPayload.data.daily[0].count >= 1);
   } finally {
     if (server) {

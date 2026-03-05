@@ -79,6 +79,24 @@ export async function handleDashboardCfdiSigningErrorSummary(context: RequestCon
   const to = asText(searchParams.get('to'));
   const windowDaysInput = Number.parseInt(searchParams.get('windowDays') ?? '14', 10);
   const windowDays = Number.isFinite(windowDaysInput) ? Math.min(Math.max(windowDaysInput, 1), 90) : 14;
+  const limitInput = Number.parseInt(searchParams.get('limit') ?? '30', 10);
+  const limit = Number.isFinite(limitInput) ? Math.min(Math.max(limitInput, 1), 90) : 30;
+
+  if (from && !isIsoDateTime(from)) {
+    sendJson(context.res, 400, {
+      message: messageByLocale(context.locale, 'Solicitud inválida'),
+      errors: ['from inválido']
+    });
+    return;
+  }
+
+  if (to && !isIsoDateTime(to)) {
+    sendJson(context.res, 400, {
+      message: messageByLocale(context.locale, 'Solicitud inválida'),
+      errors: ['to inválido']
+    });
+    return;
+  }
 
   if (storageMode !== 'postgres') {
     sendJson(context.res, 200, {
@@ -125,8 +143,9 @@ export async function handleDashboardCfdiSigningErrorSummary(context: RequestCon
         where ${filters.join(' and ')}
         group by day_bucket
         order by day_bucket desc
+        limit $${params.length + 1}
       `,
-      params
+      [...params, limit]
     );
 
     const topReasonsResult = await pgQuery<{ reason: string; total_count: number }>(
@@ -204,4 +223,9 @@ function asText(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined;
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : undefined;
+}
+
+function isIsoDateTime(value: string): boolean {
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed);
 }
