@@ -74,3 +74,35 @@ test('agent can read dashboard but cannot write', async () => {
     await stopServer(server);
   }
 });
+
+test('manager can query dashboard CFDI signing error summary in memory mode', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/dashboard/ops/cfdi-signing/errors?windowDays=7`, {
+      method: 'GET',
+      headers: testHeaders('manager')
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      message: string;
+      data: {
+        storageMode: string;
+        totalErrors: number;
+        activeDays: number;
+        topReasons: unknown[];
+        daily: unknown[];
+      };
+    };
+
+    assert.equal(payload.message, 'Resumen de errores CFDI no disponible en modo memoria');
+    assert.equal(payload.data.storageMode, 'memory');
+    assert.equal(payload.data.totalErrors, 0);
+    assert.equal(payload.data.activeDays, 0);
+    assert.deepEqual(payload.data.topReasons, []);
+    assert.deepEqual(payload.data.daily, []);
+  } finally {
+    await stopServer(server);
+  }
+});

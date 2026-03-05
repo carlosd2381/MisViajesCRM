@@ -34,7 +34,8 @@ import {
 } from '../../modules/messaging/api/messaging-http-handlers';
 import {
   handleDashboardCollection,
-  handleDashboardResource
+  handleDashboardResource,
+  handleDashboardCfdiSigningErrorSummary
 } from '../../modules/dashboard/api/dashboard-http-handlers';
 import {
   handleManagementCollection,
@@ -240,6 +241,14 @@ function handleDashboardRoute(context: ModuleRouteContext): Promise<void> | null
   if (!canProceed(req, res, locale, permission, authMode)) return Promise.resolve();
 
   const requestContext = { req, res, pathSegments, locale };
+  if (
+    pathSegments.length === 4 &&
+    pathSegments[1] === 'ops' &&
+    pathSegments[2] === 'cfdi-signing' &&
+    pathSegments[3] === 'errors'
+  ) {
+    return handleDashboardCfdiSigningErrorSummary(requestContext);
+  }
   if (pathSegments.length === 1) return handleDashboardCollection(requestContext, repositories.dashboard);
   if (pathSegments.length === 2) return handleDashboardResource(requestContext, repositories.dashboard);
   return Promise.resolve();

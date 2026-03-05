@@ -1243,6 +1243,32 @@ test('cfdi sign stores diagnostic last_error when certificate signing material i
         bucket.reasons.some((item) => item.reason === 'certificate_signing_material_missing' && item.count >= 1)
       )
     );
+
+    const dashboardSummaryResponse = await fetch(
+      `${started.baseUrl}/dashboard/ops/cfdi-signing/errors?reason=certificate_signing_material_missing&windowDays=30`,
+      {
+        method: 'GET',
+        headers: integrationTestHeaders('manager', 'es-MX', ACTOR_USER_ID)
+      }
+    );
+
+    assert.equal(dashboardSummaryResponse.status, 200);
+    const dashboardSummaryPayload = (await dashboardSummaryResponse.json()) as {
+      message: string;
+      data: {
+        totalErrors: number;
+        activeDays: number;
+        topReasons: Array<{ reason: string; count: number }>;
+        daily: Array<{ day: string; count: number }>;
+      };
+    };
+
+    assert.equal(dashboardSummaryPayload.message, 'Resumen de errores CFDI consultado');
+    assert.ok(dashboardSummaryPayload.data.totalErrors >= 1);
+    assert.ok(dashboardSummaryPayload.data.activeDays >= 1);
+    assert.equal(dashboardSummaryPayload.data.topReasons[0].reason, 'certificate_signing_material_missing');
+    assert.ok(dashboardSummaryPayload.data.topReasons[0].count >= 1);
+    assert.ok(dashboardSummaryPayload.data.daily[0].count >= 1);
   } finally {
     if (server) {
       await stopServer(server);

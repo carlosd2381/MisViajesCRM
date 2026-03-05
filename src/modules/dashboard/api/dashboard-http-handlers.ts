@@ -1,5 +1,6 @@
 import type { RequestContext } from '../../../core/http/http-types';
 import { readJsonBody, sendJson } from '../../../core/http/http-utils';
+import { pgQuery } from '../../../core/db/pg-client';
 import type { DashboardRepository } from '../domain/dashboard-repository';
 import {
   mapCreateDashboardSnapshotToEntity,
@@ -65,6 +66,119 @@ export async function handleDashboardResource(context: RequestContext, repositor
   sendJson(context.res, 405, { message: messageByLocale(context.locale, 'Método no permitido') });
 }
 
+export async function handleDashboardCfdiSigningErrorSummary(context: RequestContext): Promise<void> {
+  if (context.req.method !== 'GET') {
+    sendJson(context.res, 405, { message: messageByLocale(context.locale, 'Método no permitido') });
+    return;
+  }
+
+  const storageMode = process.env.STORAGE_MODE ?? 'memory';
+  const searchParams = new URL(context.req.url ?? '/', 'http://localhost').searchParams;
+  const reason = asText(searchParams.get('reason'));
+  const from = asText(searchParams.get('from'));
+  const to = asText(searchParams.get('to'));
+  const windowDaysInput = Number.parseInt(searchParams.get('windowDays') ?? '14', 10);
+  const windowDays = Number.isFinite(windowDaysInput) ? Math.min(Math.max(windowDaysInput, 1), 90) : 14;
+
+  if (storageMode !== 'postgres') {
+    sendJson(context.res, 200, {
+      data: {
+        storageMode,
+        totalErrors: 0,
+        activeDays: 0,
+        topReasons: [],
+        daily: []
+      },
+      message: messageByLocale(context.locale, 'Resumen de errores CFDI no disponible en modo memoria')
+    });
+    return;
+  }
+
+  const filters: string[] = ["event_type = 'error'", "detail_json->>'operation' = 'sign'"];
+  const params: unknown[] = [];
+
+  if (reason) {
+    params.push(reason);
+    filters.push(`detail_json->>'reason' = $${params.length}`);
+  }
+
+  if (from) {
+    params.push(from);
+    filters.push(`event_at >= $${params.length}::timestamptz`);
+  } else {
+    params.push(windowDays);
+    filters.push(`event_at >= now() - make_interval(days => $${params.length}::int)`);
+  }
+
+  if (to) {
+    params.push(to);
+    filters.push(`event_at <= $${params.length}::timestamptz`);
+  }
+
+  try {
+    const dailyResult = await pgQuery<{ day_bucket: string; total_count: number }>(
+      `
+        select
+          to_char(date_trunc('day', event_at at time zone 'UTC'), 'YYYY-MM-DD') as day_bucket,
+          count(*)::int as total_count
+        from cfdi_invoice_events
+        where ${filters.join(' and ')}
+        group by day_bucket
+        order by day_bucket desc
+      `,
+      params
+    );
+
+    const topReasonsResult = await pgQuery<{ reason: string; total_count: number }>(
+      `
+        select
+          coalesce(detail_json->>'reason', 'unknown') as reason,
+          count(*)::int as total_count
+        from cfdi_invoice_events
+        where ${filters.join(' and ')}
+        group by reason
+        order by total_count desc
+        limit 5
+      `,
+      params
+    );
+
+    const daily = dailyResult.rows.map((row) => ({
+      day: row.day_bucket,
+      count: Number(row.total_count)
+    }));
+
+    const totalErrors = daily.reduce((sum, item) => sum + item.count, 0);
+    const topReasons = topReasonsResult.rows.map((row) => ({
+      reason: row.reason,
+      count: Number(row.total_count)
+    }));
+
+    sendJson(context.res, 200, {
+      data: {
+        storageMode,
+        totalErrors,
+        activeDays: daily.length,
+        topReasons,
+        daily
+      },
+      message: messageByLocale(context.locale, 'Resumen de errores CFDI consultado')
+    });
+  } catch (error) {
+    sendJson(context.res, 503, {
+      data: {
+        storageMode,
+        totalErrors: 0,
+        activeDays: 0,
+        topReasons: [],
+        daily: []
+      },
+      message: messageByLocale(context.locale, 'No fue posible consultar resumen de errores CFDI'),
+      errors: [error instanceof Error ? error.message : 'Unknown database error']
+    });
+  }
+}
+
 function messageByLocale(locale: string, spanish: string): string {
   if (locale === 'es-MX') return spanish;
   return englishMessage(spanish);
@@ -76,9 +190,18 @@ function englishMessage(spanish: string): string {
     'Snapshot de dashboard creado': 'Dashboard snapshot created',
     'Snapshot de dashboard no encontrado': 'Dashboard snapshot not found',
     'Snapshot de dashboard actualizado': 'Dashboard snapshot updated',
+    'Resumen de errores CFDI no disponible en modo memoria': 'CFDI error summary is unavailable in memory mode',
+    'Resumen de errores CFDI consultado': 'CFDI error summary retrieved',
+    'No fue posible consultar resumen de errores CFDI': 'Unable to retrieve CFDI error summary',
     'Solicitud inválida': 'Invalid request',
     'Método no permitido': 'Method not allowed'
   };
 
   return map[spanish] ?? 'Operation completed';
+}
+
+function asText(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : undefined;
 }
