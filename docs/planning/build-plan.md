@@ -166,8 +166,9 @@ Referencia de cierre de hoy: `docs/planning/night-handoff-2026-03-05.md`.
 
 Estado de avance de siguientes pasos:
 - [DONE][P0-CFDI-01] Aserciones deterministas de orden/desempate completadas para `/management/cfdi/events` y `GET /management/cfdi/invoices/:invoiceId` en suite PostgreSQL.
-- [NEXT][P0-CFDI-01] Consolidar criterio de salida del bloque CFDI (contrato + integración + i18n + filtros) con checklist explícito de cierre.
-- [NEXT][P0-CFDI-01] Ejecutar barrido final de validación (`typecheck`, `test:integration`, `test:integration:postgres`) y anexar evidencia resumida en check-in diario.
+- [DONE][P0-CFDI-01] Criterio de salida del bloque CFDI consolidado en checklist explícito (contrato + integración + i18n + filtros).
+- [DONE][P0-CFDI-01] Barrido final de validación ejecutado (`typecheck`, `test:integration`, `test:integration:postgres`) y evidencia resumida en check-in diario.
+- [NEXT][P0-CFDI-01] Registrar cierre operativo formal del bloque en este plan una vez validada la evidencia de negocio/compliance con stakeholders.
 
 Playbook de cierre de blocker:
 - `docs/operations/p0-db-ci-unblock-playbook.md`
@@ -265,6 +266,15 @@ Seguimiento activo:
 
 - SAT/CFDI: checklist de hardening de lecturas/eventos completado y documentado.
 - SAT/CFDI: barrido final de pruebas en verde con evidencia en este plan/check-in.
+
+### Checklist de salida P0-CFDI-01 (consolidado)
+
+- [x] Contratos de lectura CFDI cubren `from/to/limit/windowDays` con validación temprana y paridad i18n `es-MX|en-US`.
+- [x] Contratos de forma (`shape`) cubiertos para respuestas de eventos/errores/tendencias/resumen dashboard.
+- [x] Ordenamiento determinista aplicado y verificado en PostgreSQL (`event_at desc, id desc`) para endpoints de lectura CFDI.
+- [x] Aserciones de paginación/orden cubiertas en integración PostgreSQL (`limit`, desempate en timestamps empatados).
+- [x] Barrido de validación ejecutado en verde (`typecheck`, `test:integration`, `test:integration:postgres`).
+- [ ] Cierre operativo formal registrado (aprobación de compliance/negocio + nota final de cierre en este plan).
 
 ## Mantenimiento del documento
 

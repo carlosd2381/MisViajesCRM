@@ -82,6 +82,26 @@ Día de plan: Día 1 (1-10)
 - Criterio de éxito para el siguiente día:
   - Al menos una corrida de `postgres-integration` ejecutada (no skip) o bloqueo claramente documentado con owner y ETA.
 
+## 8) Actualización de continuidad (cierre extendido del día)
+
+- Objetivo cubierto en continuidad: cerrar hardening técnico pendiente de `P0-CFDI-01` en contratos de lectura y ordenamiento determinista.
+- Evidencia adicional de ejecución:
+  - `npm run -s typecheck` ✅
+  - `npm run -s test:integration` ✅ (`99/99` pass)
+  - `npm run -s test:integration:postgres` ✅ (`9/9` pass)
+- Entregables técnicos cerrados en esta continuidad:
+  - Aserciones de contrato `shape` reforzadas para lecturas CFDI (`events`, `invoice status`, `signing errors`, `trends`, `dashboard summary`).
+  - Contratos de orden/paginación reforzados (`limit=1`, orden descendente por `eventAt`, desempate por `id` en timestamps empatados).
+  - Ordenamiento determinista aplicado en handlers de lectura CFDI en PostgreSQL (`event_at desc, id desc`).
+- Referencia de commits de continuidad:
+  - `test(compliance): lock signing-errors response shape contracts`
+  - `test(compliance): assert signing-errors ordering and limit contracts`
+  - `fix(compliance): make cfdi event ordering deterministic`
+  - `test(compliance): assert deterministic ordering for cfdi reads`
+- Estado actualizado de bloqueadores:
+  - `P0-DB-01` permanece cerrado.
+  - Bloqueador activo único: cierre operativo formal de `P0-CFDI-01` (validación final de compliance/negocio + nota de cierre en roadmap).
+
 ---
 
 ## Quick checklist por prioridad
