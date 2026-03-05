@@ -266,6 +266,9 @@ Nota de lectura: entradas con `[Resumen]` agrupan lotes de cambios relacionados 
 
 - 2026-03-04: [Resumen] Bloque de endurecimiento CI/contratos completado: preflight `smoke:matrix:contract`, validadores runtime de summaries (`AUTH/AI_SCHEMA/AI_RENDER`), publicación en `GITHUB_STEP_SUMMARY` y pruebas de regresión de workflow.
 - 2026-03-05: Se agregó playbook operativo `docs/operations/p0-db-ci-unblock-playbook.md` para cierre paso-a-paso de `P0-DB-01` (verificación remota, ejecución forzada, evidencia y remediación).
+- 2026-03-05: Se publicó a `main` el lote de cambios de CI/docs/código (incluyendo `quality.yml` con `force_postgres_integration` y workflow `postgres-nightly.yml`) para habilitar validación remota real de Postgres.
+- 2026-03-05: `postgres:ci:readiness` quedó en `ready:true` (`hasForceInput:true`, `hasPostgresJob:true`, `hasNightlyWorkflow:true`) en `carlosd2381/MisViajesCRM`.
+- 2026-03-05: Se ejecutó corrida forzada `quality.yml` (`run 22704466009`) y el job `postgres-integration` terminó `success`, pero con step `Run Postgres integration test` en `skipped`; el blocker `P0-DB-01` permanece abierto por configuración faltante de `DB_*` en runner.
 - 2026-03-05: Se identificó bloqueo operativo adicional para `P0-DB-01`: workflow remoto `quality.yml` en `main` todavía no incluye input/job de Postgres; se requiere publicar esos cambios antes de ejecutar validación CI sin `skip`.
 - 2026-03-05: Se documentó fallback operativo para cierre de `P0-DB-01` cuando no exista `gh` CLI local (disparo manual desde GitHub UI de `Quality Gates` con `force_postgres_integration=true`).
 - 2026-03-05: Se implementó observabilidad base AI con endpoint `GET /ai/metrics` (latencia/errores/quality-gate/tokens/costo estimado por operación) y cobertura de pruebas.

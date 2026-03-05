@@ -14,9 +14,9 @@ Día de plan: Día 2 (1-10)
 - Tareas objetivo:
   - [ ] Verificar acceso para configurar `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` en GitHub Actions.
   - [ ] Confirmar conectividad y credenciales de la base usada por runner CI.
-  - [ ] Ejecutar workflow `quality.yml` con `force_postgres_integration=true`.
+  - [x] Ejecutar workflow `quality.yml` con `force_postgres_integration=true`.
   - [ ] Si aplica, ejecutar también `postgres-nightly.yml` de forma manual para validar ruta alterna.
-  - [ ] Documentar resultado de ejecución y bloqueadores en este check-in.
+  - [x] Documentar resultado de ejecución y bloqueadores en este check-in.
 
 ## 3) Comandos operativos sugeridos
 
@@ -49,18 +49,21 @@ Si no hay `gh` CLI disponible en máquina local:
 ## 5) Riesgos y fallback
 
 - Riesgo principal: falta de permisos para secrets/vars o conectividad DB desde runner.
-- Riesgo adicional detectado: workflow remoto `quality.yml` en `main` aún no expone input `force_postgres_integration` ni job `postgres-integration`.
+- Riesgo adicional detectado: `postgres-integration` puede reportar `success` del job aun cuando el step de test quede `skipped` por falta de `DB_*`, por lo que se requiere verificación de steps/summary.
 - Fallback 1: ejecutar contra entorno CI alterno con DB accesible y variables completas.
 - Fallback 2: evidenciar bloqueo con owner/ETA, sin abrir nuevas features de Fase 1.
 - Fallback 3: si no hay `gh` en la estación local, usar disparo manual desde GitHub UI (pasos arriba).
 
 Prerequisito de ejecución real:
-- Publicar en `main` los cambios de workflow (`quality.yml` y/o `postgres-nightly.yml`) que incluyen job/input de Postgres; sin esto no se puede disparar la validación CI requerida.
+- Configurar variables `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` (y opcional `DB_PORT`) en el entorno del runner para evitar `skip` del step de test.
 
 Evidencia técnica más reciente (2026-03-05):
 - `npm run postgres:ci:readiness`
-- Resultado: `POSTGRES_CI_READINESS_SUMMARY {"ready":false,"repository":"carlosd2381/MisViajesCRM","qualityWorkflow":{"hasForceInput":false,"hasPostgresJob":false},"hasNightlyWorkflow":false}`
-- Implicación: primero publicar workflows en `main`; luego ejecutar corrida forzada.
+- Resultado: `POSTGRES_CI_READINESS_SUMMARY {"ready":true,"repository":"carlosd2381/MisViajesCRM","qualityWorkflow":{"hasForceInput":true,"hasPostgresJob":true},"hasNightlyWorkflow":true}`
+- Corrida manual forzada: `gh workflow run quality.yml --ref main -f force_postgres_integration=true`
+- Run: `https://github.com/carlosd2381/MisViajesCRM/actions/runs/22704466009`
+- Resultado de run: `completed success`
+- Evidencia del job `postgres-integration`: step `Run Postgres integration test` en `skipped` (falta de `DB_*`), por lo que `P0-DB-01` sigue bloqueado por entorno.
 
 ## 6) Criterio de éxito del día
 
