@@ -3,6 +3,7 @@ import { readJsonBody, sendJson } from '../../../core/http/http-utils';
 import { asOptionalText } from '../../../core/http/http-query-params';
 import { validateCfdiReadQueryParams } from '../../../core/http/http-query-validation';
 import { pgQuery } from '../../../core/db/pg-client';
+import { applyTimestampRangeFilters } from '../../../core/db/pg-filter-builders';
 import type { DashboardRepository } from '../domain/dashboard-repository';
 import {
   mapCreateDashboardSnapshotToEntity,
@@ -122,10 +123,7 @@ export async function handleDashboardCfdiSigningErrorSummary(context: RequestCon
     filters.push(`event_at >= now() - make_interval(days => $${params.length}::int)`);
   }
 
-  if (to) {
-    params.push(to);
-    filters.push(`event_at <= $${params.length}::timestamptz`);
-  }
+  applyTimestampRangeFilters({ filters, params, column: 'event_at', to });
 
   try {
     const dailyResult = await pgQuery<{ day_bucket: string; total_count: number }>(

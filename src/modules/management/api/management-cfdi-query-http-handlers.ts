@@ -3,6 +3,7 @@ import { sendJson } from '../../../core/http/http-utils';
 import { asOptionalText } from '../../../core/http/http-query-params';
 import { validateCfdiReadQueryParams } from '../../../core/http/http-query-validation';
 import { pgQuery } from '../../../core/db/pg-client';
+import { applyTimestampRangeFilters } from '../../../core/db/pg-filter-builders';
 import { messageByLocale } from './management-http-handlers';
 
 export async function handleManagementCfdiReadiness(context: RequestContext): Promise<void> {
@@ -123,15 +124,7 @@ export async function handleManagementCfdiEvents(context: RequestContext): Promi
     const filters: string[] = ['cfdi_invoice_id = $1'];
     const params: unknown[] = [invoiceId];
 
-    if (from) {
-      params.push(from);
-      filters.push(`event_at >= $${params.length}::timestamptz`);
-    }
-
-    if (to) {
-      params.push(to);
-      filters.push(`event_at <= $${params.length}::timestamptz`);
-    }
+    applyTimestampRangeFilters({ filters, params, column: 'event_at', from, to });
 
     params.push(limit);
 
@@ -238,15 +231,7 @@ export async function handleManagementCfdiSigningErrors(context: RequestContext)
     filters.push(`cfdi_invoice_id = $${params.length}`);
   }
 
-  if (from) {
-    params.push(from);
-    filters.push(`event_at >= $${params.length}::timestamptz`);
-  }
-
-  if (to) {
-    params.push(to);
-    filters.push(`event_at <= $${params.length}::timestamptz`);
-  }
+  applyTimestampRangeFilters({ filters, params, column: 'event_at', from, to });
 
   params.push(limit);
 
@@ -360,10 +345,7 @@ export async function handleManagementCfdiSigningErrorTrends(context: RequestCon
     filters.push(`event_at >= now() - make_interval(days => $${params.length}::int)`);
   }
 
-  if (to) {
-    params.push(to);
-    filters.push(`event_at <= $${params.length}::timestamptz`);
-  }
+  applyTimestampRangeFilters({ filters, params, column: 'event_at', to });
 
   try {
     const result = await pgQuery<{
@@ -533,15 +515,7 @@ export async function handleManagementCfdiInvoiceStatus(context: RequestContext)
     const eventFilters: string[] = ['cfdi_invoice_id = $1'];
     const eventParams: unknown[] = [invoiceId];
 
-    if (from) {
-      eventParams.push(from);
-      eventFilters.push(`event_at >= $${eventParams.length}::timestamptz`);
-    }
-
-    if (to) {
-      eventParams.push(to);
-      eventFilters.push(`event_at <= $${eventParams.length}::timestamptz`);
-    }
+    applyTimestampRangeFilters({ filters: eventFilters, params: eventParams, column: 'event_at', from, to });
 
     eventParams.push(limit);
 
