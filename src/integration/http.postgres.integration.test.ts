@@ -1235,6 +1235,15 @@ test('cfdi sign stores diagnostic last_error when certificate signing material i
 
     assert.equal(signingErrorsPayload.message, 'Errores de firmado CFDI consultados');
     assert.ok(signingErrorsPayload.data.count >= 1);
+    assert.deepEqual(Object.keys(signingErrorsPayload.data.errors[0]).sort(), [
+      'createdAt',
+      'detail',
+      'eventAt',
+      'id',
+      'invoiceId',
+      'invoiceLastError',
+      'reason'
+    ]);
     assert.equal(signingErrorsPayload.data.errors[0].invoiceId, invoiceId);
     assert.equal(signingErrorsPayload.data.errors[0].reason, 'certificate_signing_material_missing');
     assert.equal(signingErrorsPayload.data.errors[0].invoiceLastError, 'certificate_signing_material_missing');
@@ -1265,6 +1274,9 @@ test('cfdi sign stores diagnostic last_error when certificate signing material i
     assert.equal(signingErrorTrendsPayload.message, 'Tendencias de errores de firmado CFDI consultadas');
     assert.ok(signingErrorTrendsPayload.data.totalErrors >= 1);
     assert.ok(signingErrorTrendsPayload.data.bucketCount >= 1);
+    assert.deepEqual(Object.keys(signingErrorTrendsPayload.data.buckets[0]).sort(), ['day', 'reasons', 'totalCount']);
+    assert.deepEqual(Object.keys(signingErrorTrendsPayload.data.buckets[0].reasons[0]).sort(), ['count', 'reason']);
+    assert.deepEqual(Object.keys(signingErrorTrendsPayload.data.totals[0]).sort(), ['count', 'reason']);
     assert.equal(signingErrorTrendsPayload.data.totals[0].reason, 'certificate_signing_material_missing');
     assert.ok(signingErrorTrendsPayload.data.totals[0].count >= 1);
     assert.ok(
@@ -1295,6 +1307,8 @@ test('cfdi sign stores diagnostic last_error when certificate signing material i
     assert.equal(dashboardSummaryPayload.message, 'Resumen de errores CFDI consultado');
     assert.ok(dashboardSummaryPayload.data.totalErrors >= 1);
     assert.ok(dashboardSummaryPayload.data.activeDays >= 1);
+    assert.deepEqual(Object.keys(dashboardSummaryPayload.data.topReasons[0]).sort(), ['count', 'reason']);
+    assert.deepEqual(Object.keys(dashboardSummaryPayload.data.daily[0]).sort(), ['count', 'day']);
     assert.equal(dashboardSummaryPayload.data.topReasons[0].reason, 'certificate_signing_material_missing');
     assert.ok(dashboardSummaryPayload.data.topReasons[0].count >= 1);
     assert.ok(dashboardSummaryPayload.data.daily.length <= 1);
