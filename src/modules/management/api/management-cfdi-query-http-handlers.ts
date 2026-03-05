@@ -161,6 +161,115 @@ export async function handleManagementCfdiEvents(context: RequestContext): Promi
   }
 }
 
+export async function handleManagementCfdiSigningErrors(context: RequestContext): Promise<void> {
+  if (context.req.method !== 'GET') {
+    sendJson(context.res, 405, { message: messageByLocale(context.locale, 'Método no permitido') });
+    return;
+  }
+
+  const storageMode = process.env.STORAGE_MODE ?? 'memory';
+  const searchParams = new URL(context.req.url ?? '/', 'http://localhost').searchParams;
+  const reason = asText(searchParams.get('reason'));
+  const invoiceId = asText(searchParams.get('invoiceId'));
+  const from = asText(searchParams.get('from'));
+  const to = asText(searchParams.get('to'));
+  const limitInput = Number.parseInt(searchParams.get('limit') ?? '20', 10);
+  const limit = Number.isFinite(limitInput) ? Math.min(Math.max(limitInput, 1), 200) : 20;
+
+  if (storageMode !== 'postgres') {
+    sendJson(context.res, 200, {
+      data: {
+        storageMode,
+        count: 0,
+        errors: []
+      },
+      message: messageByLocale(context.locale, 'Errores de firmado CFDI no disponibles en modo memoria')
+    });
+    return;
+  }
+
+  const filters: string[] = ["event_type = 'error'", "detail_json->>'operation' = 'sign'"];
+  const params: unknown[] = [];
+
+  if (reason) {
+    params.push(reason);
+    filters.push(`detail_json->>'reason' = $${params.length}`);
+  }
+
+  if (invoiceId) {
+    params.push(invoiceId);
+    filters.push(`cfdi_invoice_id = $${params.length}`);
+  }
+
+  if (from) {
+    params.push(from);
+    filters.push(`event_at >= $${params.length}::timestamptz`);
+  }
+
+  if (to) {
+    params.push(to);
+    filters.push(`event_at <= $${params.length}::timestamptz`);
+  }
+
+  params.push(limit);
+
+  try {
+    const result = await pgQuery<{
+      id: string;
+      cfdi_invoice_id: string;
+      event_at: string;
+      created_at: string;
+      reason: string | null;
+      detail_json: Record<string, unknown> | null;
+      invoice_last_error: string | null;
+    }>(
+      `
+        select
+          e.id,
+          e.cfdi_invoice_id,
+          e.event_at,
+          e.created_at,
+          e.detail_json->>'reason' as reason,
+          e.detail_json,
+          i.last_error as invoice_last_error
+        from cfdi_invoice_events e
+        join cfdi_invoices i on i.id = e.cfdi_invoice_id
+        where ${filters.join(' and ')}
+        order by e.event_at desc
+        limit $${params.length}
+      `,
+      params
+    );
+
+    sendJson(context.res, 200, {
+      data: {
+        storageMode,
+        count: result.rows.length,
+        errors: result.rows.map((row) => ({
+          id: row.id,
+          invoiceId: row.cfdi_invoice_id,
+          reason: row.reason,
+          invoiceLastError: row.invoice_last_error,
+          detail: row.detail_json ?? {},
+          eventAt: row.event_at,
+          createdAt: row.created_at
+        }))
+      },
+      message: messageByLocale(context.locale, 'Errores de firmado CFDI consultados')
+    });
+  } catch (error) {
+    sendJson(context.res, 503, {
+      data: {
+        storageMode,
+        count: 0,
+        errors: []
+      },
+      message: messageByLocale(context.locale, 'No fue posible consultar errores de firmado CFDI'),
+      errors: [error instanceof Error ? error.message : 'Unknown database error']
+    });
+  }
+}
+
 export async function handleManagementCfdiInvoiceStatus(context: RequestContext): Promise<void> {
   if (context.req.method !== 'GET') {
     sendJson(context.res, 405, { message: messageByLocale(context.locale, 'Método no permitido') });

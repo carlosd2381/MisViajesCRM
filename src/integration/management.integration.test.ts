@@ -419,6 +419,30 @@ test('owner can request CFDI signing in memory mode with explicit fallback', asy
   }
 });
 
+test('owner can query CFDI signing errors endpoint in memory mode', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/signing/errors?limit=10`, {
+      method: 'GET',
+      headers: testHeaders('owner')
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      message: string;
+      data: { storageMode: string; count: number; errors: unknown[] };
+    };
+
+    assert.equal(payload.message, 'Errores de firmado CFDI no disponibles en modo memoria');
+    assert.equal(payload.data.storageMode, 'memory');
+    assert.equal(payload.data.count, 0);
+    assert.deepEqual(payload.data.errors, []);
+  } finally {
+    await stopServer(server);
+  }
+});
+
 test('owner gets validation errors for invalid CFDI stamp confirm payload', async () => {
   const { server, baseUrl } = await startServer();
 

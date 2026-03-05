@@ -116,6 +116,9 @@ function englishMessage(spanish: string): string {
     'XML CFDI requerido para firmado': 'CFDI XML is required for signing',
     'CFDI firmado': 'CFDI signed',
     'No fue posible firmar CFDI': 'Unable to sign CFDI',
+    'Errores de firmado CFDI no disponibles en modo memoria': 'CFDI signing errors are unavailable in memory mode',
+    'Errores de firmado CFDI consultados': 'CFDI signing errors retrieved',
+    'No fue posible consultar errores de firmado CFDI': 'Unable to retrieve CFDI signing errors',
     'Solicitud inválida': 'Invalid request',
     'Método no permitido': 'Method not allowed'
   };

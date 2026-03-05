@@ -1182,6 +1182,33 @@ test('cfdi sign stores diagnostic last_error when certificate signing material i
     assert.equal(errorEventResult.rowCount, 1);
     assert.equal(errorEventResult.rows[0].event_type, 'error');
     assert.equal(errorEventResult.rows[0].reason, 'certificate_signing_material_missing');
+
+    const signingErrorsResponse = await fetch(
+      `${started.baseUrl}/management/cfdi/signing/errors?reason=certificate_signing_material_missing&invoiceId=${invoiceId}&limit=5`,
+      {
+        method: 'GET',
+        headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID)
+      }
+    );
+
+    assert.equal(signingErrorsResponse.status, 200);
+    const signingErrorsPayload = (await signingErrorsResponse.json()) as {
+      message: string;
+      data: {
+        count: number;
+        errors: Array<{
+          invoiceId: string;
+          reason: string | null;
+          invoiceLastError: string | null;
+        }>;
+      };
+    };
+
+    assert.equal(signingErrorsPayload.message, 'Errores de firmado CFDI consultados');
+    assert.ok(signingErrorsPayload.data.count >= 1);
+    assert.equal(signingErrorsPayload.data.errors[0].invoiceId, invoiceId);
+    assert.equal(signingErrorsPayload.data.errors[0].reason, 'certificate_signing_material_missing');
+    assert.equal(signingErrorsPayload.data.errors[0].invoiceLastError, 'certificate_signing_material_missing');
   } finally {
     if (server) {
       await stopServer(server);
