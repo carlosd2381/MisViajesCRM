@@ -596,6 +596,14 @@ test('cfdi validation endpoints persist events in postgres mode', async (t: Test
     assert.equal(eventsPayload.data.invoiceId, stampInvoiceId);
     assert.ok(eventsPayload.data.count >= 1);
     assert.equal(eventsPayload.data.events[0]?.eventType, 'validation_passed');
+    assert.deepEqual(Object.keys(eventsPayload.data.events[0] ?? {}).sort(), [
+      'createdAt',
+      'detail',
+      'eventAt',
+      'eventType',
+      'id',
+      'invoiceId'
+    ]);
   } finally {
     if (server) {
       await stopServer(server);
@@ -883,6 +891,13 @@ test('cfdi XML validate and persist endpoints update invoice xml metadata in pos
     assert.equal(statusResponse.status, 200);
     const statusPayload = (await statusResponse.json()) as {
       data: {
+        events: Array<{
+          id: string;
+          eventType: string;
+          detail: Record<string, unknown>;
+          eventAt: string;
+          createdAt: string;
+        }>;
         invoice: {
           xml: {
             hasUnsigned: boolean;
@@ -898,6 +913,14 @@ test('cfdi XML validate and persist endpoints update invoice xml metadata in pos
     assert.equal(statusPayload.data.invoice.xml.hasStamped, false);
     assert.ok(statusPayload.data.invoice.xml.unsignedBytes > 0);
     assert.equal(statusPayload.data.invoice.xml.stampedBytes, 0);
+    assert.ok(statusPayload.data.events.length >= 1);
+    assert.deepEqual(Object.keys(statusPayload.data.events[0] ?? {}).sort(), [
+      'createdAt',
+      'detail',
+      'eventAt',
+      'eventType',
+      'id'
+    ]);
 
     const xmlEventResult = await pgQuery<{ event_type: string }>(
       `
