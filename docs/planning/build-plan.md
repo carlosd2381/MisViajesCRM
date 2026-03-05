@@ -273,6 +273,14 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 Nota de lectura: entradas con `[Resumen]` agrupan lotes de cambios relacionados para escaneo rápido; los bullets detallados que siguen conservan el historial completo y son la referencia operativa principal.
 
+### Resumen rápido por fecha
+
+- 2026-03-05: cierre y estabilización de bloqueadores operativos (Postgres CI), avances principales de cumplimiento CFDI/SAT, y decisiones de arquitectura/datos/AI (ADRs + migraciones + observabilidad base).
+- 2026-03-04: endurecimiento intensivo de CI/smoke/contracts, arranque de Sprint 2 y habilitación de Proposal Experience (render web/pdf + schema/smoke).
+- 2026-03-03: foundation inicial del producto (RBAC/auth JWT, persistencia base, quality gates, runbooks y baseline de operación).
+
+### Detalle cronológico
+
 - 2026-03-05: [Resumen] Se limpió el bloque operativo de "TODO/Backlog" para conservar solo pendientes activos; `P0-DB-01`, `P1-AI-01`, `P1-AI-02`, `P1-ARCH-01` y `P1-DATA-01` quedan marcados como completados y el foco vigente se concentra en `P0-CFDI-01`.
 - 2026-03-04: [Resumen] Bloque de endurecimiento CI/contratos completado: preflight `smoke:matrix:contract`, validadores runtime de summaries (`AUTH/AI_SCHEMA/AI_RENDER`), publicación en `GITHUB_STEP_SUMMARY` y pruebas de regresión de workflow.
 - 2026-03-05: Se agregó playbook operativo `docs/operations/p0-db-ci-unblock-playbook.md` para cierre paso-a-paso de `P0-DB-01` (verificación remota, ejecución forzada, evidencia y remediación).
