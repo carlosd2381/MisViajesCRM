@@ -169,7 +169,7 @@ Playbook de cierre de blocker:
 - [DATA-MODEL] Validar timestamp de tipo de cambio por evento (quote/booking) y estrategia de split de comisiones multi-proveedor por itinerario.
 
 Estado rápido (corte 2026-03-05):
-- P0-DB-01: pendiente (bloqueado por entorno CI `DB_*`).
+- P0-DB-01: completado (corrida forzada `quality.yml` con ejecución real de `test:integration:postgres`, run `22706042466`).
 - P0-CFDI-01: en progreso (migración base creada).
 - P1-AI-01 / P1-AI-02: pendientes.
 - P1-ARCH-01: completado (ADR dominio + contrato de contexto).
@@ -241,7 +241,7 @@ Seguimiento activo:
 
 ### Bloqueadores conocidos
 
-- [BLOCKED-BY-ENV] Confirmación final de `postgres-integration` depende de entorno CI con `DB_*` y esquema migrado.
+- [RESOLVED] Confirmación final de `postgres-integration` validada en CI con `DB_*` configuradas y step de test ejecutado.
 - [BLOCKED-BY-COMPLIANCE] No declarar completada capacidad operativa financiera México sin plan técnico activo de CFDI 4.0/SAT.
 
 ### Criterios de salida adicionales (insumos 2026-03-05)
@@ -266,6 +266,8 @@ Nota de lectura: entradas con `[Resumen]` agrupan lotes de cambios relacionados 
 
 - 2026-03-04: [Resumen] Bloque de endurecimiento CI/contratos completado: preflight `smoke:matrix:contract`, validadores runtime de summaries (`AUTH/AI_SCHEMA/AI_RENDER`), publicación en `GITHUB_STEP_SUMMARY` y pruebas de regresión de workflow.
 - 2026-03-05: Se agregó playbook operativo `docs/operations/p0-db-ci-unblock-playbook.md` para cierre paso-a-paso de `P0-DB-01` (verificación remota, ejecución forzada, evidencia y remediación).
+- 2026-03-05: Se corrigió `quality.yml` para inyectar `DB_*`/`DB_SSL` desde secrets/vars en job `postgres-integration` (antes no se exportaban y el test quedaba en `skipped`).
+- 2026-03-05: Se validó cierre de `P0-DB-01` con run forzado `quality.yml` `22706042466`, donde el step `Run Postgres integration test` ejecutó en `success`.
 - 2026-03-05: Se publicó a `main` el lote de cambios de CI/docs/código (incluyendo `quality.yml` con `force_postgres_integration` y workflow `postgres-nightly.yml`) para habilitar validación remota real de Postgres.
 - 2026-03-05: `postgres:ci:readiness` quedó en `ready:true` (`hasForceInput:true`, `hasPostgresJob:true`, `hasNightlyWorkflow:true`) en `carlosd2381/MisViajesCRM`.
 - 2026-03-05: Se ejecutó corrida forzada `quality.yml` (`run 22704466009`) y el job `postgres-integration` terminó `success`, pero con step `Run Postgres integration test` en `skipped`; el blocker `P0-DB-01` permanece abierto por configuración faltante de `DB_*` en runner.

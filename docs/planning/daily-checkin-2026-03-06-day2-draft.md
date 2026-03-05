@@ -68,9 +68,15 @@ Evidencia técnica más reciente (2026-03-05):
 
 ## 6) Criterio de éxito del día
 
-- [ ] Al menos una corrida de `postgres-integration` ejecutada sin `skip`.
-- [ ] Evidencia archivada (summary + log).
-- [ ] Estado de merge-blocker actualizado a resuelto o con bloqueo explícito y ETA.
+- [x] Al menos una corrida de `postgres-integration` ejecutada sin `skip`.
+- [x] Evidencia archivada (summary + log).
+- [x] Estado de merge-blocker actualizado a resuelto o con bloqueo explícito y ETA.
+
+Resultado real (2026-03-05):
+- Run validado: `https://github.com/carlosd2381/MisViajesCRM/actions/runs/22706042466`
+- Job `postgres-integration`: `success`
+- Step `Run Postgres integration test`: `success` (ejecutado, no `skipped`)
+- Estado: `P0-DB-01` resuelto.
 
 Nota de contexto:
 - P0-CFDI-01 y P1-ARCH/P1-DATA ya tienen entregables iniciales documentados; Día 2 se enfoca en cerrar el bloqueo de infraestructura CI (DB_*).
