@@ -1,6 +1,7 @@
 import type { RequestContext } from '../../../core/http/http-types';
 import { readJsonBody, sendJson } from '../../../core/http/http-utils';
-import { asOptionalText, isIsoDateTime, parseBoundedInt } from '../../../core/http/http-query-params';
+import { asOptionalText } from '../../../core/http/http-query-params';
+import { validateCfdiReadQueryParams } from '../../../core/http/http-query-validation';
 import { pgQuery } from '../../../core/db/pg-client';
 import type { DashboardRepository } from '../domain/dashboard-repository';
 import {
@@ -76,26 +77,20 @@ export async function handleDashboardCfdiSigningErrorSummary(context: RequestCon
   const storageMode = process.env.STORAGE_MODE ?? 'memory';
   const searchParams = new URL(context.req.url ?? '/', 'http://localhost').searchParams;
   const reason = asOptionalText(searchParams.get('reason'));
-  const from = asOptionalText(searchParams.get('from'));
-  const to = asOptionalText(searchParams.get('to'));
-  const windowDays = parseBoundedInt(searchParams.get('windowDays'), 14, 1, 90);
-  const limit = parseBoundedInt(searchParams.get('limit'), 30, 1, 90);
+  const queryValidation = validateCfdiReadQueryParams(searchParams, {
+    windowDays: { defaultValue: 14, min: 1, max: 90 },
+    limit: { defaultValue: 30, min: 1, max: 90 }
+  });
 
-  if (from && !isIsoDateTime(from)) {
+  if (!queryValidation.ok) {
     sendJson(context.res, 400, {
       message: messageByLocale(context.locale, 'Solicitud inválida'),
-      errors: ['from inválido']
+      errors: queryValidation.errors
     });
     return;
   }
 
-  if (to && !isIsoDateTime(to)) {
-    sendJson(context.res, 400, {
-      message: messageByLocale(context.locale, 'Solicitud inválida'),
-      errors: ['to inválido']
-    });
-    return;
-  }
+  const { from, to, windowDays, limit } = queryValidation.value;
 
   if (storageMode !== 'postgres') {
     sendJson(context.res, 200, {

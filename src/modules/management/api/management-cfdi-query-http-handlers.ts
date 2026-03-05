@@ -1,6 +1,7 @@
 import type { RequestContext } from '../../../core/http/http-types';
 import { sendJson } from '../../../core/http/http-utils';
-import { asOptionalText, isIsoDateTime, parseBoundedInt } from '../../../core/http/http-query-params';
+import { asOptionalText } from '../../../core/http/http-query-params';
+import { validateCfdiReadQueryParams } from '../../../core/http/http-query-validation';
 import { pgQuery } from '../../../core/db/pg-client';
 import { messageByLocale } from './management-http-handlers';
 
@@ -83,9 +84,9 @@ export async function handleManagementCfdiEvents(context: RequestContext): Promi
   const storageMode = process.env.STORAGE_MODE ?? 'memory';
   const searchParams = new URL(context.req.url ?? '/', 'http://localhost').searchParams;
   const invoiceId = asOptionalText(searchParams.get('invoiceId'));
-  const from = asOptionalText(searchParams.get('from'));
-  const to = asOptionalText(searchParams.get('to'));
-  const limit = parseBoundedInt(searchParams.get('limit'), 20, 1, 100);
+  const queryValidation = validateCfdiReadQueryParams(searchParams, {
+    limit: { defaultValue: 20, min: 1, max: 100 }
+  });
 
   if (!invoiceId) {
     sendJson(context.res, 400, {
@@ -95,21 +96,15 @@ export async function handleManagementCfdiEvents(context: RequestContext): Promi
     return;
   }
 
-  if (from && !isIsoDateTime(from)) {
+  if (!queryValidation.ok) {
     sendJson(context.res, 400, {
       message: messageByLocale(context.locale, 'Solicitud inválida'),
-      errors: ['from inválido']
+      errors: queryValidation.errors
     });
     return;
   }
 
-  if (to && !isIsoDateTime(to)) {
-    sendJson(context.res, 400, {
-      message: messageByLocale(context.locale, 'Solicitud inválida'),
-      errors: ['to inválido']
-    });
-    return;
-  }
+  const { from, to, limit } = queryValidation.value;
 
   if (storageMode !== 'postgres') {
     sendJson(context.res, 200, {
@@ -204,25 +199,19 @@ export async function handleManagementCfdiSigningErrors(context: RequestContext)
   const searchParams = new URL(context.req.url ?? '/', 'http://localhost').searchParams;
   const reason = asOptionalText(searchParams.get('reason'));
   const invoiceId = asOptionalText(searchParams.get('invoiceId'));
-  const from = asOptionalText(searchParams.get('from'));
-  const to = asOptionalText(searchParams.get('to'));
-  const limit = parseBoundedInt(searchParams.get('limit'), 20, 1, 200);
+  const queryValidation = validateCfdiReadQueryParams(searchParams, {
+    limit: { defaultValue: 20, min: 1, max: 200 }
+  });
 
-  if (from && !isIsoDateTime(from)) {
+  if (!queryValidation.ok) {
     sendJson(context.res, 400, {
       message: messageByLocale(context.locale, 'Solicitud inválida'),
-      errors: ['from inválido']
+      errors: queryValidation.errors
     });
     return;
   }
 
-  if (to && !isIsoDateTime(to)) {
-    sendJson(context.res, 400, {
-      message: messageByLocale(context.locale, 'Solicitud inválida'),
-      errors: ['to inválido']
-    });
-    return;
-  }
+  const { from, to, limit } = queryValidation.value;
 
   if (storageMode !== 'postgres') {
     sendJson(context.res, 200, {
@@ -327,25 +316,19 @@ export async function handleManagementCfdiSigningErrorTrends(context: RequestCon
   const storageMode = process.env.STORAGE_MODE ?? 'memory';
   const searchParams = new URL(context.req.url ?? '/', 'http://localhost').searchParams;
   const reason = asOptionalText(searchParams.get('reason'));
-  const from = asOptionalText(searchParams.get('from'));
-  const to = asOptionalText(searchParams.get('to'));
-  const windowDays = parseBoundedInt(searchParams.get('windowDays'), 14, 1, 90);
+  const queryValidation = validateCfdiReadQueryParams(searchParams, {
+    windowDays: { defaultValue: 14, min: 1, max: 90 }
+  });
 
-  if (from && !isIsoDateTime(from)) {
+  if (!queryValidation.ok) {
     sendJson(context.res, 400, {
       message: messageByLocale(context.locale, 'Solicitud inválida'),
-      errors: ['from inválido']
+      errors: queryValidation.errors
     });
     return;
   }
 
-  if (to && !isIsoDateTime(to)) {
-    sendJson(context.res, 400, {
-      message: messageByLocale(context.locale, 'Solicitud inválida'),
-      errors: ['to inválido']
-    });
-    return;
-  }
+  const { from, to, windowDays } = queryValidation.value;
 
   if (storageMode !== 'postgres') {
     sendJson(context.res, 200, {
@@ -466,9 +449,9 @@ export async function handleManagementCfdiInvoiceStatus(context: RequestContext)
   const storageMode = process.env.STORAGE_MODE ?? 'memory';
   const invoiceId = asOptionalText(context.pathSegments[3]);
   const searchParams = new URL(context.req.url ?? '/', 'http://localhost').searchParams;
-  const from = asOptionalText(searchParams.get('from'));
-  const to = asOptionalText(searchParams.get('to'));
-  const limit = parseBoundedInt(searchParams.get('limit'), 10, 1, 100);
+  const queryValidation = validateCfdiReadQueryParams(searchParams, {
+    limit: { defaultValue: 10, min: 1, max: 100 }
+  });
 
   if (!invoiceId) {
     sendJson(context.res, 400, {
@@ -478,21 +461,15 @@ export async function handleManagementCfdiInvoiceStatus(context: RequestContext)
     return;
   }
 
-  if (from && !isIsoDateTime(from)) {
+  if (!queryValidation.ok) {
     sendJson(context.res, 400, {
       message: messageByLocale(context.locale, 'Solicitud inválida'),
-      errors: ['from inválido']
+      errors: queryValidation.errors
     });
     return;
   }
 
-  if (to && !isIsoDateTime(to)) {
-    sendJson(context.res, 400, {
-      message: messageByLocale(context.locale, 'Solicitud inválida'),
-      errors: ['to inválido']
-    });
-    return;
-  }
+  const { from, to, limit } = queryValidation.value;
 
   if (storageMode !== 'postgres') {
     sendJson(context.res, 200, {
