@@ -5,6 +5,7 @@ import {
   validateCfdiCancelRequest,
   validateCfdiStampConfirmRequest,
   validateCfdiStampRequest,
+  validateCreateSatCertificateRequest,
   validateCreateManagementSetting,
   validateUpdateManagementSetting
 } from './management-validation';
@@ -109,6 +110,32 @@ test('validateCfdiCancelConfirmRequest reuses cancellation rules', () => {
     cfdiUuid: 'd2719f53-0dca-4eeb-b6bb-9bcd2ccf61fc',
     cancellationReason: '01',
     cancelledAt: '2026-03-05T13:00:00.000Z'
+  });
+
+  assert.equal(result.ok, false);
+});
+
+test('validateCreateSatCertificateRequest succeeds with valid payload', () => {
+  const result = validateCreateSatCertificateRequest({
+    rfcEmisor: 'AAA010101AAA',
+    certificateNumber: '30001000000500003416',
+    certificateSource: 'csd',
+    status: 'active',
+    validFrom: '2026-01-01',
+    validTo: '2027-01-01'
+  });
+
+  assert.equal(result.ok, true);
+});
+
+test('validateCreateSatCertificateRequest rejects invalid date range', () => {
+  const result = validateCreateSatCertificateRequest({
+    rfcEmisor: 'AAA010101AAA',
+    certificateNumber: '30001000000500003416',
+    certificateSource: 'csd',
+    status: 'active',
+    validFrom: '2027-01-01',
+    validTo: '2026-01-01'
   });
 
   assert.equal(result.ok, false);

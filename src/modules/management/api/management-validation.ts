@@ -2,6 +2,7 @@ import { failure, success, type ValidationResult } from '../../../core/validatio
 import type {
   ConfirmCfdiCancelRequest,
   ConfirmCfdiStampRequest,
+  CreateSatCertificateRequest,
   CreateManagementSettingRequest,
   ValidateCfdiCancelRequest,
   ValidateCfdiStampRequest,
@@ -194,5 +195,59 @@ export function validateCfdiCancelConfirmRequest(
     cancellationReason: validation.value.cancellationReason,
     replacementCfdiUuid: validation.value.replacementCfdiUuid,
     cancelledAt: validation.value.cancelledAt
+  });
+}
+
+export function validateCreateSatCertificateRequest(
+  payload: UnknownRecord
+): ValidationResult<CreateSatCertificateRequest> {
+  const errors: string[] = [];
+
+  const rfcEmisor = asText(payload.rfcEmisor)?.toUpperCase();
+  const certificateNumber = asText(payload.certificateNumber);
+  const serialNumber = asText(payload.serialNumber);
+  const certificateSource = asText(payload.certificateSource) as CreateSatCertificateRequest['certificateSource'] | undefined;
+  const status = asText(payload.status) as CreateSatCertificateRequest['status'] | undefined;
+  const validFrom = asText(payload.validFrom);
+  const validTo = asText(payload.validTo);
+  const certificatePemRef = asText(payload.certificatePemRef);
+  const privateKeyRef = asText(payload.privateKeyRef);
+  const passphraseRef = asText(payload.passphraseRef);
+
+  if (!rfcEmisor) errors.push('rfcEmisor es requerido');
+  if (rfcEmisor && !isRfc(rfcEmisor)) errors.push('rfcEmisor inválido');
+  if (!certificateNumber) errors.push('certificateNumber es requerido');
+  if (!certificateSource) errors.push('certificateSource es requerido');
+  if (certificateSource && !['csd', 'fiel', 'other'].includes(certificateSource)) {
+    errors.push('certificateSource inválido');
+  }
+  if (!status) errors.push('status es requerido');
+  if (status && !['pending_validation', 'active', 'expired', 'revoked'].includes(status)) {
+    errors.push('status inválido');
+  }
+  if (!validFrom) errors.push('validFrom es requerido');
+  if (validFrom && !isIsoDate(validFrom)) errors.push('validFrom inválido');
+  if (!validTo) errors.push('validTo es requerido');
+  if (validTo && !isIsoDate(validTo)) errors.push('validTo inválido');
+
+  if (validFrom && validTo && isIsoDate(validFrom) && isIsoDate(validTo)) {
+    const from = Date.parse(validFrom);
+    const to = Date.parse(validTo);
+    if (to < from) errors.push('validTo debe ser mayor o igual a validFrom');
+  }
+
+  if (errors.length > 0) return failure(errors);
+
+  return success({
+    rfcEmisor: rfcEmisor as string,
+    certificateNumber: certificateNumber as string,
+    serialNumber,
+    certificateSource: certificateSource as CreateSatCertificateRequest['certificateSource'],
+    status: status as CreateSatCertificateRequest['status'],
+    validFrom: validFrom as string,
+    validTo: validTo as string,
+    certificatePemRef,
+    privateKeyRef,
+    passphraseRef
   });
 }

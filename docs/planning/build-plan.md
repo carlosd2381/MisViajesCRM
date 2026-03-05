@@ -198,6 +198,7 @@ Notas de ejecución:
 - Avance P0-CFDI-01: endpoints de transición de ciclo de vida `POST /management/cfdi/stamp/confirm` y `POST /management/cfdi/cancel/confirm` agregados para actualizar estado de `cfdi_invoices` (`stamped`/`cancelled`) y registrar eventos `stamped`/`cancelled`.
 - Avance P0-CFDI-01: endpoint `GET /management/cfdi/invoices/:invoiceId?limit=<n>` agregado para consultar estado consolidado de CFDI + últimos eventos asociados.
 - Avance P0-CFDI-01: refactor de handlers de management/CFDI aplicado en archivos dedicados (`management-cfdi-query-http-handlers.ts`, `management-cfdi-validate-http-handlers.ts`, `management-cfdi-transition-http-handlers.ts`) para cumplir governance de tamaño de archivo sin cambiar contratos HTTP.
+- Avance P0-CFDI-01: endpoints operativos de certificados SAT agregados (`GET/POST /management/cfdi/certificates` y `GET /management/cfdi/certificates/:certificateId`) con fallback explícito en `memory` y persistencia real en `postgres`.
 - Avance P1-DATA-01: migración draft creada en `db/migrations/20260305_013_financials_fx_and_commission_splits.sql` (timestamp/fuente FX y split multi-proveedor) y diccionario actualizado.
 - Avance P1-ARCH-01: ADR aprobada en `docs/governance/adr-2026-03-05-commissions-vs-financials.md` (se mantiene separación de dominio `commissions`/`financials`).
 - Avance P1-ARCH-01: contrato de contexto `messaging`↔`itinerary` definido en `docs/governance/adr-2026-03-05-messaging-itinerary-context-contract.md`.

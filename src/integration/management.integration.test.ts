@@ -272,6 +272,68 @@ test('owner can request CFDI stamp confirm in memory mode', async () => {
   }
 });
 
+test('owner can query SAT certificates endpoint in memory mode', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/certificates?limit=10`, {
+      method: 'GET',
+      headers: testHeaders('owner')
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      message: string;
+      data: {
+        storageMode: string;
+        count: number;
+        certificates: unknown[];
+      };
+    };
+
+    assert.equal(payload.message, 'Certificados SAT no disponibles en modo memoria');
+    assert.equal(payload.data.storageMode, 'memory');
+    assert.equal(payload.data.count, 0);
+    assert.deepEqual(payload.data.certificates, []);
+  } finally {
+    await stopServer(server);
+  }
+});
+
+test('owner can create SAT certificate in memory mode with explicit fallback', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/certificates`, {
+      method: 'POST',
+      headers: testHeaders('owner'),
+      body: JSON.stringify({
+        rfcEmisor: 'AAA010101AAA',
+        certificateNumber: '30001000000500003416',
+        certificateSource: 'csd',
+        status: 'active',
+        validFrom: '2026-01-01',
+        validTo: '2027-01-01'
+      })
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      message: string;
+      data: {
+        storageMode: string;
+        created: boolean;
+      };
+    };
+
+    assert.equal(payload.message, 'Creación de certificado SAT no disponible en modo memoria');
+    assert.equal(payload.data.storageMode, 'memory');
+    assert.equal(payload.data.created, false);
+  } finally {
+    await stopServer(server);
+  }
+});
+
 test('owner gets validation errors for invalid CFDI stamp confirm payload', async () => {
   const { server, baseUrl } = await startServer();
 

@@ -43,6 +43,19 @@ export interface ConfirmCfdiCancelRequest {
   cancelledAt: string;
 }
 
+export interface CreateSatCertificateRequest {
+  rfcEmisor: string;
+  certificateNumber: string;
+  serialNumber?: string;
+  certificateSource: 'csd' | 'fiel' | 'other';
+  status: 'pending_validation' | 'active' | 'expired' | 'revoked';
+  validFrom: string;
+  validTo: string;
+  certificatePemRef?: string;
+  privateKeyRef?: string;
+  passphraseRef?: string;
+}
+
 export interface ManagementSettingResponse {
   data: ManagementSetting;
 }

@@ -93,6 +93,16 @@ function englishMessage(spanish: string): string {
     'Estado CFDI consultado': 'CFDI status retrieved',
     'Estado CFDI no disponible en modo memoria': 'CFDI status is unavailable in memory mode',
     'No fue posible consultar estado CFDI': 'Unable to retrieve CFDI status',
+    'Certificados SAT no disponibles en modo memoria': 'SAT certificates are unavailable in memory mode',
+    'Creación de certificado SAT no disponible en modo memoria': 'SAT certificate creation is unavailable in memory mode',
+    'Certificado SAT no disponible en modo memoria': 'SAT certificate is unavailable in memory mode',
+    'Certificados SAT consultados': 'SAT certificates retrieved',
+    'Certificado SAT consultado': 'SAT certificate retrieved',
+    'Certificado SAT creado': 'SAT certificate created',
+    'No fue posible consultar certificados SAT': 'Unable to retrieve SAT certificates',
+    'No fue posible consultar certificado SAT': 'Unable to retrieve SAT certificate',
+    'No fue posible crear certificado SAT': 'Unable to create SAT certificate',
+    'Certificado SAT no encontrado': 'SAT certificate not found',
     'Solicitud inválida': 'Invalid request',
     'Método no permitido': 'Method not allowed'
   };

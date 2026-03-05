@@ -41,6 +41,18 @@ async function isCfdiSchemaReady(): Promise<boolean> {
   return row.cfdi_invoice_events === 'cfdi_invoice_events' && row.cfdi_invoices === 'cfdi_invoices';
 }
 
+async function isCfdiSatSchemaReady(): Promise<boolean> {
+  const result = await pgQuery<{ sat_certificates: string | null }>(
+    `
+      select
+        to_regclass('public.sat_certificates')::text as sat_certificates
+    `
+  );
+
+  const row = result.rows[0];
+  return row.sat_certificates === 'sat_certificates';
+}
+
 function setEnv(key: string, value: string): () => void {
   const previous = process.env[key];
   process.env[key] = value;
@@ -109,6 +121,10 @@ async function ensureAuditActorUser(): Promise<void> {
 async function cleanupCfdiValidationArtifacts(invoiceId: string): Promise<void> {
   await pgQuery('delete from cfdi_invoice_events where cfdi_invoice_id = $1', [invoiceId]);
   await pgQuery('delete from cfdi_invoices where id = $1', [invoiceId]);
+}
+
+async function cleanupSatCertificateArtifacts(certificateId: string): Promise<void> {
+  await pgQuery('delete from sat_certificates where id = $1', [certificateId]);
 }
 
 async function seedCfdiInvoice(invoiceId: string): Promise<void> {
@@ -618,6 +634,97 @@ test('cfdi confirm endpoints apply invoice status transitions in postgres mode',
 
     await cleanupCfdiValidationArtifacts(stampInvoiceId);
     await cleanupCfdiValidationArtifacts(cancelInvoiceId);
+    await closePgPool();
+    restoreStorageMode();
+  }
+});
+
+test('cfdi SAT certificate endpoints create and query records in postgres mode', async (t: TestContext) => {
+  if (!hasRequiredPostgresEnv()) {
+    t.skip('Postgres env vars are not configured');
+    return;
+  }
+
+  const restoreStorageMode = setEnv('STORAGE_MODE', 'postgres');
+  let createdCertificateId: string | null = null;
+  let server: Server | null = null;
+
+  try {
+    if (!(await isCfdiSatSchemaReady())) {
+      t.skip('Postgres schema is not initialized (sat_certificates missing)');
+      return;
+    }
+
+    const started = await startPostgresServer();
+    server = started.server;
+
+    const createResponse = await fetch(`${started.baseUrl}/management/cfdi/certificates`, {
+      method: 'POST',
+      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID),
+      body: JSON.stringify({
+        rfcEmisor: 'AAA010101AAA',
+        certificateNumber: `30001000000500003416-${Date.now()}`,
+        certificateSource: 'csd',
+        status: 'active',
+        validFrom: '2026-01-01',
+        validTo: '2027-01-01'
+      })
+    });
+
+    assert.equal(createResponse.status, 201);
+    const createdPayload = (await createResponse.json()) as {
+      data: {
+        id: string;
+        rfcEmisor: string;
+      };
+    };
+
+    createdCertificateId = createdPayload.data.id;
+    assert.equal(createdPayload.data.rfcEmisor, 'AAA010101AAA');
+
+    const listResponse = await fetch(
+      `${started.baseUrl}/management/cfdi/certificates?rfcEmisor=AAA010101AAA&status=active&limit=10`,
+      {
+        method: 'GET',
+        headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID)
+      }
+    );
+
+    assert.equal(listResponse.status, 200);
+    const listPayload = (await listResponse.json()) as {
+      data: {
+        count: number;
+        certificates: Array<{ id: string }>;
+      };
+    };
+
+    assert.ok(listPayload.data.count >= 1);
+    assert.ok(listPayload.data.certificates.some((certificate) => certificate.id === createdCertificateId));
+
+    const getByIdResponse = await fetch(`${started.baseUrl}/management/cfdi/certificates/${createdCertificateId}`, {
+      method: 'GET',
+      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID)
+    });
+
+    assert.equal(getByIdResponse.status, 200);
+    const byIdPayload = (await getByIdResponse.json()) as {
+      data: {
+        id: string;
+        status: string;
+      };
+    };
+
+    assert.equal(byIdPayload.data.id, createdCertificateId);
+    assert.equal(byIdPayload.data.status, 'active');
+  } finally {
+    if (server) {
+      await stopServer(server);
+    }
+
+    if (createdCertificateId) {
+      await cleanupSatCertificateArtifacts(createdCertificateId);
+    }
+
     await closePgPool();
     restoreStorageMode();
   }

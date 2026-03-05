@@ -54,6 +54,10 @@ import {
   handleManagementCfdiStampConfirm
 } from '../../modules/management/api/management-cfdi-transition-http-handlers';
 import {
+  handleManagementCfdiCertificateResource,
+  handleManagementCfdiCertificatesCollection
+} from '../../modules/management/api/management-cfdi-certificate-http-handlers';
+import {
   handleAiMetrics,
   handleAiProposalCollection,
   handleAiProposalPdfDraft,
@@ -249,8 +253,14 @@ function handleManagementRoute(context: ModuleRouteContext): Promise<void> | nul
   if (pathSegments.length === 3 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'events') {
     return handleManagementCfdiEvents(requestContext);
   }
+  if (pathSegments.length === 3 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'certificates') {
+    return handleManagementCfdiCertificatesCollection(requestContext);
+  }
   if (pathSegments.length === 4 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'invoices') {
     return handleManagementCfdiInvoiceStatus(requestContext);
+  }
+  if (pathSegments.length === 4 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'certificates') {
+    return handleManagementCfdiCertificateResource(requestContext);
   }
   if (pathSegments.length === 4 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'stamp' && pathSegments[3] === 'validate') {
     return handleManagementCfdiStampValidation(requestContext);
