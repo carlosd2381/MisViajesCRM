@@ -286,18 +286,13 @@ Nota de lectura: entradas con `[Resumen]` agrupan lotes de cambios relacionados 
 - 2026-03-05: Se validó cierre de `P0-DB-01` con run forzado `quality.yml` `22706042466`, donde el step `Run Postgres integration test` ejecutó en `success`.
 - 2026-03-05: Se publicó a `main` el lote de cambios de CI/docs/código (incluyendo `quality.yml` con `force_postgres_integration` y workflow `postgres-nightly.yml`) para habilitar validación remota real de Postgres.
 - 2026-03-05: `postgres:ci:readiness` quedó en `ready:true` (`hasForceInput:true`, `hasPostgresJob:true`, `hasNightlyWorkflow:true`) en `carlosd2381/MisViajesCRM`.
-- 2026-03-05: Se ejecutó corrida forzada `quality.yml` (`run 22704466009`) y el job `postgres-integration` terminó `success`, pero con step `Run Postgres integration test` en `skipped`; el blocker `P0-DB-01` permanece abierto por configuración faltante de `DB_*` en runner.
-- 2026-03-05: Verificación con `gh secret list` y `gh variable list` en el repo objetivo devolvió `no secrets found` / `no variables found`; falta alta de `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` para ejecutar Postgres CI sin `skip`.
-- 2026-03-05: Se identificó bloqueo operativo adicional para `P0-DB-01`: workflow remoto `quality.yml` en `main` todavía no incluye input/job de Postgres; se requiere publicar esos cambios antes de ejecutar validación CI sin `skip`.
-- 2026-03-05: Se documentó fallback operativo para cierre de `P0-DB-01` cuando no exista `gh` CLI local (disparo manual desde GitHub UI de `Quality Gates` con `force_postgres_integration=true`).
+- 2026-03-05: [Resumen] Se cerró el ciclo del blocker `P0-DB-01` (diagnóstico de `skip` inicial, publicación de fix de workflow/secrets-vars, y corrida forzada final en `success`); se conservaron solo hitos de cierre para evitar ruido histórico redundante.
 - 2026-03-05: Se implementó observabilidad base AI con endpoint `GET /ai/metrics` (latencia/errores/quality-gate/tokens/costo estimado por operación) y cobertura de pruebas.
 - 2026-03-05: Se aprobó ADR `adr-2026-03-05-ai-provider-strategy.md` con estrategia de proveedor LLM (`azure-openai` primario, `openai` fallback, `mock` contingencia).
-- 2026-03-05: Se agregó item explícito de continuidad de build en TODO de arranque (`continuar build sobre P1-AI` condicionado a no desbloquear nuevas features de Fase 1 hasta cerrar `P0-DB-01`).
 - 2026-03-05: Se aprobó ADR `adr-2026-03-05-messaging-itinerary-context-contract.md` para definir contrato de contexto `messaging`↔`itinerary` sin acoplamiento circular (snapshot v1 + eventos de integración).
 - 2026-03-05: Se aprobó ADR `adr-2026-03-05-commissions-vs-financials.md` para fijar frontera de dominio entre `commissions` (regla comercial) y `financials` (ledger contable).
 - 2026-03-05: Se agregó migración `20260305_013_financials_fx_and_commission_splits.sql` para P1-DATA-01 (timestamp/fuente de tipo de cambio en `financial_transactions` + `itinerary_commission_splits` para comisiones multi-proveedor).
 - 2026-03-05: Se agregó migración base SAT/CFDI `20260305_012_cfdi_sat_foundation.sql` (certificados, CFDI y eventos) y se actualizó diccionario de datos como avance de P0-CFDI-01.
-- 2026-03-05: Se creó borrador de Día 2 `docs/planning/daily-checkin-2026-03-06-day2-draft.md` orientado a cerrar P0-DB-01 (Postgres CI sin `skip`) con comandos, evidencia requerida y fallback.
 - 2026-03-05: Se creó check-in real de ejecución `docs/planning/daily-checkin-2026-03-05-day1.md` y se enlazó como seguimiento activo en este plan.
 - 2026-03-05: Se agregó plantilla `docs/planning/daily-checkin-template.md` para seguimiento diario (objetivo, evidencia, bloqueadores, calidad y plan siguiente) del plan de 2 semanas.
 - 2026-03-05: Se agregó checklist operativo Día 1–10 para ejecutar el mini backlog (P0/P1) con objetivos diarios y criterios de Definition of Done.
