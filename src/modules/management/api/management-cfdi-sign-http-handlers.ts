@@ -21,6 +21,8 @@ interface SatCertificateRow {
   status: 'pending_validation' | 'active' | 'expired' | 'revoked';
   valid_from: string;
   valid_to: string;
+  private_key_ref: string | null;
+  passphrase_ref: string | null;
 }
 
 function createEventId(): string {
@@ -37,6 +39,47 @@ function withinCertificateRange(issueDate: string, validFrom: string, validTo: s
   const to = Date.parse(validTo);
   if (!Number.isFinite(issue) || !Number.isFinite(from) || !Number.isFinite(to)) return false;
   return issue >= from && issue <= to;
+}
+
+async function persistSigningError(invoiceId: string, reason: string, detail: Record<string, unknown> = {}): Promise<void> {
+  const now = new Date().toISOString();
+  try {
+    await pgQuery(
+      `
+        update cfdi_invoices
+        set last_error = $2,
+            updated_at = $3
+        where id = $1
+      `,
+      [invoiceId, reason, now]
+    );
+
+    await pgQuery(
+      `
+        insert into cfdi_invoice_events (
+          id,
+          cfdi_invoice_id,
+          event_type,
+          detail_json,
+          event_at,
+          created_at
+        ) values ($1, $2, $3, $4::jsonb, $5, $6)
+      `,
+      [
+        createEventId(),
+        invoiceId,
+        'error',
+        JSON.stringify({
+          operation: 'sign',
+          reason,
+          ...detail
+        }),
+        now,
+        now
+      ]
+    );
+  } catch {
+  }
 }
 
 export async function handleManagementCfdiSign(context: RequestContext): Promise<void> {
@@ -98,7 +141,9 @@ export async function handleManagementCfdiSign(context: RequestContext): Promise
           certificate_number,
           status,
           valid_from::text,
-          valid_to::text
+          valid_to::text,
+          private_key_ref,
+          passphrase_ref
         from sat_certificates
         where id = $1
       `,
@@ -106,6 +151,9 @@ export async function handleManagementCfdiSign(context: RequestContext): Promise
     );
 
     if (certificateResult.rowCount === 0) {
+      await persistSigningError(validation.value.invoiceId, 'certificate_not_found', {
+        satCertificateId: validation.value.satCertificateId
+      });
       sendJson(context.res, 404, { message: messageByLocale(context.locale, 'Certificado SAT no encontrado') });
       return;
     }
@@ -114,22 +162,51 @@ export async function handleManagementCfdiSign(context: RequestContext): Promise
     const certificate = certificateResult.rows[0];
 
     if (certificate.status !== 'active') {
+      await persistSigningError(validation.value.invoiceId, 'certificate_not_active', {
+        satCertificateId: validation.value.satCertificateId,
+        certificateStatus: certificate.status
+      });
       sendJson(context.res, 409, { message: messageByLocale(context.locale, 'Certificado SAT no activo') });
       return;
     }
 
     if (certificate.rfc_emisor !== invoice.rfc_emisor) {
+      await persistSigningError(validation.value.invoiceId, 'certificate_rfc_mismatch', {
+        satCertificateId: validation.value.satCertificateId,
+        invoiceRfcEmisor: invoice.rfc_emisor,
+        certificateRfcEmisor: certificate.rfc_emisor
+      });
       sendJson(context.res, 409, { message: messageByLocale(context.locale, 'RFC emisor de certificado no coincide con CFDI') });
       return;
     }
 
     if (!withinCertificateRange(invoice.issue_date, certificate.valid_from, certificate.valid_to)) {
+      await persistSigningError(validation.value.invoiceId, 'certificate_out_of_validity_range', {
+        satCertificateId: validation.value.satCertificateId,
+        issueDate: invoice.issue_date,
+        certificateValidFrom: certificate.valid_from,
+        certificateValidTo: certificate.valid_to
+      });
       sendJson(context.res, 409, { message: messageByLocale(context.locale, 'Certificado SAT fuera de vigencia para CFDI') });
+      return;
+    }
+
+    if (!certificate.private_key_ref || !certificate.passphrase_ref) {
+      await persistSigningError(validation.value.invoiceId, 'certificate_signing_material_missing', {
+        satCertificateId: validation.value.satCertificateId,
+        hasPrivateKeyRef: Boolean(certificate.private_key_ref),
+        hasPassphraseRef: Boolean(certificate.passphrase_ref)
+      });
+      sendJson(context.res, 409, { message: messageByLocale(context.locale, 'Certificado SAT incompleto para firmado') });
       return;
     }
 
     const xmlContent = validation.value.xmlType === 'stamped' ? invoice.xml_stamped : invoice.xml_unsigned;
     if (!xmlContent) {
+      await persistSigningError(validation.value.invoiceId, 'xml_required_for_signing', {
+        satCertificateId: validation.value.satCertificateId,
+        xmlType: validation.value.xmlType
+      });
       sendJson(context.res, 409, { message: messageByLocale(context.locale, 'XML CFDI requerido para firmado') });
       return;
     }
@@ -149,6 +226,7 @@ export async function handleManagementCfdiSign(context: RequestContext): Promise
         set sat_certificate_id = $2,
             cadena_original = $3,
             sello_digital = $4,
+          last_error = null,
             updated_at = $5
         where id = $1
       `,
@@ -194,6 +272,10 @@ export async function handleManagementCfdiSign(context: RequestContext): Promise
       message: messageByLocale(context.locale, 'CFDI firmado')
     });
   } catch (error) {
+    await persistSigningError(validation.value.invoiceId, 'sign_operation_failed', {
+      satCertificateId: validation.value.satCertificateId,
+      xmlType: validation.value.xmlType
+    });
     sendJson(context.res, 503, {
       message: messageByLocale(context.locale, 'No fue posible firmar CFDI'),
       errors: [error instanceof Error ? error.message : 'Unknown database error']

@@ -127,8 +127,27 @@ async function cleanupSatCertificateArtifacts(certificateId: string): Promise<vo
   await pgQuery('delete from sat_certificates where id = $1', [certificateId]);
 }
 
-async function seedSatCertificate(certificateId: string): Promise<void> {
+async function seedSatCertificate(
+  certificateId: string,
+  options: {
+    privateKeyRef?: string | null;
+    passphraseRef?: string | null;
+    certificatePemRef?: string | null;
+  } = {}
+): Promise<void> {
   const now = new Date().toISOString();
+  const privateKeyRef =
+    Object.prototype.hasOwnProperty.call(options, 'privateKeyRef')
+      ? options.privateKeyRef
+      : 'vault://sat/cert/private-key';
+  const passphraseRef =
+    Object.prototype.hasOwnProperty.call(options, 'passphraseRef')
+      ? options.passphraseRef
+      : 'vault://sat/cert/passphrase';
+  const certificatePemRef =
+    Object.prototype.hasOwnProperty.call(options, 'certificatePemRef')
+      ? options.certificatePemRef
+      : 'vault://sat/cert/pem';
   await pgQuery(
     `
       insert into sat_certificates (
@@ -145,7 +164,7 @@ async function seedSatCertificate(certificateId: string): Promise<void> {
         passphrase_ref,
         created_at,
         updated_at
-      ) values ($1, $2, $3, null, $4, $5, $6::date, $7::date, null, null, null, $8, $9)
+      ) values ($1, $2, $3, null, $4, $5, $6::date, $7::date, $8, $9, $10, $11, $12)
     `,
     [
       certificateId,
@@ -155,6 +174,9 @@ async function seedSatCertificate(certificateId: string): Promise<void> {
       'active',
       '2026-01-01',
       '2027-01-01',
+      certificatePemRef,
+      privateKeyRef,
+      passphraseRef,
       now,
       now
     ]
@@ -1072,6 +1094,101 @@ test('cfdi cancel reason 01 enforces replacement CFDI traceability in postgres m
 
     await cleanupCfdiValidationArtifacts(invoiceId);
     await cleanupCfdiValidationArtifacts(replacementInvoiceId);
+    await closePgPool();
+    restoreStorageMode();
+  }
+});
+
+test('cfdi sign stores diagnostic last_error when certificate signing material is missing', async (t: TestContext) => {
+  if (!hasRequiredPostgresEnv()) {
+    t.skip('Postgres env vars are not configured');
+    return;
+  }
+
+  const restoreStorageMode = setEnv('STORAGE_MODE', 'postgres');
+  const invoiceId = 'inv_cfdi_sign_missing_material_pg_001';
+  const certificateId = 'cert_cfdi_sign_missing_material_pg_001';
+  let server: Server | null = null;
+
+  try {
+    if (!(await isCfdiSchemaReady()) || !(await isCfdiSatSchemaReady())) {
+      t.skip('Postgres schema is not initialized (cfdi_invoices/cfdi_invoice_events/sat_certificates missing)');
+      return;
+    }
+
+    await cleanupCfdiValidationArtifacts(invoiceId);
+    await cleanupSatCertificateArtifacts(certificateId);
+    await seedCfdiInvoice(invoiceId);
+    await seedSatCertificate(certificateId, {
+      privateKeyRef: null,
+      passphraseRef: null
+    });
+
+    const started = await startPostgresServer();
+    server = started.server;
+
+    const xmlUnsigned = '<?xml version="1.0"?><cfdi:Comprobante></cfdi:Comprobante>';
+    const persistXmlResponse = await fetch(`${started.baseUrl}/management/cfdi/xml/persist`, {
+      method: 'POST',
+      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID),
+      body: JSON.stringify({
+        invoiceId,
+        xmlType: 'unsigned',
+        xmlContent: xmlUnsigned
+      })
+    });
+
+    assert.equal(persistXmlResponse.status, 200);
+
+    const signResponse = await fetch(`${started.baseUrl}/management/cfdi/sign`, {
+      method: 'POST',
+      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID),
+      body: JSON.stringify({
+        invoiceId,
+        satCertificateId: certificateId,
+        xmlType: 'unsigned',
+        digestAlgorithm: 'sha256'
+      })
+    });
+
+    assert.equal(signResponse.status, 409);
+
+    const invoiceResult = await pgQuery<{ last_error: string | null }>(
+      `
+        select last_error
+        from cfdi_invoices
+        where id = $1
+      `,
+      [invoiceId]
+    );
+
+    assert.equal(invoiceResult.rowCount, 1);
+    assert.equal(invoiceResult.rows[0].last_error, 'certificate_signing_material_missing');
+
+    const errorEventResult = await pgQuery<{ event_type: string; reason: string | null }>(
+      `
+        select
+          event_type,
+          detail_json->>'reason' as reason
+        from cfdi_invoice_events
+        where cfdi_invoice_id = $1
+          and event_type = 'error'
+        order by event_at desc
+        limit 1
+      `,
+      [invoiceId]
+    );
+
+    assert.equal(errorEventResult.rowCount, 1);
+    assert.equal(errorEventResult.rows[0].event_type, 'error');
+    assert.equal(errorEventResult.rows[0].reason, 'certificate_signing_material_missing');
+  } finally {
+    if (server) {
+      await stopServer(server);
+    }
+
+    await cleanupCfdiValidationArtifacts(invoiceId);
+    await cleanupSatCertificateArtifacts(certificateId);
     await closePgPool();
     restoreStorageMode();
   }

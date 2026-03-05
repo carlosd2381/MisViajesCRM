@@ -110,6 +110,7 @@ function englishMessage(spanish: string): string {
     'No fue posible persistir XML CFDI': 'Unable to persist CFDI XML',
     'Firmado CFDI no disponible en modo memoria': 'CFDI signing is unavailable in memory mode',
     'Certificado SAT no activo': 'SAT certificate is not active',
+    'Certificado SAT incompleto para firmado': 'SAT certificate is missing signing material',
     'RFC emisor de certificado no coincide con CFDI': 'Certificate issuer RFC does not match CFDI',
     'Certificado SAT fuera de vigencia para CFDI': 'SAT certificate is out of validity range for CFDI',
     'XML CFDI requerido para firmado': 'CFDI XML is required for signing',
