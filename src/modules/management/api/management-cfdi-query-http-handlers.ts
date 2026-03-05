@@ -176,6 +176,22 @@ export async function handleManagementCfdiSigningErrors(context: RequestContext)
   const limitInput = Number.parseInt(searchParams.get('limit') ?? '20', 10);
   const limit = Number.isFinite(limitInput) ? Math.min(Math.max(limitInput, 1), 200) : 20;
 
+  if (from && !isIsoDateTime(from)) {
+    sendJson(context.res, 400, {
+      message: messageByLocale(context.locale, 'Solicitud inválida'),
+      errors: ['from inválido']
+    });
+    return;
+  }
+
+  if (to && !isIsoDateTime(to)) {
+    sendJson(context.res, 400, {
+      message: messageByLocale(context.locale, 'Solicitud inválida'),
+      errors: ['to inválido']
+    });
+    return;
+  }
+
   if (storageMode !== 'postgres') {
     sendJson(context.res, 200, {
       data: {
@@ -283,6 +299,22 @@ export async function handleManagementCfdiSigningErrorTrends(context: RequestCon
   const to = asText(searchParams.get('to'));
   const windowDaysInput = Number.parseInt(searchParams.get('windowDays') ?? '14', 10);
   const windowDays = Number.isFinite(windowDaysInput) ? Math.min(Math.max(windowDaysInput, 1), 90) : 14;
+
+  if (from && !isIsoDateTime(from)) {
+    sendJson(context.res, 400, {
+      message: messageByLocale(context.locale, 'Solicitud inválida'),
+      errors: ['from inválido']
+    });
+    return;
+  }
+
+  if (to && !isIsoDateTime(to)) {
+    sendJson(context.res, 400, {
+      message: messageByLocale(context.locale, 'Solicitud inválida'),
+      errors: ['to inválido']
+    });
+    return;
+  }
 
   if (storageMode !== 'postgres') {
     sendJson(context.res, 200, {
@@ -549,4 +581,9 @@ function asText(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined;
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : undefined;
+}
+
+function isIsoDateTime(value: string): boolean {
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed);
 }

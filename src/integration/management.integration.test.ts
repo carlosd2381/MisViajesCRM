@@ -443,6 +443,28 @@ test('owner can query CFDI signing errors endpoint in memory mode', async () => 
   }
 });
 
+test('owner gets 400 for CFDI signing errors endpoint with invalid from timestamp', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/signing/errors?from=not-a-date`, {
+      method: 'GET',
+      headers: testHeaders('owner')
+    });
+
+    assert.equal(response.status, 400);
+    const payload = (await response.json()) as {
+      message: string;
+      errors?: string[];
+    };
+
+    assert.equal(payload.message, 'Solicitud inválida');
+    assert.ok((payload.errors ?? []).includes('from inválido'));
+  } finally {
+    await stopServer(server);
+  }
+});
+
 test('owner can query CFDI signing error trends endpoint in memory mode', async () => {
   const { server, baseUrl } = await startServer();
 
@@ -470,6 +492,28 @@ test('owner can query CFDI signing error trends endpoint in memory mode', async 
     assert.equal(payload.data.bucketCount, 0);
     assert.deepEqual(payload.data.buckets, []);
     assert.deepEqual(payload.data.totals, []);
+  } finally {
+    await stopServer(server);
+  }
+});
+
+test('owner gets 400 for CFDI signing error trends endpoint with invalid to timestamp', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/signing/errors/trends?to=invalid-date`, {
+      method: 'GET',
+      headers: testHeaders('owner')
+    });
+
+    assert.equal(response.status, 400);
+    const payload = (await response.json()) as {
+      message: string;
+      errors?: string[];
+    };
+
+    assert.equal(payload.message, 'Solicitud inválida');
+    assert.ok((payload.errors ?? []).includes('to inválido'));
   } finally {
     await stopServer(server);
   }
