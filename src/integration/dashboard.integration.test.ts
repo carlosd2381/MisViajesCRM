@@ -128,3 +128,25 @@ test('manager gets 400 for dashboard CFDI signing error summary with invalid fro
     await stopServer(server);
   }
 });
+
+test('manager gets localized en-US message for dashboard CFDI invalid from timestamp', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/dashboard/ops/cfdi-signing/errors?from=not-a-date`, {
+      method: 'GET',
+      headers: integrationTestHeaders('manager', 'en-US')
+    });
+
+    assert.equal(response.status, 400);
+    const payload = (await response.json()) as {
+      message: string;
+      errors?: string[];
+    };
+
+    assert.equal(payload.message, 'Invalid request');
+    assert.ok((payload.errors ?? []).includes('from inválido'));
+  } finally {
+    await stopServer(server);
+  }
+});
