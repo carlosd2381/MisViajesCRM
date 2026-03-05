@@ -286,6 +286,35 @@ async function seedCfdiInvoiceErrorEvent(
   );
 }
 
+async function seedCfdiInvoiceEvent(
+  invoiceId: string,
+  eventId: string,
+  eventType: 'generated' | 'validation_passed' | 'validation_failed' | 'stamped' | 'cancelled' | 'error',
+  eventAt: string,
+  detail: Record<string, unknown> = {}
+): Promise<void> {
+  await pgQuery(
+    `
+      insert into cfdi_invoice_events (
+        id,
+        cfdi_invoice_id,
+        event_type,
+        detail_json,
+        event_at,
+        created_at
+      ) values (
+        $1,
+        $2,
+        $3,
+        $4::jsonb,
+        $5::timestamptz,
+        $5::timestamptz
+      )
+    `,
+    [eventId, invoiceId, eventType, JSON.stringify(detail), eventAt]
+  );
+}
+
 test('lead create and update persist audit events in postgres mode', async (t: TestContext) => {
   if (!hasRequiredPostgresEnv()) {
     t.skip('Postgres env vars are not configured');
@@ -632,6 +661,39 @@ test('cfdi validation endpoints persist events in postgres mode', async (t: Test
       'id',
       'invoiceId'
     ]);
+
+    const tiedEventTimestamp = '2026-03-05T20:30:00.000Z';
+    const tieEventLowId = 'cfdi_events_tie_a_pg_001';
+    const tieEventHighId = 'cfdi_events_tie_b_pg_001';
+
+    await seedCfdiInvoiceEvent(stampInvoiceId, tieEventLowId, 'generated', tiedEventTimestamp, {
+      source: 'integration_test'
+    });
+    await seedCfdiInvoiceEvent(stampInvoiceId, tieEventHighId, 'generated', tiedEventTimestamp, {
+      source: 'integration_test'
+    });
+
+    const tieOrderedEventsResponse = await fetch(
+      `${started.baseUrl}/management/cfdi/events?invoiceId=${stampInvoiceId}&from=${encodeURIComponent(tiedEventTimestamp)}&to=${encodeURIComponent(tiedEventTimestamp)}&limit=2`,
+      {
+        method: 'GET',
+        headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID)
+      }
+    );
+
+    assert.equal(tieOrderedEventsResponse.status, 200);
+    const tieOrderedEventsPayload = (await tieOrderedEventsResponse.json()) as {
+      data: {
+        count: number;
+        events: Array<{ id: string }>;
+      };
+    };
+
+    assert.equal(tieOrderedEventsPayload.data.count, 2);
+    assert.deepEqual(
+      tieOrderedEventsPayload.data.events.map((item) => item.id),
+      [tieEventHighId, tieEventLowId]
+    );
   } finally {
     if (server) {
       await stopServer(server);
@@ -949,6 +1011,38 @@ test('cfdi XML validate and persist endpoints update invoice xml metadata in pos
       'eventType',
       'id'
     ]);
+
+    const tiedEventTimestamp = '2026-03-05T21:00:00.000Z';
+    const tieEventLowId = 'cfdi_invoice_status_tie_a_pg_001';
+    const tieEventHighId = 'cfdi_invoice_status_tie_b_pg_001';
+
+    await seedCfdiInvoiceEvent(invoiceId, tieEventLowId, 'generated', tiedEventTimestamp, {
+      source: 'integration_test'
+    });
+    await seedCfdiInvoiceEvent(invoiceId, tieEventHighId, 'generated', tiedEventTimestamp, {
+      source: 'integration_test'
+    });
+
+    const tieOrderedStatusResponse = await fetch(
+      `${started.baseUrl}/management/cfdi/invoices/${invoiceId}?from=${encodeURIComponent(tiedEventTimestamp)}&to=${encodeURIComponent(tiedEventTimestamp)}&limit=2`,
+      {
+        method: 'GET',
+        headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID)
+      }
+    );
+
+    assert.equal(tieOrderedStatusResponse.status, 200);
+    const tieOrderedStatusPayload = (await tieOrderedStatusResponse.json()) as {
+      data: {
+        events: Array<{ id: string }>;
+      };
+    };
+
+    assert.equal(tieOrderedStatusPayload.data.events.length, 2);
+    assert.deepEqual(
+      tieOrderedStatusPayload.data.events.map((item) => item.id),
+      [tieEventHighId, tieEventLowId]
+    );
 
     const xmlEventResult = await pgQuery<{ event_type: string }>(
       `
