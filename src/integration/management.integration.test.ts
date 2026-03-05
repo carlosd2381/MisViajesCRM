@@ -390,6 +390,35 @@ test('owner can request CFDI XML persistence in memory mode with explicit fallba
   }
 });
 
+test('owner can request CFDI signing in memory mode with explicit fallback', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/sign`, {
+      method: 'POST',
+      headers: testHeaders('owner'),
+      body: JSON.stringify({
+        invoiceId: 'inv_sign_memory_001',
+        satCertificateId: 'cert_sign_memory_001',
+        xmlType: 'unsigned',
+        digestAlgorithm: 'sha256'
+      })
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      message: string;
+      data: { signed: boolean; storageMode: string };
+    };
+
+    assert.equal(payload.message, 'Firmado CFDI no disponible en modo memoria');
+    assert.equal(payload.data.signed, false);
+    assert.equal(payload.data.storageMode, 'memory');
+  } finally {
+    await stopServer(server);
+  }
+});
+
 test('owner gets validation errors for invalid CFDI stamp confirm payload', async () => {
   const { server, baseUrl } = await startServer();
 

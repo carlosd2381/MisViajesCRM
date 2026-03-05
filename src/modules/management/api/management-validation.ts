@@ -5,6 +5,7 @@ import type {
   CreateSatCertificateRequest,
   CreateManagementSettingRequest,
   PersistCfdiXmlRequest,
+  SignCfdiRequest,
   ValidateCfdiXmlRequest,
   ValidateCfdiCancelRequest,
   ValidateCfdiStampRequest,
@@ -308,5 +309,33 @@ export function validatePersistCfdiXmlRequest(
     invoiceId: validation.value.invoiceId,
     xmlType: validation.value.xmlType,
     xmlContent: validation.value.xmlContent
+  });
+}
+
+export function validateSignCfdiRequest(
+  payload: UnknownRecord
+): ValidationResult<SignCfdiRequest> {
+  const errors: string[] = [];
+
+  const invoiceId = asText(payload.invoiceId);
+  const satCertificateId = asText(payload.satCertificateId);
+  const xmlType = asText(payload.xmlType) as SignCfdiRequest['xmlType'] | undefined;
+  const digestAlgorithm = asText(payload.digestAlgorithm) as SignCfdiRequest['digestAlgorithm'] | undefined;
+
+  if (!invoiceId) errors.push('invoiceId es requerido');
+  if (!satCertificateId) errors.push('satCertificateId es requerido');
+  if (!xmlType) errors.push('xmlType es requerido');
+  if (xmlType && !['unsigned', 'stamped'].includes(xmlType)) errors.push('xmlType inválido');
+  if (digestAlgorithm && !['sha256', 'sha384', 'sha512'].includes(digestAlgorithm)) {
+    errors.push('digestAlgorithm inválido');
+  }
+
+  if (errors.length > 0) return failure(errors);
+
+  return success({
+    invoiceId: invoiceId as string,
+    satCertificateId: satCertificateId as string,
+    xmlType: xmlType as SignCfdiRequest['xmlType'],
+    digestAlgorithm
   });
 }

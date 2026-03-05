@@ -107,6 +107,13 @@ function englishMessage(spanish: string): string {
     'Persistencia XML CFDI no disponible en modo memoria': 'CFDI XML persistence is unavailable in memory mode',
     'XML CFDI persistido': 'CFDI XML persisted',
     'No fue posible persistir XML CFDI': 'Unable to persist CFDI XML',
+    'Firmado CFDI no disponible en modo memoria': 'CFDI signing is unavailable in memory mode',
+    'Certificado SAT no activo': 'SAT certificate is not active',
+    'RFC emisor de certificado no coincide con CFDI': 'Certificate issuer RFC does not match CFDI',
+    'Certificado SAT fuera de vigencia para CFDI': 'SAT certificate is out of validity range for CFDI',
+    'XML CFDI requerido para firmado': 'CFDI XML is required for signing',
+    'CFDI firmado': 'CFDI signed',
+    'No fue posible firmar CFDI': 'Unable to sign CFDI',
     'Solicitud inválida': 'Invalid request',
     'Método no permitido': 'Method not allowed'
   };

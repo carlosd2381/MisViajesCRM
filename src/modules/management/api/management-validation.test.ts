@@ -5,6 +5,7 @@ import {
   validateCfdiCancelRequest,
   validateCfdiXmlRequest,
   validatePersistCfdiXmlRequest,
+  validateSignCfdiRequest,
   validateCfdiStampConfirmRequest,
   validateCfdiStampRequest,
   validateCreateSatCertificateRequest,
@@ -169,6 +170,28 @@ test('validatePersistCfdiXmlRequest reuses xml validation rules', () => {
     invoiceId: 'inv_xml_001',
     xmlType: 'stamped',
     xmlContent: '<?xml version="1.0"?><cfdi:Comprobante></cfdi:Comprobante>'
+  });
+
+  assert.equal(result.ok, false);
+});
+
+test('validateSignCfdiRequest succeeds with valid payload', () => {
+  const result = validateSignCfdiRequest({
+    invoiceId: 'inv_sign_001',
+    satCertificateId: 'cert_sign_001',
+    xmlType: 'unsigned',
+    digestAlgorithm: 'sha256'
+  });
+
+  assert.equal(result.ok, true);
+});
+
+test('validateSignCfdiRequest rejects invalid digest algorithm', () => {
+  const result = validateSignCfdiRequest({
+    invoiceId: 'inv_sign_001',
+    satCertificateId: 'cert_sign_001',
+    xmlType: 'unsigned',
+    digestAlgorithm: 'md5'
   });
 
   assert.equal(result.ok, false);

@@ -208,6 +208,9 @@ export async function handleManagementCfdiInvoiceStatus(context: RequestContext)
       has_xml_stamped: boolean;
       xml_unsigned_bytes: number;
       xml_stamped_bytes: number;
+      has_cadena_original: boolean;
+      has_sello_digital: boolean;
+      sat_certificate_id: string | null;
     }>(
       `
         select
@@ -222,7 +225,10 @@ export async function handleManagementCfdiInvoiceStatus(context: RequestContext)
           (xml_unsigned is not null) as has_xml_unsigned,
           (xml_stamped is not null) as has_xml_stamped,
           coalesce(length(xml_unsigned), 0) as xml_unsigned_bytes,
-          coalesce(length(xml_stamped), 0) as xml_stamped_bytes
+          coalesce(length(xml_stamped), 0) as xml_stamped_bytes,
+          (cadena_original is not null) as has_cadena_original,
+          (sello_digital is not null) as has_sello_digital,
+          sat_certificate_id
         from cfdi_invoices
         where id = $1
       `,
@@ -275,6 +281,11 @@ export async function handleManagementCfdiInvoiceStatus(context: RequestContext)
             hasStamped: invoice.has_xml_stamped,
             unsignedBytes: Number(invoice.xml_unsigned_bytes),
             stampedBytes: Number(invoice.xml_stamped_bytes)
+          },
+          signing: {
+            hasCadenaOriginal: invoice.has_cadena_original,
+            hasSelloDigital: invoice.has_sello_digital,
+            satCertificateId: invoice.sat_certificate_id
           }
         },
         events: eventsResult.rows.map((row) => ({

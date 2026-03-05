@@ -57,6 +57,7 @@ import {
   handleManagementCfdiXmlPersist,
   handleManagementCfdiXmlValidation
 } from '../../modules/management/api/management-cfdi-xml-http-handlers';
+import { handleManagementCfdiSign } from '../../modules/management/api/management-cfdi-sign-http-handlers';
 import {
   handleManagementCfdiCertificateResource,
   handleManagementCfdiCertificatesCollection
@@ -283,6 +284,9 @@ function handleManagementRoute(context: ModuleRouteContext): Promise<void> | nul
   }
   if (pathSegments.length === 4 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'xml' && pathSegments[3] === 'persist') {
     return handleManagementCfdiXmlPersist(requestContext);
+  }
+  if (pathSegments.length === 3 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'sign') {
+    return handleManagementCfdiSign(requestContext);
   }
   if (pathSegments.length === 2) return handleManagementResource(requestContext, repositories.management);
   return Promise.resolve();

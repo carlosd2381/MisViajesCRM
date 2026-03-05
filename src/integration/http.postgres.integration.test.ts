@@ -127,6 +127,40 @@ async function cleanupSatCertificateArtifacts(certificateId: string): Promise<vo
   await pgQuery('delete from sat_certificates where id = $1', [certificateId]);
 }
 
+async function seedSatCertificate(certificateId: string): Promise<void> {
+  const now = new Date().toISOString();
+  await pgQuery(
+    `
+      insert into sat_certificates (
+        id,
+        rfc_emisor,
+        certificate_number,
+        serial_number,
+        certificate_source,
+        status,
+        valid_from,
+        valid_to,
+        certificate_pem_ref,
+        private_key_ref,
+        passphrase_ref,
+        created_at,
+        updated_at
+      ) values ($1, $2, $3, null, $4, $5, $6::date, $7::date, null, null, null, $8, $9)
+    `,
+    [
+      certificateId,
+      'AAA010101AAA',
+      `30001000000500003416-${Date.now()}`,
+      'csd',
+      'active',
+      '2026-01-01',
+      '2027-01-01',
+      now,
+      now
+    ]
+  );
+}
+
 async function seedCfdiInvoice(invoiceId: string): Promise<void> {
   const now = new Date().toISOString();
   await pgQuery(
@@ -820,6 +854,105 @@ test('cfdi XML validate and persist endpoints update invoice xml metadata in pos
     }
 
     await cleanupCfdiValidationArtifacts(invoiceId);
+    await closePgPool();
+    restoreStorageMode();
+  }
+});
+
+test('cfdi sign endpoint persists signing fields in postgres mode', async (t: TestContext) => {
+  if (!hasRequiredPostgresEnv()) {
+    t.skip('Postgres env vars are not configured');
+    return;
+  }
+
+  const restoreStorageMode = setEnv('STORAGE_MODE', 'postgres');
+  const invoiceId = 'inv_cfdi_sign_pg_001';
+  const certificateId = 'cert_cfdi_sign_pg_001';
+  let server: Server | null = null;
+
+  try {
+    if (!(await isCfdiSchemaReady()) || !(await isCfdiSatSchemaReady())) {
+      t.skip('Postgres schema is not initialized (cfdi_invoices/cfdi_invoice_events/sat_certificates missing)');
+      return;
+    }
+
+    await cleanupCfdiValidationArtifacts(invoiceId);
+    await cleanupSatCertificateArtifacts(certificateId);
+    await seedCfdiInvoice(invoiceId);
+    await seedSatCertificate(certificateId);
+
+    const started = await startPostgresServer();
+    server = started.server;
+
+    const xmlUnsigned = '<?xml version="1.0"?><cfdi:Comprobante></cfdi:Comprobante>';
+    const persistXmlResponse = await fetch(`${started.baseUrl}/management/cfdi/xml/persist`, {
+      method: 'POST',
+      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID),
+      body: JSON.stringify({
+        invoiceId,
+        xmlType: 'unsigned',
+        xmlContent: xmlUnsigned
+      })
+    });
+    assert.equal(persistXmlResponse.status, 200);
+
+    const signResponse = await fetch(`${started.baseUrl}/management/cfdi/sign`, {
+      method: 'POST',
+      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID),
+      body: JSON.stringify({
+        invoiceId,
+        satCertificateId: certificateId,
+        xmlType: 'unsigned',
+        digestAlgorithm: 'sha256'
+      })
+    });
+
+    assert.equal(signResponse.status, 200);
+
+    const invoiceResult = await pgQuery<{
+      sat_certificate_id: string | null;
+      cadena_original: string | null;
+      sello_digital: string | null;
+    }>(
+      `
+        select sat_certificate_id, cadena_original, sello_digital
+        from cfdi_invoices
+        where id = $1
+      `,
+      [invoiceId]
+    );
+
+    assert.equal(invoiceResult.rowCount, 1);
+    assert.equal(invoiceResult.rows[0].sat_certificate_id, certificateId);
+    assert.ok((invoiceResult.rows[0].cadena_original ?? '').length > 0);
+    assert.ok((invoiceResult.rows[0].sello_digital ?? '').length > 0);
+
+    const statusResponse = await fetch(`${started.baseUrl}/management/cfdi/invoices/${invoiceId}?limit=5`, {
+      method: 'GET',
+      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID)
+    });
+    assert.equal(statusResponse.status, 200);
+    const statusPayload = (await statusResponse.json()) as {
+      data: {
+        invoice: {
+          signing: {
+            hasCadenaOriginal: boolean;
+            hasSelloDigital: boolean;
+            satCertificateId: string | null;
+          };
+        };
+      };
+    };
+    assert.equal(statusPayload.data.invoice.signing.hasCadenaOriginal, true);
+    assert.equal(statusPayload.data.invoice.signing.hasSelloDigital, true);
+    assert.equal(statusPayload.data.invoice.signing.satCertificateId, certificateId);
+  } finally {
+    if (server) {
+      await stopServer(server);
+    }
+
+    await cleanupCfdiValidationArtifacts(invoiceId);
+    await cleanupSatCertificateArtifacts(certificateId);
     await closePgPool();
     restoreStorageMode();
   }

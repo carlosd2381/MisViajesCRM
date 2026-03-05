@@ -68,6 +68,13 @@ export interface PersistCfdiXmlRequest {
   xmlContent: string;
 }
 
+export interface SignCfdiRequest {
+  invoiceId: string;
+  satCertificateId: string;
+  xmlType: 'unsigned' | 'stamped';
+  digestAlgorithm?: 'sha256' | 'sha384' | 'sha512';
+}
+
 export interface ManagementSettingResponse {
   data: ManagementSetting;
 }
