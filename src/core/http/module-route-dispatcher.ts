@@ -37,15 +37,22 @@ import {
   handleDashboardResource
 } from '../../modules/dashboard/api/dashboard-http-handlers';
 import {
-  handleManagementCfdiCancelConfirm,
-  handleManagementCfdiCancelValidation,
-  handleManagementCfdiEvents,
-  handleManagementCfdiStampConfirm,
-  handleManagementCfdiStampValidation,
-  handleManagementCfdiReadiness,
   handleManagementCollection,
   handleManagementResource
 } from '../../modules/management/api/management-http-handlers';
+import {
+  handleManagementCfdiInvoiceStatus,
+  handleManagementCfdiReadiness,
+  handleManagementCfdiEvents
+} from '../../modules/management/api/management-cfdi-query-http-handlers';
+import {
+  handleManagementCfdiCancelValidation,
+  handleManagementCfdiStampValidation
+} from '../../modules/management/api/management-cfdi-validate-http-handlers';
+import {
+  handleManagementCfdiCancelConfirm,
+  handleManagementCfdiStampConfirm
+} from '../../modules/management/api/management-cfdi-transition-http-handlers';
 import {
   handleAiMetrics,
   handleAiProposalCollection,
@@ -241,6 +248,9 @@ function handleManagementRoute(context: ModuleRouteContext): Promise<void> | nul
   }
   if (pathSegments.length === 3 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'events') {
     return handleManagementCfdiEvents(requestContext);
+  }
+  if (pathSegments.length === 4 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'invoices') {
+    return handleManagementCfdiInvoiceStatus(requestContext);
   }
   if (pathSegments.length === 4 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'stamp' && pathSegments[3] === 'validate') {
     return handleManagementCfdiStampValidation(requestContext);

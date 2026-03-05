@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { CreateLeadRequest, UpdateLeadRequest } from '../api/lead-contracts';
 import type { CreateClientRequest } from '../../clients/api/client-contracts';
 import type { Lead } from '../domain/lead';
@@ -6,16 +7,15 @@ function nowIsoDate(): string {
   return new Date().toISOString();
 }
 
-function createEntityId(prefix: string): string {
-  const random = Math.random().toString(36).slice(2, 10);
-  return `${prefix}_${random}`;
+function createEntityId(): string {
+  return randomUUID();
 }
 
 export function mapCreateLeadToEntity(input: CreateLeadRequest): Lead {
   const timestamp = nowIsoDate();
 
   return {
-    id: createEntityId('lead'),
+    id: createEntityId(),
     ...input,
     createdAt: timestamp,
     updatedAt: timestamp

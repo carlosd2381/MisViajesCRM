@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { CreateClientRequest, UpdateClientRequest } from '../api/client-contracts';
 import type { Client } from '../domain/client';
 
@@ -5,9 +6,8 @@ function nowIsoDate(): string {
   return new Date().toISOString();
 }
 
-function createEntityId(prefix: string): string {
-  const random = Math.random().toString(36).slice(2, 10);
-  return `${prefix}_${random}`;
+function createEntityId(): string {
+  return randomUUID();
 }
 
 function emptyArray<T>(value?: T[]): T[] {
@@ -22,7 +22,7 @@ export function mapCreateClientToEntity(input: CreateClientRequest): Client {
   const timestamp = nowIsoDate();
 
   return {
-    id: createEntityId('client'),
+    id: createEntityId(),
     ...input,
     contacts: emptyArray(input.contacts),
     addresses: emptyArray(input.addresses),

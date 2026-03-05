@@ -8,6 +8,7 @@ import { integrationTestHeaders } from './test-harness';
 
 const REQUIRED_POSTGRES_ENV = ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'] as const;
 const ACTOR_USER_ID = '7f8f3d10-49ab-4b5b-8dc8-94fdcf124501';
+const ACTOR_USER_EMAIL = 'postgres.audit.actor@misviajes.local';
 
 function hasRequiredPostgresEnv(): boolean {
   return REQUIRED_POSTGRES_ENV.every((name) => Boolean(process.env[name]));
@@ -83,6 +84,28 @@ async function cleanupLeadArtifacts(leadId: string): Promise<void> {
   await pgQuery('delete from leads where id = $1', [leadId]);
 }
 
+async function ensureAuditActorUser(): Promise<void> {
+  await pgQuery(
+    `
+      insert into users (id, full_name, email, role_id, is_active)
+      values (
+        $1,
+        $2,
+        $3,
+        (select id from roles where code = 'agent' limit 1),
+        true
+      )
+      on conflict (id) do update set
+        full_name = excluded.full_name,
+        email = excluded.email,
+        role_id = excluded.role_id,
+        is_active = excluded.is_active,
+        updated_at = now()
+    `,
+    [ACTOR_USER_ID, 'Postgres Audit Actor', ACTOR_USER_EMAIL]
+  );
+}
+
 async function cleanupCfdiValidationArtifacts(invoiceId: string): Promise<void> {
   await pgQuery('delete from cfdi_invoice_events where cfdi_invoice_id = $1', [invoiceId]);
   await pgQuery('delete from cfdi_invoices where id = $1', [invoiceId]);
@@ -140,6 +163,8 @@ test('lead create and update persist audit events in postgres mode', async (t: T
       t.skip('Postgres schema is not initialized (audit_events/leads/clients missing)');
       return;
     }
+
+    await ensureAuditActorUser();
 
     const started = await startPostgresServer();
     server = started.server;
@@ -263,6 +288,8 @@ test('lead convert persists audit event in postgres mode', async (t: TestContext
       t.skip('Postgres schema is not initialized (audit_events/leads/clients missing)');
       return;
     }
+
+    await ensureAuditActorUser();
 
     const started = await startPostgresServer();
     server = started.server;
@@ -480,7 +507,8 @@ test('cfdi confirm endpoints apply invoice status transitions in postgres mode',
 
   const stampInvoiceId = 'inv_cfdi_confirm_stamp_pg_001';
   const cancelInvoiceId = 'inv_cfdi_confirm_cancel_pg_001';
-  const cfdiUuid = 'd2719f53-0dca-4eeb-b6bb-9bcd2ccf61fc';
+  const stampedCfdiUuid = 'd2719f53-0dca-4eeb-b6bb-9bcd2ccf61fc';
+  const cancelledCfdiUuid = 'e4c4f3df-2393-4f9f-84a8-3f98fbe26ea1';
   let server: Server | null = null;
 
   try {
@@ -502,7 +530,7 @@ test('cfdi confirm endpoints apply invoice status transitions in postgres mode',
       headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID),
       body: JSON.stringify({
         invoiceId: stampInvoiceId,
-        cfdiUuid,
+        cfdiUuid: stampedCfdiUuid,
         stampedAt: '2026-03-05T12:00:00.000Z'
       })
     });
@@ -524,7 +552,7 @@ test('cfdi confirm endpoints apply invoice status transitions in postgres mode',
 
     assert.equal(stampedInvoice.rowCount, 1);
     assert.equal(stampedInvoice.rows[0].status, 'stamped');
-    assert.equal(stampedInvoice.rows[0].cfdi_uuid, cfdiUuid);
+    assert.equal(stampedInvoice.rows[0].cfdi_uuid, stampedCfdiUuid);
     assert.ok(stampedInvoice.rows[0].stamped_at);
 
     const stampedEvent = await pgQuery<{ event_type: string }>(
@@ -546,7 +574,7 @@ test('cfdi confirm endpoints apply invoice status transitions in postgres mode',
       headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID),
       body: JSON.stringify({
         invoiceId: cancelInvoiceId,
-        cfdiUuid,
+        cfdiUuid: cancelledCfdiUuid,
         cancellationReason: '02',
         cancelledAt: '2026-03-05T13:00:00.000Z'
       })

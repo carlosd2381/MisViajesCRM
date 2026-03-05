@@ -23,6 +23,22 @@ function formatSummary(summary) {
   return `POSTGRES_INTEGRATION_PRECHECK ${JSON.stringify(summary)}`;
 }
 
+function parseBoolean(value) {
+  if (!value) return undefined;
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === 'true' || normalized === '1' || normalized === 'yes' || normalized === 'on') return true;
+  if (normalized === 'false' || normalized === '0' || normalized === 'no' || normalized === 'off') return false;
+  return undefined;
+}
+
+function resolveSslOption() {
+  const sslEnabled = parseBoolean(process.env.DB_SSL);
+  if (sslEnabled !== true) return undefined;
+
+  const rejectUnauthorized = parseBoolean(process.env.DB_SSL_REJECT_UNAUTHORIZED);
+  return { rejectUnauthorized: rejectUnauthorized ?? false };
+}
+
 async function run() {
   const missingEnv = REQUIRED_ENV.filter((name) => !process.env[name]);
   if (missingEnv.length > 0) {
@@ -34,7 +50,8 @@ async function run() {
     port: Number(process.env.DB_PORT ?? '5432'),
     database: env('DB_NAME'),
     user: env('DB_USER'),
-    password: env('DB_PASSWORD')
+    password: env('DB_PASSWORD'),
+    ssl: resolveSslOption()
   });
 
   try {

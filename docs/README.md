@@ -23,6 +23,7 @@ Este proyecto mantiene documentación viva para evitar desviaciones de arquitect
 
 - `.env.otel.example` — plantilla lista para copiar/editar con perfiles OTel de referencia.
 - `.env.auth.example` — plantilla base de autenticación/JWT/sesiones para entornos locales y despliegues.
+- `.env.postgres.local.example` — plantilla local para integración PostgreSQL (`DB_*`, SSL opcional).
 
 ## Quick start de entorno
 
@@ -243,6 +244,19 @@ Variables requeridas para modo PostgreSQL:
 - `DB_NAME`
 - `DB_USER`
 - `DB_PASSWORD`
+
+Variables opcionales para conexiones TLS/SSL (por ejemplo, proveedores gestionados):
+
+- `DB_SSL=true` habilita SSL en cliente `pg`.
+- `DB_SSL_REJECT_UNAUTHORIZED=false` permite certificados no verificados en entorno local (usar con criterio).
+
+Flujo recomendado de integración PostgreSQL local:
+
+1. Copiar plantilla: `cp .env.postgres.local.example .env.postgres.local`
+2. Completar credenciales reales en `.env.postgres.local`
+3. Aplicar migraciones: `set -a && source .env.postgres.local && set +a && node tools/ops/apply-postgres-migrations.mjs`
+4. Validar precheck: `set -a && source .env.postgres.local && set +a && npm run postgres:integration:precheck`
+5. Ejecutar suite dedicada: `set -a && source .env.postgres.local && set +a && npm run test:integration:postgres`
 
 ## Autorización HTTP (RBAC)
 
