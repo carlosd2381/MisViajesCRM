@@ -11,6 +11,24 @@ export interface UpdateManagementSettingRequest {
   description?: string;
 }
 
+export interface ValidateCfdiStampRequest {
+  invoiceId: string;
+  satCertificateId: string;
+  rfcEmisor: string;
+  rfcReceptor: string;
+  currency: string;
+  total: number;
+  issueDate: string;
+}
+
+export interface ValidateCfdiCancelRequest {
+  invoiceId: string;
+  cfdiUuid: string;
+  cancellationReason: '01' | '02' | '03' | '04';
+  replacementCfdiUuid?: string;
+  cancelledAt: string;
+}
+
 export interface ManagementSettingResponse {
   data: ManagementSetting;
 }

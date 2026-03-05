@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  validateCfdiCancelRequest,
+  validateCfdiStampRequest,
   validateCreateManagementSetting,
   validateUpdateManagementSetting
 } from './management-validation';
@@ -27,4 +29,54 @@ test('validateCreateManagementSetting fails with invalid key', () => {
 test('validateUpdateManagementSetting rejects empty body', () => {
   const result = validateUpdateManagementSetting({});
   assert.equal(result.ok, false);
+});
+
+test('validateCfdiStampRequest succeeds with required fields', () => {
+  const result = validateCfdiStampRequest({
+    invoiceId: 'inv_123',
+    satCertificateId: 'cert_123',
+    rfcEmisor: 'AAA010101AAA',
+    rfcReceptor: 'BBB010101BBB',
+    currency: 'MXN',
+    total: 12500.5,
+    issueDate: '2026-03-05T12:00:00.000Z'
+  });
+
+  assert.equal(result.ok, true);
+});
+
+test('validateCfdiStampRequest rejects invalid RFC and total', () => {
+  const result = validateCfdiStampRequest({
+    invoiceId: 'inv_123',
+    satCertificateId: 'cert_123',
+    rfcEmisor: 'INVALID',
+    rfcReceptor: 'BBB010101BBB',
+    currency: 'MXN',
+    total: 0,
+    issueDate: '2026-03-05T12:00:00.000Z'
+  });
+
+  assert.equal(result.ok, false);
+});
+
+test('validateCfdiCancelRequest requires replacement UUID for reason 01', () => {
+  const result = validateCfdiCancelRequest({
+    invoiceId: 'inv_123',
+    cfdiUuid: 'd2719f53-0dca-4eeb-b6bb-9bcd2ccf61fc',
+    cancellationReason: '01',
+    cancelledAt: '2026-03-05T13:00:00.000Z'
+  });
+
+  assert.equal(result.ok, false);
+});
+
+test('validateCfdiCancelRequest succeeds with valid payload', () => {
+  const result = validateCfdiCancelRequest({
+    invoiceId: 'inv_123',
+    cfdiUuid: 'd2719f53-0dca-4eeb-b6bb-9bcd2ccf61fc',
+    cancellationReason: '02',
+    cancelledAt: '2026-03-05T13:00:00.000Z'
+  });
+
+  assert.equal(result.ok, true);
 });

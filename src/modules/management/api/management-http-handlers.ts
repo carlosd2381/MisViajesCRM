@@ -7,6 +7,8 @@ import {
   mapUpdateManagementSettingToEntity
 } from '../application/management-service';
 import {
+  validateCfdiCancelRequest,
+  validateCfdiStampRequest,
   validateCreateManagementSetting,
   validateUpdateManagementSetting
 } from './management-validation';
@@ -105,6 +107,56 @@ export async function handleManagementCfdiReadiness(context: RequestContext): Pr
   }
 }
 
+export async function handleManagementCfdiStampValidation(context: RequestContext): Promise<void> {
+  if (context.req.method !== 'POST') {
+    sendJson(context.res, 405, { message: messageByLocale(context.locale, 'Método no permitido') });
+    return;
+  }
+
+  const payload = await readJsonBody(context.req);
+  const validation = validateCfdiStampRequest(payload);
+
+  if (!validation.ok) {
+    sendJson(context.res, 400, { message: messageByLocale(context.locale, 'Solicitud inválida'), errors: validation.errors });
+    return;
+  }
+
+  sendJson(context.res, 200, {
+    data: {
+      valid: true,
+      operation: 'stamp',
+      normalizedRequest: validation.value,
+      requiredFields: ['invoiceId', 'satCertificateId', 'rfcEmisor', 'rfcReceptor', 'currency', 'total', 'issueDate']
+    },
+    message: messageByLocale(context.locale, 'Contrato CFDI timbrado válido')
+  });
+}
+
+export async function handleManagementCfdiCancelValidation(context: RequestContext): Promise<void> {
+  if (context.req.method !== 'POST') {
+    sendJson(context.res, 405, { message: messageByLocale(context.locale, 'Método no permitido') });
+    return;
+  }
+
+  const payload = await readJsonBody(context.req);
+  const validation = validateCfdiCancelRequest(payload);
+
+  if (!validation.ok) {
+    sendJson(context.res, 400, { message: messageByLocale(context.locale, 'Solicitud inválida'), errors: validation.errors });
+    return;
+  }
+
+  sendJson(context.res, 200, {
+    data: {
+      valid: true,
+      operation: 'cancel',
+      normalizedRequest: validation.value,
+      requiredFields: ['invoiceId', 'cfdiUuid', 'cancellationReason', 'cancelledAt']
+    },
+    message: messageByLocale(context.locale, 'Contrato CFDI cancelación válido')
+  });
+}
+
 export async function handleManagementResource(context: RequestContext, repository: ManagementRepository): Promise<void> {
   const settingId = context.pathSegments[1];
   const existing = await repository.getById(settingId);
@@ -150,6 +202,8 @@ function englishMessage(spanish: string): string {
     'Readiness CFDI evaluado': 'CFDI readiness evaluated',
     'Readiness CFDI no disponible en modo memoria': 'CFDI readiness is unavailable in memory mode',
     'No fue posible evaluar readiness CFDI': 'Unable to evaluate CFDI readiness',
+    'Contrato CFDI timbrado válido': 'CFDI stamp contract is valid',
+    'Contrato CFDI cancelación válido': 'CFDI cancellation contract is valid',
     'Solicitud inválida': 'Invalid request',
     'Método no permitido': 'Method not allowed'
   };

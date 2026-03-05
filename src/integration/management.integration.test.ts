@@ -119,3 +119,71 @@ test('manager can read CFDI readiness endpoint with en-US locale', async () => {
     await stopServer(server);
   }
 });
+
+test('owner can validate CFDI stamp contract payload', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/stamp/validate`, {
+      method: 'POST',
+      headers: testHeaders('owner'),
+      body: JSON.stringify({
+        invoiceId: 'inv_cfdi_001',
+        satCertificateId: 'cert_001',
+        rfcEmisor: 'AAA010101AAA',
+        rfcReceptor: 'BBB010101BBB',
+        currency: 'MXN',
+        total: 15999.75,
+        issueDate: '2026-03-06T09:00:00.000Z'
+      })
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      message: string;
+      data: {
+        valid: boolean;
+        operation: string;
+        normalizedRequest: {
+          currency: string;
+        };
+      };
+    };
+
+    assert.equal(payload.message, 'Contrato CFDI timbrado válido');
+    assert.equal(payload.data.valid, true);
+    assert.equal(payload.data.operation, 'stamp');
+    assert.equal(payload.data.normalizedRequest.currency, 'MXN');
+  } finally {
+    await stopServer(server);
+  }
+});
+
+test('owner gets validation errors for invalid CFDI cancel contract payload', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/cancel/validate`, {
+      method: 'POST',
+      headers: testHeaders('owner'),
+      body: JSON.stringify({
+        invoiceId: 'inv_cfdi_001',
+        cfdiUuid: 'd2719f53-0dca-4eeb-b6bb-9bcd2ccf61fc',
+        cancellationReason: '01',
+        cancelledAt: '2026-03-06T10:00:00.000Z'
+      })
+    });
+
+    assert.equal(response.status, 400);
+    const payload = (await response.json()) as {
+      message: string;
+      errors?: string[];
+    };
+
+    assert.equal(payload.message, 'Solicitud inválida');
+    assert.ok(Array.isArray(payload.errors));
+    assert.ok((payload.errors?.join(' ') ?? '').includes('replacementCfdiUuid es requerido'));
+  } finally {
+    await stopServer(server);
+  }
+});
