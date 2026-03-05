@@ -214,6 +214,7 @@ Notas de ejecución:
 - Avance P0-CFDI-01: endpoint `GET /management/cfdi/invoices/:invoiceId` ahora soporta filtros `from/to` para su consulta de eventos y valida timestamps inválidos con `400`, completando paridad de filtros en lecturas CFDI.
 - Avance P0-CFDI-01: se agregó contrato compartido `validateCfdiReadQueryParams` (`src/core/http/http-query-validation.ts`) para validar/normalizar `from/to/limit/windowDays` y se adoptó en handlers de consulta CFDI (`management` + `dashboard`).
 - Avance P0-CFDI-01: se agregó cobertura de localización `en-US` para errores de query CFDI inválida (`from/to`) en endpoints de lectura `management` y `dashboard` (mensaje `Invalid request`).
+- Avance P0-CFDI-01: cobertura de localización `en-US` consolidada en prueba de contrato table-driven `src/integration/cfdi-read-query-validation.integration.test.ts` para endpoints CFDI de lectura (`management` + `dashboard`).
 - Avance P1-DATA-01: migración draft creada en `db/migrations/20260305_013_financials_fx_and_commission_splits.sql` (timestamp/fuente FX y split multi-proveedor) y diccionario actualizado.
 - Avance P1-ARCH-01: ADR aprobada en `docs/governance/adr-2026-03-05-commissions-vs-financials.md` (se mantiene separación de dominio `commissions`/`financials`).
 - Avance P1-ARCH-01: contrato de contexto `messaging`↔`itinerary` definido en `docs/governance/adr-2026-03-05-messaging-itinerary-context-contract.md`.
