@@ -87,3 +87,4 @@ Continuación posterior al cierre de `P0-DB-01`:
 - Se agregó siguiente incremento de `P0-CFDI-01` con contratos de timbrado/cancelación (`POST /management/cfdi/stamp/validate`, `POST /management/cfdi/cancel/validate`) y cobertura unitaria/integración.
 - Se agregó persistencia de eventos de validación CFDI en PostgreSQL (`cfdi_invoice_events`) para `stamp/cancel` con registro de `validation_passed` y `validation_failed`.
 - Se agregó endpoint de lectura de trazabilidad `GET /management/cfdi/events?invoiceId=...` para consulta operativa de eventos CFDI por factura.
+- Se agregaron endpoints de transición `POST /management/cfdi/stamp/confirm` y `POST /management/cfdi/cancel/confirm` para actualizar estado de factura CFDI y registrar eventos `stamped/cancelled`.

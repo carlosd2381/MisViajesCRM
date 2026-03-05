@@ -240,3 +240,62 @@ test('owner gets 400 for CFDI events endpoint without invoiceId', async () => {
     await stopServer(server);
   }
 });
+
+test('owner can request CFDI stamp confirm in memory mode', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/stamp/confirm`, {
+      method: 'POST',
+      headers: testHeaders('owner'),
+      body: JSON.stringify({
+        invoiceId: 'inv_memory_001',
+        cfdiUuid: 'd2719f53-0dca-4eeb-b6bb-9bcd2ccf61fc',
+        stampedAt: '2026-03-06T12:00:00.000Z'
+      })
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      message: string;
+      data: {
+        transitionApplied: boolean;
+        storageMode: string;
+      };
+    };
+
+    assert.equal(payload.message, 'Transición CFDI no disponible en modo memoria');
+    assert.equal(payload.data.transitionApplied, false);
+    assert.equal(payload.data.storageMode, 'memory');
+  } finally {
+    await stopServer(server);
+  }
+});
+
+test('owner gets validation errors for invalid CFDI stamp confirm payload', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/stamp/confirm`, {
+      method: 'POST',
+      headers: testHeaders('owner'),
+      body: JSON.stringify({
+        invoiceId: 'inv_memory_002',
+        cfdiUuid: 'invalid',
+        stampedAt: 'not-a-date'
+      })
+    });
+
+    assert.equal(response.status, 400);
+    const payload = (await response.json()) as {
+      message: string;
+      errors?: string[];
+    };
+
+    assert.equal(payload.message, 'Solicitud inválida');
+    assert.ok(Array.isArray(payload.errors));
+    assert.ok((payload.errors ?? []).some((error) => error.includes('cfdiUuid inválido')));
+  } finally {
+    await stopServer(server);
+  }
+});

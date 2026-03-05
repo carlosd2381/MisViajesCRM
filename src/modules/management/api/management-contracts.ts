@@ -29,6 +29,20 @@ export interface ValidateCfdiCancelRequest {
   cancelledAt: string;
 }
 
+export interface ConfirmCfdiStampRequest {
+  invoiceId: string;
+  cfdiUuid: string;
+  stampedAt: string;
+}
+
+export interface ConfirmCfdiCancelRequest {
+  invoiceId: string;
+  cfdiUuid: string;
+  cancellationReason: '01' | '02' | '03' | '04';
+  replacementCfdiUuid?: string;
+  cancelledAt: string;
+}
+
 export interface ManagementSettingResponse {
   data: ManagementSetting;
 }

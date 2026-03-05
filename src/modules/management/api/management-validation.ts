@@ -1,5 +1,7 @@
 import { failure, success, type ValidationResult } from '../../../core/validation/validation-types';
 import type {
+  ConfirmCfdiCancelRequest,
+  ConfirmCfdiStampRequest,
   CreateManagementSettingRequest,
   ValidateCfdiCancelRequest,
   ValidateCfdiStampRequest,
@@ -153,5 +155,44 @@ export function validateCfdiCancelRequest(
     cancellationReason: cancellationReason as ValidateCfdiCancelRequest['cancellationReason'],
     replacementCfdiUuid,
     cancelledAt: cancelledAt as string
+  });
+}
+
+export function validateCfdiStampConfirmRequest(
+  payload: UnknownRecord
+): ValidationResult<ConfirmCfdiStampRequest> {
+  const errors: string[] = [];
+
+  const invoiceId = asText(payload.invoiceId);
+  const cfdiUuid = asText(payload.cfdiUuid);
+  const stampedAt = asText(payload.stampedAt);
+
+  if (!invoiceId) errors.push('invoiceId es requerido');
+  if (!cfdiUuid) errors.push('cfdiUuid es requerido');
+  if (cfdiUuid && !isCfdiUuid(cfdiUuid)) errors.push('cfdiUuid inválido');
+  if (!stampedAt) errors.push('stampedAt es requerido');
+  if (stampedAt && !isIsoDate(stampedAt)) errors.push('stampedAt inválido');
+
+  if (errors.length > 0) return failure(errors);
+
+  return success({
+    invoiceId: invoiceId as string,
+    cfdiUuid: cfdiUuid as string,
+    stampedAt: stampedAt as string
+  });
+}
+
+export function validateCfdiCancelConfirmRequest(
+  payload: UnknownRecord
+): ValidationResult<ConfirmCfdiCancelRequest> {
+  const validation = validateCfdiCancelRequest(payload);
+  if (!validation.ok) return validation;
+
+  return success({
+    invoiceId: validation.value.invoiceId,
+    cfdiUuid: validation.value.cfdiUuid,
+    cancellationReason: validation.value.cancellationReason,
+    replacementCfdiUuid: validation.value.replacementCfdiUuid,
+    cancelledAt: validation.value.cancelledAt
   });
 }

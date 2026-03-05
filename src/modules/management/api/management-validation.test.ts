@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  validateCfdiCancelConfirmRequest,
   validateCfdiCancelRequest,
+  validateCfdiStampConfirmRequest,
   validateCfdiStampRequest,
   validateCreateManagementSetting,
   validateUpdateManagementSetting
@@ -79,4 +81,35 @@ test('validateCfdiCancelRequest succeeds with valid payload', () => {
   });
 
   assert.equal(result.ok, true);
+});
+
+test('validateCfdiStampConfirmRequest succeeds with valid payload', () => {
+  const result = validateCfdiStampConfirmRequest({
+    invoiceId: 'inv_123',
+    cfdiUuid: 'd2719f53-0dca-4eeb-b6bb-9bcd2ccf61fc',
+    stampedAt: '2026-03-05T13:00:00.000Z'
+  });
+
+  assert.equal(result.ok, true);
+});
+
+test('validateCfdiStampConfirmRequest rejects invalid uuid', () => {
+  const result = validateCfdiStampConfirmRequest({
+    invoiceId: 'inv_123',
+    cfdiUuid: 'invalid',
+    stampedAt: '2026-03-05T13:00:00.000Z'
+  });
+
+  assert.equal(result.ok, false);
+});
+
+test('validateCfdiCancelConfirmRequest reuses cancellation rules', () => {
+  const result = validateCfdiCancelConfirmRequest({
+    invoiceId: 'inv_123',
+    cfdiUuid: 'd2719f53-0dca-4eeb-b6bb-9bcd2ccf61fc',
+    cancellationReason: '01',
+    cancelledAt: '2026-03-05T13:00:00.000Z'
+  });
+
+  assert.equal(result.ok, false);
 });
