@@ -89,6 +89,10 @@ test('quality workflow keeps postgres integration trigger and job', () => {
   assert.match(source, /force_postgres_integration:/);
   assert.match(source, /postgres_related:\s*\$\{\{ steps\.filter\.outputs\.postgres_related \}\}/);
   assert.match(source, /postgres-integration:/);
+  assert.match(source, /DB_HOST:\s*\$\{\{ secrets\.DB_HOST \|\| vars\.DB_HOST \}\}/);
+  assert.match(source, /DB_NAME:\s*\$\{\{ secrets\.DB_NAME \|\| vars\.DB_NAME \}\}/);
+  assert.match(source, /DB_USER:\s*\$\{\{ secrets\.DB_USER \|\| vars\.DB_USER \}\}/);
+  assert.match(source, /DB_PASSWORD:\s*\$\{\{ secrets\.DB_PASSWORD \|\| vars\.DB_PASSWORD \}\}/);
   assert.match(source, /npm run test:integration:postgres/);
   assert.match(source, /Evaluate Postgres environment availability/);
 });

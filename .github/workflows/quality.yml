@@ -417,6 +417,13 @@ jobs:
       (github.event_name == 'workflow_dispatch' && github.event.inputs.force_postgres_integration == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      DB_HOST: ${{ secrets.DB_HOST || vars.DB_HOST }}
+      DB_NAME: ${{ secrets.DB_NAME || vars.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER || vars.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD || vars.DB_PASSWORD }}
+      DB_PORT: ${{ secrets.DB_PORT || vars.DB_PORT }}
+      DB_SSL: ${{ secrets.DB_SSL || vars.DB_SSL }}
 
     steps:
       - name: Checkout
