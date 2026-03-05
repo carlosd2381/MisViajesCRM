@@ -573,7 +573,7 @@ test('cfdi validation endpoints persist events in postgres mode', async (t: Test
     assert.equal(cancelEventResult.rows[0].valid, 'false');
 
     const eventsEndpointResponse = await fetch(
-      `${started.baseUrl}/management/cfdi/events?invoiceId=${stampInvoiceId}&limit=5`,
+      `${started.baseUrl}/management/cfdi/events?invoiceId=${stampInvoiceId}&limit=5&from=2020-01-01T00:00:00.000Z&to=2100-01-01T00:00:00.000Z`,
       {
         method: 'GET',
         headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID)

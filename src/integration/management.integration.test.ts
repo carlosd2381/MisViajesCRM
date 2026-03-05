@@ -241,6 +241,28 @@ test('owner gets 400 for CFDI events endpoint without invoiceId', async () => {
   }
 });
 
+test('owner gets 400 for CFDI events endpoint with invalid from timestamp', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/events?invoiceId=inv_cfdi_001&from=not-a-date`, {
+      method: 'GET',
+      headers: testHeaders('owner')
+    });
+
+    assert.equal(response.status, 400);
+    const payload = (await response.json()) as {
+      message: string;
+      errors?: string[];
+    };
+
+    assert.equal(payload.message, 'Solicitud inválida');
+    assert.ok((payload.errors ?? []).includes('from inválido'));
+  } finally {
+    await stopServer(server);
+  }
+});
+
 test('owner can request CFDI stamp confirm in memory mode', async () => {
   const { server, baseUrl } = await startServer();
 

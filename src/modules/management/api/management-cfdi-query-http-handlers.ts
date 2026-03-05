@@ -82,6 +82,8 @@ export async function handleManagementCfdiEvents(context: RequestContext): Promi
   const storageMode = process.env.STORAGE_MODE ?? 'memory';
   const searchParams = new URL(context.req.url ?? '/', 'http://localhost').searchParams;
   const invoiceId = asText(searchParams.get('invoiceId'));
+  const from = asText(searchParams.get('from'));
+  const to = asText(searchParams.get('to'));
   const limitInput = Number.parseInt(searchParams.get('limit') ?? '20', 10);
   const limit = Number.isFinite(limitInput) ? Math.min(Math.max(limitInput, 1), 100) : 20;
 
@@ -89,6 +91,22 @@ export async function handleManagementCfdiEvents(context: RequestContext): Promi
     sendJson(context.res, 400, {
       message: messageByLocale(context.locale, 'Solicitud inválida'),
       errors: ['invoiceId es requerido']
+    });
+    return;
+  }
+
+  if (from && !isIsoDateTime(from)) {
+    sendJson(context.res, 400, {
+      message: messageByLocale(context.locale, 'Solicitud inválida'),
+      errors: ['from inválido']
+    });
+    return;
+  }
+
+  if (to && !isIsoDateTime(to)) {
+    sendJson(context.res, 400, {
+      message: messageByLocale(context.locale, 'Solicitud inválida'),
+      errors: ['to inválido']
     });
     return;
   }
@@ -107,6 +125,21 @@ export async function handleManagementCfdiEvents(context: RequestContext): Promi
   }
 
   try {
+    const filters: string[] = ['cfdi_invoice_id = $1'];
+    const params: unknown[] = [invoiceId];
+
+    if (from) {
+      params.push(from);
+      filters.push(`event_at >= $${params.length}::timestamptz`);
+    }
+
+    if (to) {
+      params.push(to);
+      filters.push(`event_at <= $${params.length}::timestamptz`);
+    }
+
+    params.push(limit);
+
     const result = await pgQuery<{
       id: string;
       cfdi_invoice_id: string;
@@ -124,11 +157,11 @@ export async function handleManagementCfdiEvents(context: RequestContext): Promi
           event_at,
           created_at
         from cfdi_invoice_events
-        where cfdi_invoice_id = $1
+        where ${filters.join(' and ')}
         order by event_at desc
-        limit $2
+        limit $${params.length}
       `,
-      [invoiceId, limit]
+      params
     );
 
     sendJson(context.res, 200, {
