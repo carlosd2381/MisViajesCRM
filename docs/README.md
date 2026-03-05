@@ -12,6 +12,7 @@ Este proyecto mantiene documentación viva para evitar desviaciones de arquitect
 
 - `docs/operations/otel-deployment-profiles.md` — perfiles recomendados para activar OpenTelemetry en dev/staging/prod.
 - `docs/operations/auth-incident-runbook.md` — guía de diagnóstico y mitigación para incidentes de autenticación/sesiones.
+- `docs/operations/ci-troubleshooting.md` — señales y acciones de triage rápido para jobs CI (`auth/ai/postgres`).
 
 ## Gobierno de revisiones
 
@@ -76,6 +77,8 @@ Además, si se exceden límites soft de tamaño de archivo/función, el PR debe 
 - Ejecutar matriz solo para locale `en-US`: `npm run smoke:matrix:en`
 - Ejecutar matriz reutilizando API externa en `AUTH_MODE=header`: `npm run smoke:matrix:external:header`
 - Ejecutar matriz reutilizando API externa en `AUTH_MODE=token`: `npm run smoke:matrix:external:token`
+- Validar precondiciones de integración PostgreSQL (`DB_*` + tablas requeridas): `npm run postgres:integration:precheck`
+- Ejecutar integración PostgreSQL dedicada (`lead.convert` audit persistence): `npm run test:integration:postgres`
 - Ejecutar todas las pruebas: `npm run test`
 - Ejecutar pruebas de utilidades operativas (`tools/ops`): `npm run test:ops`
 - Ejecutar pruebas de utilidades de quality (`tools/quality`): `npm run test:quality`
@@ -120,6 +123,9 @@ CI:
 - En ejecución manual, `ai_render_smoke_locales` permite correr `es-MX`, `en-US` o `both`.
 - En ejecución manual, `force_smoke_matrix=true` ejecuta un job consolidado (`smoke:matrix`) y adjunta `tmp/smoke-matrix-summary.json` como artifact.
 - En ejecución manual, `smoke_matrix_auth_modes` y `smoke_matrix_locales` permiten limitar el job `smoke-matrix` a subconjuntos (`header,token` / `es-MX,en-US`).
+- En ejecución manual, `force_postgres_integration=true` habilita el job `postgres-integration` para ejecutar `npm run test:integration:postgres`.
+- Además del job en `quality.yml`, existe un workflow dedicado `postgres-nightly.yml` (cron nocturno) que también puede lanzarse manualmente con `force_postgres_integration=true`.
+- El job `postgres-integration` requiere variables `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` (y opcional `DB_PORT`) disponibles en el entorno del runner; si faltan, publica resumen de `skip` en `GITHUB_STEP_SUMMARY`.
 - El job `smoke-matrix` valida que exista `SMOKE_MATRIX_SUMMARY` en salida y publica esa línea en `GITHUB_STEP_SUMMARY`.
 - En caso de análisis posterior, el artifact incluye JSON consolidado y `smoke-matrix-output.log`.
 
@@ -164,8 +170,40 @@ Casos recomendados para `ai-schema-smoke`:
 	- `force_smoke_matrix=true`
 	- `smoke_matrix_auth_modes=token`
 	- `smoke_matrix_locales=en-US`
+10. Ejecutar validación de integración PostgreSQL en CI:
+	- `force_postgres_integration=true`
+	- confirmar variables de entorno del runner: `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` (`DB_PORT` opcional)
+11. Ejecutar manualmente el workflow nocturno de PostgreSQL:
+	- workflow: `postgres-nightly.yml`
+	- input: `force_postgres_integration=true`
+	- confirmar variables de entorno del runner: `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` (`DB_PORT` opcional)
+
+Payload sugerido (copy/paste) para `workflow_dispatch` del workflow de calidad:
+
+```json
+{
+	"ref": "main",
+	"inputs": {
+		"force_postgres_integration": "true",
+		"force_auth_smoke": "false",
+		"force_ai_schema_smoke": "false",
+		"force_ai_render_smoke": "false",
+		"force_smoke_matrix": "false"
+	}
+}
+```
+
+Ejemplo con GitHub CLI:
+
+`gh workflow run quality.yml --ref main -f force_postgres_integration=true`
+
+### Troubleshooting rápido: `postgres-integration` (CI)
+
+Referencia canónica: `docs/operations/ci-troubleshooting.md`.
 
 ### Lectura rápida de summaries (logs CI)
+
+Referencia canónica de señales/acciones: `docs/operations/ci-troubleshooting.md`.
 
 Tanto `auth:smoke` como `ai:schema:smoke` imprimen una línea JSON para diagnóstico rápido:
 

@@ -232,3 +232,47 @@ test('ai schema endpoint supports locale query for description localization', as
     await stopIntegrationServer(server);
   }
 });
+
+test('agent can read AI metrics after proposal requests', async () => {
+  const { server, baseUrl } = await startIntegrationServer();
+
+  try {
+    const proposalResponse = await fetch(`${baseUrl}/ai/proposal`, {
+      method: 'POST',
+      headers: integrationTestHeaders('agent'),
+      body: JSON.stringify({
+        promptProfile: 'storyteller',
+        itinerarySummary: 'Llegada y actividades culturales con narrativa diaria.',
+        destination: 'Mérida',
+        days: 4
+      })
+    });
+
+    assert.equal(proposalResponse.status, 200);
+
+    const metricsResponse = await fetch(`${baseUrl}/ai/metrics`, {
+      method: 'GET',
+      headers: integrationTestHeaders('agent')
+    });
+
+    assert.equal(metricsResponse.status, 200);
+    const payload = (await metricsResponse.json()) as {
+      data: {
+        provider: string;
+        totals: { requests: number; totalEstimatedTokens: number; totalEstimatedCostUsd: number };
+        byOperation: { proposal: { count: number; avgDurationMs: number } };
+      };
+      message: string;
+    };
+
+    assert.equal(payload.message, 'Métricas AI disponibles');
+    assert.equal(payload.data.provider, 'mock');
+    assert.ok(payload.data.totals.requests >= 1);
+    assert.ok(payload.data.byOperation.proposal.count >= 1);
+    assert.ok(payload.data.byOperation.proposal.avgDurationMs >= 0);
+    assert.ok(payload.data.totals.totalEstimatedTokens >= 0);
+    assert.ok(payload.data.totals.totalEstimatedCostUsd >= 0);
+  } finally {
+    await stopIntegrationServer(server);
+  }
+});

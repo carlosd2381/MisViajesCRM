@@ -14,7 +14,7 @@ import {
 
 test('Auth smoke summary contract accepts required base scenarios', () => {
   const line =
-    'AUTH_SMOKE_SUMMARY {"locale":"es-MX","verifyTokenMode":false,"checkedNegativeScenarios":["unauth_metrics_401","forbidden_metrics_403","invalid_refresh_401"]}';
+    'AUTH_SMOKE_SUMMARY {"locale":"es-MX","verifyTokenMode":false,"checkedNegativeScenarios":["unauth_metrics_401","forbidden_metrics_403","invalid_refresh_401"],"checkedLeadConversion":{"success201":true,"duplicateConflict409":true,"invalidPayload400":true,"invalidPayloadErrorsArray":true}}';
 
   const parsed = parseSmokeSummaryLine(line, 'AUTH_SMOKE_SUMMARY');
 
@@ -26,7 +26,7 @@ test('Auth smoke summary contract accepts required base scenarios', () => {
 
 test('Auth smoke summary contract requires token-mode scenario when verifyTokenMode=true', () => {
   const line =
-    'AUTH_SMOKE_SUMMARY {"locale":"en-US","verifyTokenMode":true,"checkedNegativeScenarios":["unauth_metrics_401","forbidden_metrics_403","invalid_refresh_401","token_mode_unauth_protected_401"]}';
+    'AUTH_SMOKE_SUMMARY {"locale":"en-US","verifyTokenMode":true,"checkedNegativeScenarios":["unauth_metrics_401","forbidden_metrics_403","invalid_refresh_401","token_mode_unauth_protected_401"],"checkedLeadConversion":{"success201":true,"duplicateConflict409":true,"invalidPayload400":true,"invalidPayloadErrorsArray":true}}';
 
   const parsed = parseSmokeSummaryLine(line, 'AUTH_SMOKE_SUMMARY');
 
@@ -37,7 +37,7 @@ test('Auth smoke summary contract requires token-mode scenario when verifyTokenM
 
 test('Auth smoke summary contract rejects missing token-mode scenario when verifyTokenMode=true', () => {
   const line =
-    'AUTH_SMOKE_SUMMARY {"locale":"en-US","verifyTokenMode":true,"checkedNegativeScenarios":["unauth_metrics_401","forbidden_metrics_403","invalid_refresh_401"]}';
+    'AUTH_SMOKE_SUMMARY {"locale":"en-US","verifyTokenMode":true,"checkedNegativeScenarios":["unauth_metrics_401","forbidden_metrics_403","invalid_refresh_401"],"checkedLeadConversion":{"success201":true,"duplicateConflict409":true,"invalidPayload400":true,"invalidPayloadErrorsArray":true}}';
 
   const parsed = parseSmokeSummaryLine(line, 'AUTH_SMOKE_SUMMARY');
 
@@ -45,6 +45,45 @@ test('Auth smoke summary contract rejects missing token-mode scenario when verif
   assert.throws(
     () => assertAuthSmokeSummaryContract(parsed),
     /missing token-mode scenario token_mode_unauth_protected_401/
+  );
+});
+
+test('Auth smoke summary contract rejects missing checkedLeadConversion block', () => {
+  const line =
+    'AUTH_SMOKE_SUMMARY {"locale":"es-MX","verifyTokenMode":false,"checkedNegativeScenarios":["unauth_metrics_401","forbidden_metrics_403","invalid_refresh_401"]}';
+
+  const parsed = parseSmokeSummaryLine(line, 'AUTH_SMOKE_SUMMARY');
+
+  assert.ok(parsed);
+  assert.throws(
+    () => assertAuthSmokeSummaryContract(parsed),
+    /checkedLeadConversion must be an object/
+  );
+});
+
+test('Auth smoke summary contract rejects missing invalidPayload400 flag', () => {
+  const line =
+    'AUTH_SMOKE_SUMMARY {"locale":"es-MX","verifyTokenMode":false,"checkedNegativeScenarios":["unauth_metrics_401","forbidden_metrics_403","invalid_refresh_401"],"checkedLeadConversion":{"success201":true,"duplicateConflict409":true,"invalidPayloadErrorsArray":true}}';
+
+  const parsed = parseSmokeSummaryLine(line, 'AUTH_SMOKE_SUMMARY');
+
+  assert.ok(parsed);
+  assert.throws(
+    () => assertAuthSmokeSummaryContract(parsed),
+    /checkedLeadConversion.invalidPayload400 must be true/
+  );
+});
+
+test('Auth smoke summary contract rejects missing invalidPayloadErrorsArray flag', () => {
+  const line =
+    'AUTH_SMOKE_SUMMARY {"locale":"es-MX","verifyTokenMode":false,"checkedNegativeScenarios":["unauth_metrics_401","forbidden_metrics_403","invalid_refresh_401"],"checkedLeadConversion":{"success201":true,"duplicateConflict409":true,"invalidPayload400":true}}';
+
+  const parsed = parseSmokeSummaryLine(line, 'AUTH_SMOKE_SUMMARY');
+
+  assert.ok(parsed);
+  assert.throws(
+    () => assertAuthSmokeSummaryContract(parsed),
+    /checkedLeadConversion.invalidPayloadErrorsArray must be true/
   );
 });
 

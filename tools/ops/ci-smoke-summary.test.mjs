@@ -59,3 +59,31 @@ test('ci-smoke-summary fails when summary line is missing', () => {
   assert.match(result.stderr, /SMOKE_MATRIX_SUMMARY/i);
   assert.match(result.stderr, /(not found|missing|summary line)/i);
 });
+
+test('ci-smoke-summary keeps checkedLeadConversion fields in parsed auth summary output', () => {
+  const root = mkdtempSync(join(tmpdir(), 'misviajes-ci-smoke-summary-'));
+  const summaryFilePath = join(root, 'step-summary.md');
+  const logFilePath = join(root, 'auth-smoke-output.log');
+
+  writeFileSync(
+    logFilePath,
+    'AUTH_SMOKE_SUMMARY {"locale":"es-MX","verifyTokenMode":true,"checkedNegativeScenarios":["unauth_metrics_401","forbidden_metrics_403","invalid_refresh_401","token_mode_unauth_protected_401"],"checkedLeadConversion":{"success201":true,"duplicateConflict409":true,"invalidPayload400":true,"invalidPayloadErrorsArray":true}}\n',
+    'utf8'
+  );
+
+  const result = runScript(
+    [
+      'Auth smoke (token, es-MX)',
+      'AUTH_SMOKE_SUMMARY',
+      logFilePath,
+      'AUTH_MODE=token',
+      'AUTH_SMOKE_LOCALE=es-MX'
+    ],
+    summaryFilePath
+  );
+
+  assert.equal(result.status, 0);
+
+  const stepSummary = readFileSync(summaryFilePath, 'utf8');
+  assert.match(stepSummary, /"checkedLeadConversion":\{"success201":true,"duplicateConflict409":true,"invalidPayload400":true,"invalidPayloadErrorsArray":true\}/);
+});

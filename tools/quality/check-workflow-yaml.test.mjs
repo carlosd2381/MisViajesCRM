@@ -22,6 +22,11 @@ function readQualityWorkflowSource() {
   return readFileSync(qualityWorkflowPath, 'utf8');
 }
 
+function readPostgresNightlyWorkflowSource() {
+  const postgresNightlyWorkflowPath = join(process.cwd(), '.github', 'workflows', 'postgres-nightly.yml');
+  return readFileSync(postgresNightlyWorkflowPath, 'utf8');
+}
+
 function assertStepExists(source, stepName) {
   const index = source.indexOf(`- name: ${stepName}`);
   assert.notEqual(index, -1, `Missing workflow step: ${stepName}`);
@@ -76,4 +81,27 @@ test('quality workflow keeps smoke contract preflight and summary steps', () => 
   assertStepExists(source, 'Smoke contract preflight summary');
   assert.match(source, /ci-smoke-summary\.sh\s+"Smoke matrix contract preflight"\s+SMOKE_MATRIX_SUMMARY\s+smoke-matrix-contract-output\.log/);
   assertStepOrder(source, 'Run smoke contract preflight', 'Run quality checks');
+});
+
+test('quality workflow keeps postgres integration trigger and job', () => {
+  const source = readQualityWorkflowSource();
+
+  assert.match(source, /force_postgres_integration:/);
+  assert.match(source, /postgres_related:\s*\$\{\{ steps\.filter\.outputs\.postgres_related \}\}/);
+  assert.match(source, /postgres-integration:/);
+  assert.match(source, /npm run test:integration:postgres/);
+  assert.match(source, /Evaluate Postgres environment availability/);
+});
+
+test('postgres nightly workflow keeps schedule trigger and postgres integration job', () => {
+  const source = readPostgresNightlyWorkflowSource();
+
+  assert.match(source, /name:\s*Postgres Integration Nightly/);
+  assert.match(source, /schedule:/);
+  assert.match(source, /cron:\s*'0 7 \* \* \*'/);
+  assert.match(source, /workflow_dispatch:/);
+  assert.match(source, /force_postgres_integration:/);
+  assert.match(source, /postgres-integration:/);
+  assert.match(source, /Evaluate Postgres environment availability/);
+  assert.match(source, /npm run test:integration:postgres/);
 });

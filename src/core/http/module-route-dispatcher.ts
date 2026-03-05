@@ -14,7 +14,7 @@ import {
   permissionForSuppliers
 } from '../auth/route-permissions';
 import type { PermissionKey } from '../auth/permissions';
-import { handleLeadsCollection, handleLeadResource } from '../../modules/leads/api/lead-http-handlers';
+import { handleLeadConvert, handleLeadsCollection, handleLeadResource } from '../../modules/leads/api/lead-http-handlers';
 import { handleClientResource, handleClientsCollection } from '../../modules/clients/api/client-http-handlers';
 import {
   handleSupplierResource,
@@ -41,6 +41,7 @@ import {
   handleManagementResource
 } from '../../modules/management/api/management-http-handlers';
 import {
+  handleAiMetrics,
   handleAiProposalCollection,
   handleAiProposalPdfDraft,
   handleAiProposalRenderSchema,
@@ -103,12 +104,18 @@ function handleLeadsRoute(context: ModuleRouteContext): Promise<void> | null {
   const { req, res, pathSegments, locale, repositories, authMode } = context;
   if (pathSegments[0] !== 'leads') return null;
 
-  const permission = permissionForLeads(req.method);
+  const permission: PermissionKey | null =
+    pathSegments.length === 3 && pathSegments[2] === 'convert' && req.method === 'POST'
+      ? 'write:clients'
+      : permissionForLeads(req.method);
   if (!canProceed(req, res, locale, permission, authMode)) return Promise.resolve();
 
   const requestContext = { req, res, pathSegments, locale };
   if (pathSegments.length === 1) return handleLeadsCollection(requestContext, repositories.leads);
   if (pathSegments.length === 2) return handleLeadResource(requestContext, repositories.leads);
+  if (pathSegments.length === 3 && pathSegments[2] === 'convert') {
+    return handleLeadConvert(requestContext, repositories.leads, repositories.clients);
+  }
   return Promise.resolve();
 }
 
@@ -235,6 +242,9 @@ function handleAiRoute(context: ModuleRouteContext): Promise<void> | null {
   if (!canProceed(req, res, locale, permission, authMode)) return Promise.resolve();
 
   const requestContext = { req, res, pathSegments, locale };
+  if (pathSegments.length === 2 && pathSegments[1] === 'metrics') {
+    return handleAiMetrics(requestContext);
+  }
   if (pathSegments.length === 2 && pathSegments[1] === 'proposal') {
     return handleAiProposalCollection(requestContext);
   }

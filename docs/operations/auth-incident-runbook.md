@@ -43,6 +43,8 @@ Atajo recomendado:
 - Para validar localización de respuestas: `AUTH_SMOKE_LOCALE=en-US npm run auth:smoke` (o `es-MX`).
 - Confirmar que el job CI `auth-smoke` del workflow de calidad también esté pasando.
 - En incidente sin cambios de código, lanzar `workflow_dispatch` con `force_auth_smoke=true`, `auth_smoke_modes=token|both` y `auth_smoke_locales=en-US|es-MX|both`.
+- Si el incidente involucra persistencia PostgreSQL (revocación compartida o trazabilidad), lanzar también `workflow_dispatch` con `force_postgres_integration=true` para ejecutar `test:integration:postgres` en CI.
+- Antes de ese run, confirmar variables `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` (y opcional `DB_PORT`) en el entorno del runner; si faltan, el job se marca como `skip` en el summary.
 - Variables opcionales para el smoke-check:
    - `AUTH_SMOKE_BASE_URL`
    - `AUTH_SMOKE_AGENT_ID`, `AUTH_SMOKE_AGENT_ROLE`
@@ -51,14 +53,11 @@ Atajo recomendado:
 
 ### Quick triage de summaries (CI)
 
-| Señal en logs | Interpretación rápida | Acción recomendada |
-| --- | --- | --- |
-| Falta `AUTH_SMOKE_SUMMARY` | El script no terminó flujo esperado o cambió formato | Revisar paso `Run auth smoke check`, confirmar exit code y artifact de logs del job |
-| `verifyTokenMode=false` cuando esperabas token | Se ejecutó variante header o variable no aplicada | Revisar matriz/inputs (`auth_smoke_modes`) y variable `AUTH_SMOKE_VERIFY_TOKEN_MODE` |
-| `checkedNegativeScenarios` sin `token_mode_unauth_protected_401` en corrida token | Cobertura token negativa no se ejecutó | Confirmar que el job corre con `AUTH_MODE=token` y `AUTH_SMOKE_VERIFY_TOKEN_MODE=true` |
-| `locale` distinto al esperado | Se corrió locale incorrecto o sin selector manual | Revisar matriz/inputs (`auth_smoke_locales`) y `AUTH_SMOKE_LOCALE` |
-| Falta `AI_SCHEMA_SMOKE_SUMMARY` | El schema smoke no completó validación de contrato | Revisar paso `Run AI schema smoke check` y artifact del job `ai-schema-smoke` |
-| Falta `AI_RENDER_SMOKE_SUMMARY` | El render smoke no completó validaciones web/pdf | Revisar paso `Run AI render smoke check` y artifact del job `ai-render-smoke` |
+Referencia canónica: `docs/operations/ci-troubleshooting.md`.
+
+### Quick triage de `postgres-integration` (CI)
+
+Referencia canónica: `docs/operations/ci-troubleshooting.md`.
 
 ## Escenario A — falla de validación JWT
 

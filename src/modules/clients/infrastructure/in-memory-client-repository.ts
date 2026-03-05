@@ -12,6 +12,14 @@ export class InMemoryClientRepository implements ClientRepository {
     return this.items.get(id) ?? null;
   }
 
+  async getByLeadId(leadId: string): Promise<Client | null> {
+    for (const item of this.items.values()) {
+      if (item.leadId === leadId) return item;
+    }
+
+    return null;
+  }
+
   async create(entity: Client): Promise<Client> {
     this.items.set(entity.id, entity);
     return entity;

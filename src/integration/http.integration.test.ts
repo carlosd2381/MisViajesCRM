@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { integrationTestHeaders, startIntegrationServer, stopIntegrationServer } from './test-harness';
 
-function testHeaders(role = 'agent'): Record<string, string> {
-  return integrationTestHeaders(role);
+function testHeaders(role = 'agent', locale = 'es-MX'): Record<string, string> {
+  return integrationTestHeaders(role, locale);
 }
 
 const startServer = startIntegrationServer;

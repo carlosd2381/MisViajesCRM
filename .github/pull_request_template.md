@@ -33,6 +33,8 @@
 - [ ] If AI render or CI behavior changed, considered manual `workflow_dispatch` with `force_ai_render_smoke=true`
 - [ ] Selected `ai_render_smoke_auth_modes` (`header`, `token`, `both`) appropriate for risk
 - [ ] Selected `ai_render_smoke_locales` (`es-MX`, `en-US`, `both`) appropriate for i18n risk
+- [ ] If PostgreSQL persistence/audit or CI behavior changed, considered manual `workflow_dispatch` with `force_postgres_integration=true`
+- [ ] Confirmed CI runner environment has `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` (and optional `DB_PORT`) before relying on `postgres-integration` results
 
 ## Notes for Reviewers
 

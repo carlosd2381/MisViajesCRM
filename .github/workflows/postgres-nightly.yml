@@ -1,0 +1,76 @@
+name: Postgres Integration Nightly
+
+on:
+  schedule:
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+    inputs:
+      force_postgres_integration:
+        description: 'Run postgres integration job even if manually triggered (requires DB_* vars/secrets)'
+        required: false
+        default: 'true'
+
+concurrency:
+  group: postgres-nightly-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  postgres-integration:
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.force_postgres_integration == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DB_HOST: ${{ secrets.DB_HOST || vars.DB_HOST }}
+      DB_NAME: ${{ secrets.DB_NAME || vars.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER || vars.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD || vars.DB_PASSWORD }}
+      DB_PORT: ${{ secrets.DB_PORT || vars.DB_PORT }}
+      DB_SSL: ${{ secrets.DB_SSL || vars.DB_SSL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node and dependencies
+        uses: ./.github/actions/setup-node-ci
+        with:
+          node-version: '20'
+
+      - name: Evaluate Postgres environment availability
+        id: db-secrets
+        run: |
+          missing=0
+          for key in DB_HOST DB_NAME DB_USER DB_PASSWORD; do
+            if [ -z "${!key}" ]; then
+              echo "missing $key"
+              missing=1
+            fi
+          done
+
+          if [ "$missing" -eq 1 ]; then
+            echo "run_postgres_tests=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping postgres integration: DB_* environment variables are not fully configured."
+            exit 0
+          fi
+
+          echo "run_postgres_tests=true" >> "$GITHUB_OUTPUT"
+
+      - name: Run Postgres integration test
+        if: steps.db-secrets.outputs.run_postgres_tests == 'true'
+        run: npm run test:integration:postgres | tee postgres-nightly-output.log
+
+      - name: Postgres integration summary
+        if: always()
+        run: |
+          if [ "${{ steps.db-secrets.outputs.run_postgres_tests }}" != "true" ]; then
+            bash tools/ops/ci-step-summary.sh "Postgres nightly integration" "Skipped: missing DB_* environment variables" '{"skipped":true,"reason":"missing DB_* environment variables"}'
+          else
+            bash tools/ops/ci-step-summary.sh "Postgres nightly integration" "Executed: npm run test:integration:postgres" '{"skipped":false,"command":"npm run test:integration:postgres"}'
+          fi
+
+      - name: Upload postgres integration logs on failure
+        if: failure() && steps.db-secrets.outputs.run_postgres_tests == 'true'
+        uses: ./.github/actions/upload-artifact
+        with:
+          name: postgres-nightly-failure-log
+          path: postgres-nightly-output.log

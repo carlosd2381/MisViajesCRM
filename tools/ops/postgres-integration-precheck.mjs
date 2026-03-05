@@ -1,0 +1,82 @@
+import { Pool } from 'pg';
+
+const REQUIRED_ENV = ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'];
+const EXPECTED_TABLES = (process.env.POSTGRES_INTEGRATION_EXPECT_TABLES ?? 'audit_events,leads,clients')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
+
+function fail(message) {
+  throw new Error(message);
+}
+
+function env(name) {
+  const value = process.env[name];
+  if (!value) {
+    fail(`Missing env var: ${name}`);
+  }
+
+  return value;
+}
+
+function formatSummary(summary) {
+  return `POSTGRES_INTEGRATION_PRECHECK ${JSON.stringify(summary)}`;
+}
+
+async function run() {
+  const missingEnv = REQUIRED_ENV.filter((name) => !process.env[name]);
+  if (missingEnv.length > 0) {
+    fail(`Missing required env vars: ${missingEnv.join(', ')}`);
+  }
+
+  const pool = new Pool({
+    host: env('DB_HOST'),
+    port: Number(process.env.DB_PORT ?? '5432'),
+    database: env('DB_NAME'),
+    user: env('DB_USER'),
+    password: env('DB_PASSWORD')
+  });
+
+  try {
+    const result = await pool.query(
+      `
+        select table_name
+        from information_schema.tables
+        where table_schema = 'public'
+      `
+    );
+
+    const existingTables = new Set(result.rows.map((row) => row.table_name));
+    const missingTables = EXPECTED_TABLES.filter((tableName) => !existingTables.has(tableName));
+
+    if (missingTables.length > 0) {
+      fail(
+        `Postgres schema not ready. Missing tables: ${missingTables.join(', ')}. ` +
+        'Apply migrations before running postgres integration tests.'
+      );
+    }
+
+    console.log(
+      formatSummary({
+        ok: true,
+        dbHost: process.env.DB_HOST,
+        dbName: process.env.DB_NAME,
+        checkedTables: EXPECTED_TABLES,
+        missingTables: []
+      })
+    );
+  } finally {
+    await pool.end();
+  }
+}
+
+run().catch((error) => {
+  console.error(
+    formatSummary({
+      ok: false,
+      checkedTables: EXPECTED_TABLES,
+      error: error instanceof Error ? error.message : 'Unknown precheck error'
+    })
+  );
+  process.exitCode = 1;
+});

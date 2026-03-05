@@ -1,4 +1,5 @@
 import type { CreateLeadRequest, UpdateLeadRequest } from '../api/lead-contracts';
+import type { CreateClientRequest } from '../../clients/api/client-contracts';
 import type { Lead } from '../domain/lead';
 
 function nowIsoDate(): string {
@@ -25,6 +26,39 @@ export function mapUpdateLeadToEntity(current: Lead, input: UpdateLeadRequest): 
   return {
     ...current,
     ...input,
+    updatedAt: nowIsoDate()
+  };
+}
+
+export function mapConvertLeadToClientRequest(lead: Lead, input: CreateClientRequest): CreateClientRequest {
+  const leadPreferences: Record<string, string | number | boolean | string[]> = {
+    leadDestination: lead.destination,
+    leadStatus: lead.status,
+    leadSource: lead.source,
+    leadPriority: lead.priority,
+    leadAdultsCount: lead.adultsCount,
+    leadChildrenCount: lead.childrenCount
+  };
+
+  if (lead.budgetMin !== undefined) leadPreferences.leadBudgetMin = lead.budgetMin;
+  if (lead.budgetMax !== undefined) leadPreferences.leadBudgetMax = lead.budgetMax;
+  if (lead.budgetCurrency) leadPreferences.leadBudgetCurrency = lead.budgetCurrency;
+  if (lead.tripType) leadPreferences.leadTripType = lead.tripType;
+
+  return {
+    ...input,
+    leadId: lead.id,
+    travelPreferences: {
+      ...leadPreferences,
+      ...(input.travelPreferences ?? {})
+    }
+  };
+}
+
+export function mapLeadToClosedWon(current: Lead): Lead {
+  return {
+    ...current,
+    status: 'closed_won',
     updatedAt: nowIsoDate()
   };
 }

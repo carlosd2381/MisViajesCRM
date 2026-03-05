@@ -9,7 +9,8 @@
 			"mdls": true,
 			"command": true,
 			"pdftotext": true,
-			"npm install": true
+			"npm install": true,
+			"npx tsx": true
 		}
 	}
 }

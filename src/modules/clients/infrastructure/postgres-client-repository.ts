@@ -136,6 +136,16 @@ export class PostgresClientRepository implements ClientRepository {
     return mapClientRow(row, contacts, addresses);
   }
 
+  async getByLeadId(leadId: string): Promise<Client | null> {
+    const result = await pgQuery<ClientRow>('select * from clients where lead_id = $1', [leadId]);
+    const row = result.rows[0];
+    if (!row) return null;
+
+    const contacts = await loadContacts(row.id);
+    const addresses = await loadAddresses(row.id);
+    return mapClientRow(row, contacts, addresses);
+  }
+
   async create(entity: Client): Promise<Client> {
     const sql = `
       insert into clients (

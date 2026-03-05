@@ -1,7 +1,7 @@
 # Data Dictionary (Documento Vivo)
 
 Estado: Borrador inicial
-Última actualización: 2026-03-03
+Última actualización: 2026-03-05
 
 ## Convenciones generales
 
@@ -207,9 +207,36 @@ Campos clave:
 - `amount_original` (numeric)
 - `currency_original` (char(3))
 - `exchange_rate` (numeric)
+- `exchange_rate_recorded_at` (timestamptz)
+- `exchange_rate_source` (enum: manual, provider_quote, provider_booking, sat_reference, bank_reference)
 - `amount_mxn` (numeric)
 - `status` (enum: pending, cleared, cancelled)
 - `transaction_date` (date)
+
+Notas de evolución (P1-DATA-01):
+- `exchange_rate_recorded_at` permite distinguir el timestamp de tipo de cambio usado en quote vs booking.
+- `exchange_rate_source` documenta procedencia del tipo de cambio para trazabilidad operativa.
+
+---
+
+## 14) itinerary_commission_splits
+
+Descripción: distribución de comisiones por proveedor dentro de un mismo itinerario (multi-supplier split).
+
+Campos base implementados en migración (`20260305_013_financials_fx_and_commission_splits.sql`):
+
+- `id` (text, PK)
+- `itinerary_id` (text)
+- `supplier_id` (text)
+- `commission_id` (text, nullable)
+- `split_percent` (numeric, nullable, 0..100)
+- `split_amount_mxn` (numeric)
+- `basis_amount_mxn` (numeric, nullable)
+- `status` (enum lógico: `planned`, `locked`, `settled`, `disputed`)
+- `effective_at` (timestamptz)
+- `notes` (text, nullable)
+- `created_at` (timestamptz)
+- `updated_at` (timestamptz)
 
 ---
 
@@ -296,6 +323,82 @@ Campos base implementados en migración (`20260303_002_auth_refresh_sessions.sql
 
 ---
 
+## 11) sat_certificates
+
+Descripción: certificados SAT/CSD/FIEL usados para firmado y operación de CFDI.
+
+Campos base implementados en migración (`20260305_012_cfdi_sat_foundation.sql`):
+
+- `id` (text, PK)
+- `rfc_emisor` (text)
+- `certificate_number` (text, único)
+- `serial_number` (text, nullable)
+- `certificate_source` (enum lógico: `csd`, `fiel`, `other`)
+- `status` (enum lógico: `pending_validation`, `active`, `expired`, `revoked`)
+- `valid_from` (date)
+- `valid_to` (date)
+- `certificate_pem_ref` (text, nullable)
+- `private_key_ref` (text, nullable)
+- `passphrase_ref` (text, nullable)
+- `created_at` (timestamptz)
+- `updated_at` (timestamptz)
+
+---
+
+## 12) cfdi_invoices
+
+Descripción: documento fiscal CFDI (pre-timbrado y timbrado) con metadata fiscal y payload XML.
+
+Campos base implementados en migración (`20260305_012_cfdi_sat_foundation.sql`):
+
+- `id` (text, PK)
+- `itinerary_id` (text, nullable)
+- `financial_transaction_id` (text, nullable)
+- `client_id` (text, nullable)
+- `sat_certificate_id` (text, nullable)
+- `serie` (text, nullable)
+- `folio` (text, nullable)
+- `cfdi_uuid` (text, único, nullable)
+- `rfc_emisor` (text)
+- `rfc_receptor` (text)
+- `uso_cfdi` (text, nullable)
+- `tipo_comprobante` (enum lógico: `I`, `E`, `P`, `N`, `T`)
+- `metodo_pago` (text, nullable)
+- `forma_pago` (text, nullable)
+- `moneda` (char(3))
+- `tipo_cambio` (numeric, nullable)
+- `subtotal` (numeric)
+- `impuestos_total` (numeric)
+- `total` (numeric)
+- `xml_unsigned` (text, nullable)
+- `cadena_original` (text, nullable)
+- `sello_digital` (text, nullable)
+- `xml_stamped` (text, nullable)
+- `status` (enum lógico: `draft`, `ready_to_stamp`, `stamped`, `cancelled`, `error`)
+- `issue_date` (timestamptz)
+- `stamped_at` (timestamptz, nullable)
+- `cancelled_at` (timestamptz, nullable)
+- `last_error` (text, nullable)
+- `created_at` (timestamptz)
+- `updated_at` (timestamptz)
+
+---
+
+## 13) cfdi_invoice_events
+
+Descripción: trazabilidad de eventos de validación/timbrado/cancelación por CFDI.
+
+Campos base implementados en migración (`20260305_012_cfdi_sat_foundation.sql`):
+
+- `id` (text, PK)
+- `cfdi_invoice_id` (text)
+- `event_type` (enum lógico: `generated`, `validation_passed`, `validation_failed`, `stamped`, `cancelled`, `error`)
+- `detail_json` (jsonb, nullable)
+- `event_at` (timestamptz)
+- `created_at` (timestamptz)
+
+---
+
 ## Campos calculados / reglas derivadas
 
 - `agency_profit = gross_total - net_total`.
@@ -326,3 +429,5 @@ Actualizar este archivo en cada cambio de:
 - 2026-03-04: Se documentó implementación de `communication_logs` y su migración SQL base.
 - 2026-03-04: Se documentó implementación de `dashboard_snapshots` y su migración SQL base.
 - 2026-03-04: Se documentó implementación de `management_settings` y su migración SQL base.
+- 2026-03-05: Se agregaron entidades base de preparación SAT/CFDI (`sat_certificates`, `cfdi_invoices`, `cfdi_invoice_events`) y su referencia de migración inicial.
+- 2026-03-05: Se documentó evolución de `financial_transactions` con timestamp/fuente de tipo de cambio y nueva entidad `itinerary_commission_splits` para split multi-proveedor.

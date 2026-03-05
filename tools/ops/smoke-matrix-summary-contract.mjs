@@ -112,4 +112,24 @@ export function assertAuthSmokeSummaryContract(summary) {
       `AUTH_SMOKE_SUMMARY contract invalid: missing token-mode scenario ${REQUIRED_AUTH_NEGATIVE_SCENARIO_TOKEN_MODE}`
     );
   }
+
+  if (!summary.checkedLeadConversion || typeof summary.checkedLeadConversion !== 'object') {
+    throw new Error('AUTH_SMOKE_SUMMARY contract invalid: checkedLeadConversion must be an object');
+  }
+
+  if (summary.checkedLeadConversion.success201 !== true) {
+    throw new Error('AUTH_SMOKE_SUMMARY contract invalid: checkedLeadConversion.success201 must be true');
+  }
+
+  if (summary.checkedLeadConversion.duplicateConflict409 !== true) {
+    throw new Error('AUTH_SMOKE_SUMMARY contract invalid: checkedLeadConversion.duplicateConflict409 must be true');
+  }
+
+  if (summary.checkedLeadConversion.invalidPayload400 !== true) {
+    throw new Error('AUTH_SMOKE_SUMMARY contract invalid: checkedLeadConversion.invalidPayload400 must be true');
+  }
+
+  if (summary.checkedLeadConversion.invalidPayloadErrorsArray !== true) {
+    throw new Error('AUTH_SMOKE_SUMMARY contract invalid: checkedLeadConversion.invalidPayloadErrorsArray must be true');
+  }
 }

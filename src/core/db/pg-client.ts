@@ -26,3 +26,9 @@ export async function pgQuery<T extends QueryResultRow>(sql: string, params: unk
   const activePool = getPgPool();
   return activePool.query<T>(sql, params);
 }
+
+export async function closePgPool(): Promise<void> {
+  if (!pool) return;
+  await pool.end();
+  pool = null;
+}

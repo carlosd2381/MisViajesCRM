@@ -104,3 +104,17 @@ Para considerar terminada una historia técnica/funcional:
   - `quality:docs`: asegura presencia de documentos obligatorios.
   - `quality:codeowners`: valida que `.github/CODEOWNERS` exista y no tenga placeholders.
 - Pipeline CI: `.github/workflows/quality.yml` ejecuta las validaciones en push/PR.
+
+---
+
+## 8) Postgres CI Readiness (cuando aplique)
+
+Cuando un cambio dependa de persistencia/auditoría PostgreSQL o modifique flujo CI relacionado:
+
+1. Confirmar que el job `postgres-integration` del workflow de calidad puede ejecutarse sin `skip` en al menos un entorno válido.
+2. Verificar variables requeridas de entorno CI: `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` (opcional `DB_PORT`).
+3. Confirmar migraciones aplicadas en la base objetivo antes de correr `test:integration:postgres`.
+4. Registrar evidencia mínima en PR/run:
+  - Resultado en `GITHUB_STEP_SUMMARY`.
+  - Artifact/log `postgres-integration-output.log` cuando exista corrida.
+5. Si el job se omite por configuración (`skip`), documentar explícitamente motivo y plan de remediación en el PR.

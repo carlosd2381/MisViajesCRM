@@ -312,7 +312,13 @@ async function runContractOnlyMode() {
       'forbidden_metrics_403',
       'invalid_refresh_401',
       'token_mode_unauth_protected_401'
-    ]
+    ],
+    checkedLeadConversion: {
+      success201: true,
+      duplicateConflict409: true,
+      invalidPayload400: true,
+      invalidPayloadErrorsArray: true
+    }
   };
 
   const aiSchemaSummary = {

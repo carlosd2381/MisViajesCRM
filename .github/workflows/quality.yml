@@ -56,6 +56,10 @@ on:
         description: 'Smoke matrix locales for manual run'
         required: false
         default: 'es-MX,en-US'
+      force_postgres_integration:
+        description: 'Run postgres integration job (requires DB_* repository secrets)'
+        required: false
+        default: 'false'
 
 concurrency:
   group: quality-${{ github.workflow }}-${{ github.ref }}
@@ -67,6 +71,7 @@ jobs:
     outputs:
       auth_related: ${{ steps.filter.outputs.auth_related }}
       ai_related: ${{ steps.filter.outputs.ai_related }}
+      postgres_related: ${{ steps.filter.outputs.postgres_related }}
 
     steps:
       - name: Checkout
@@ -91,6 +96,17 @@ jobs:
               - 'src/integration/ai.integration.test.ts'
               - 'tools/ops/ai-schema-smoke-check.mjs'
               - 'tools/ops/ai-render-smoke-check.mjs'
+              - '.github/workflows/**'
+              - 'package.json'
+              - 'package-lock.json'
+            postgres_related:
+              - 'src/core/audit/**'
+              - 'src/core/db/**'
+              - 'src/modules/leads/**'
+              - 'src/modules/clients/**'
+              - 'src/integration/http.postgres.integration.test.ts'
+              - 'tools/ops/postgres-integration-precheck.mjs'
+              - 'db/migrations/**'
               - '.github/workflows/**'
               - 'package.json'
               - 'package-lock.json'
@@ -393,3 +409,59 @@ jobs:
           path: |
             tmp/smoke-matrix-summary.json
             smoke-matrix-output.log
+
+  postgres-integration:
+    needs: changes
+    if: |
+      needs.changes.outputs.postgres_related == 'true' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.force_postgres_integration == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node and dependencies
+        uses: ./.github/actions/setup-node-ci
+        with:
+          node-version: '20'
+
+      - name: Evaluate Postgres environment availability
+        id: db-secrets
+        run: |
+          missing=0
+          for key in DB_HOST DB_NAME DB_USER DB_PASSWORD; do
+            if [ -z "${!key}" ]; then
+              echo "missing $key"
+              missing=1
+            fi
+          done
+
+          if [ "$missing" -eq 1 ]; then
+            echo "run_postgres_tests=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping postgres integration: DB_* environment variables are not fully configured."
+            exit 0
+          fi
+
+          echo "run_postgres_tests=true" >> "$GITHUB_OUTPUT"
+
+      - name: Run Postgres integration test
+        if: steps.db-secrets.outputs.run_postgres_tests == 'true'
+        run: npm run test:integration:postgres | tee postgres-integration-output.log
+
+      - name: Postgres integration summary
+        if: always()
+        run: |
+          if [ "${{ steps.db-secrets.outputs.run_postgres_tests }}" != "true" ]; then
+            bash tools/ops/ci-step-summary.sh "Postgres integration" "Skipped: missing DB_* environment variables" '{"skipped":true,"reason":"missing DB_* environment variables"}'
+          else
+            bash tools/ops/ci-step-summary.sh "Postgres integration" "Executed: npm run test:integration:postgres" '{"skipped":false,"command":"npm run test:integration:postgres"}'
+          fi
+
+      - name: Upload postgres integration logs on failure
+        if: failure() && steps.db-secrets.outputs.run_postgres_tests == 'true'
+        uses: ./.github/actions/upload-artifact
+        with:
+          name: postgres-integration-failure-log
+          path: postgres-integration-output.log

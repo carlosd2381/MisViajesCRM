@@ -1,7 +1,7 @@
 # Build Plan (Documento Vivo)
 
 Estado: Activo
-Última actualización: 2026-03-04
+Última actualización: 2026-03-05
 
 ## Objetivo del producto
 
@@ -145,6 +145,112 @@ Construir un CRM de agencia de viajes AI-native con interfaz primaria en `es-MX`
 - Smoke-check de render AI agregado para `POST /ai/proposal/render/web` y `POST /ai/proposal/render/pdf`, con matriz `header|token` y `es-MX|en-US`.
 - Refactor de enrutamiento aplicado: `app.ts` delega rutas de módulos a `src/core/http/module-route-dispatcher.ts` para reducir tamaño de archivo/función y mantener comportamiento.
 
+## TODO (Próxima sesión)
+
+Referencia de cierre de hoy: `docs/planning/night-handoff-2026-03-04.md`.
+
+### Siguiente (arranque recomendado)
+
+1. [NEXT] Ejecutar `workflow_dispatch` con `force_postgres_integration=true` en un entorno con `DB_*` configuradas y confirmar corrida completa (sin `skip`).
+2. [NEXT] Verificar evidencia de CI en `GITHUB_STEP_SUMMARY` + artifact `postgres-integration-output.log` y registrar resultado en este documento.
+3. [NEXT] Si falla por esquema, aplicar migraciones pendientes y repetir `test:integration:postgres` hasta verde.
+4. [NEXT] Continuar build en paralelo sobre P1-AI (`P1-AI-01`, `P1-AI-02`) sin abrir nuevas features de Fase 1 hasta resolver `P0-DB-01`.
+
+Playbook de cierre de blocker:
+- `docs/operations/p0-db-ci-unblock-playbook.md`
+
+### Prioridades inmediatas (próximas 2 semanas)
+
+- [MERGE-BLOCKER] Validación PostgreSQL en CI: no declarar cierre de Fase 1 sin al menos una corrida `postgres-integration` (manual o nocturna) sin `skip` y con evidencia en summary/log.
+- [COMPLIANCE-BLOCKER] Preparación CFDI 4.0/SAT adelantada: incluir en roadmap de migraciones entidades técnicas mínimas de facturación fiscal (certificado, sello digital, metadata XML CFDI y validación de esquema).
+- [PHASE-2-GATE] AI pipeline real: definir proveedor LLM objetivo (OpenAI/Azure/local), contrato de integración y observabilidad de latencia/costo antes de cerrar Fase 2.
+- [ARCH-VALIDATION] Validar límites de dominio `commissions` vs `financials` (ADR breve de separación o unificación) y documentar decisión.
+- [ARCH-VALIDATION] Confirmar contrato de contexto `messaging`↔`itinerary` para notificaciones enriquecidas sin acoplamiento circular.
+- [DATA-MODEL] Validar timestamp de tipo de cambio por evento (quote/booking) y estrategia de split de comisiones multi-proveedor por itinerario.
+
+Estado rápido (corte 2026-03-05):
+- P0-DB-01: pendiente (bloqueado por entorno CI `DB_*`).
+- P0-CFDI-01: en progreso (migración base creada).
+- P1-AI-01 / P1-AI-02: pendientes.
+- P1-ARCH-01: completado (ADR dominio + contrato de contexto).
+- P1-DATA-01: completado (migración FX timestamp/source + split multi-proveedor).
+
+### Mini backlog ejecutable (2 semanas)
+
+| ID | Prioridad | Owner sugerido | Entregable | Evidencia de salida |
+| --- | --- | --- | --- | --- |
+| P0-DB-01 | Postgres CI merge-blocker | Backend/DevOps | Configurar `DB_*` en Actions y ejecutar corrida forzada sin `skip` | `GITHUB_STEP_SUMMARY` con ejecución real + log `postgres-integration-output.log` o `postgres-nightly-output.log` |
+| P0-CFDI-01 | CFDI/SAT base legal-operativa | Backend/Finanzas | Propuesta de migraciones iniciales SAT (certificado, sello, metadata XML CFDI, estado de timbrado) | Entrada de plan + archivo de migración draft en `db/migrations/*` |
+| P1-AI-01 | Proveedor LLM real | AI/Backend | ADR corta de proveedor (OpenAI/Azure/local), estrategia de fallback y límites de costo | Documento de decisión + variables de entorno objetivo en docs |
+| P1-AI-02 | Observabilidad AI costo/latencia | AI/Observability | Instrumentación mínima por request (latencia, tokens estimados, costo estimado) | Métrica expuesta en endpoint/summary operativo + prueba de contrato |
+| P1-ARCH-01 | Límite de dominio commissions/financials | Backend/Arquitectura | ADR de separación o unificación con impacto en entidades/rutas | Decisión documentada y checklist de refactor (si aplica) |
+| P1-DATA-01 | FX timestamp + split comisiones | Backend/Finanzas | Diseño de campos y reglas para timestamp de tipo de cambio y split por proveedor | Contrato de datos actualizado + casos de prueba de integración definidos |
+
+Notas de ejecución:
+- P0-DB-01 y P0-CFDI-01 se consideran bloqueadores de avance seguro hacia cierre operativo de Fase 1.
+- P1-AI-01 y P1-AI-02 deben cerrarse antes del cierre formal de Fase 2 (sin excepción).
+- P1-ARCH-01 y P1-DATA-01 deben producir decisiones explícitas antes de ampliar features en `financials/commissions/messaging`.
+- Avance P0-CFDI-01: migración draft creada en `db/migrations/20260305_012_cfdi_sat_foundation.sql` y diccionario actualizado.
+- Avance P1-DATA-01: migración draft creada en `db/migrations/20260305_013_financials_fx_and_commission_splits.sql` (timestamp/fuente FX y split multi-proveedor) y diccionario actualizado.
+- Avance P1-ARCH-01: ADR aprobada en `docs/governance/adr-2026-03-05-commissions-vs-financials.md` (se mantiene separación de dominio `commissions`/`financials`).
+- Avance P1-ARCH-01: contrato de contexto `messaging`↔`itinerary` definido en `docs/governance/adr-2026-03-05-messaging-itinerary-context-contract.md`.
+- Avance P1-AI-01: ADR de proveedor y fallback definida en `docs/governance/adr-2026-03-05-ai-provider-strategy.md`.
+- Avance P1-AI-02: observabilidad base implementada (`GET /ai/metrics`) y guía operativa en `docs/operations/ai-observability-baseline.md`.
+
+### Checklist de ejecución diaria (Día 1–10)
+
+| Día | Objetivo | Resultado esperado |
+| --- | --- | --- |
+| Día 1 | Configurar/validar `DB_*` en GitHub Actions para entorno objetivo | Variables disponibles y checklist de acceso de runner confirmado |
+| Día 2 | Ejecutar `quality.yml` con `force_postgres_integration=true` y capturar evidencia | Corrida sin `skip` documentada en summary/log |
+| Día 3 | Definir alcance técnico SAT/CFDI y entidades mínimas | Lista de entidades/campos y dependencias legales priorizadas |
+| Día 4 | Crear draft de migraciones SAT/CFDI (`certificado/sello/xml`) | Archivo(s) de migración inicial en `db/migrations/*` |
+| Día 5 | Decidir proveedor LLM (ADR corta con riesgos/costos) | Decisión documentada + estrategia fallback |
+| Día 6 | Instrumentar telemetría base AI (latencia/costo/tokens estimados) | Métricas disponibles en entorno de integración |
+| Día 7 | Definir frontera de dominio `commissions` vs `financials` | ADR aprobada con impacto en modelo/rutas |
+| Día 8 | Diseñar contrato `messaging`↔`itinerary` sin acoplamiento circular | Contrato de contexto y eventos/campos acordados |
+| Día 9 | Diseñar timestamp FX y split de comisiones multi-proveedor | Reglas de negocio + campos de datos definidos |
+| Día 10 | Consolidar evidencia y revalidar gates (`quality/typecheck/test`) | Baseline verde + actualización de estado en este documento |
+
+Definition of done (2 semanas):
+- Se cierra P0-DB-01 y P0-CFDI-01 con evidencia verificable en CI/roadmap.
+- Se cierran P1-AI-01 y P1-AI-02 con proveedor y observabilidad operativa mínima.
+- Se cierran P1-ARCH-01 y P1-DATA-01 con decisiones documentadas y checklist de implementación.
+
+Plantilla operativa recomendada para seguimiento diario:
+- `docs/planning/daily-checkin-template.md`
+
+Seguimiento activo:
+- Día 1 (2026-03-05): `docs/planning/daily-checkin-2026-03-05-day1.md`
+- Día 2 draft (2026-03-06): `docs/planning/daily-checkin-2026-03-06-day2-draft.md`
+
+### Otros ítems en cola
+
+- [DONE] Agregar checklist breve de “Postgres CI readiness” en `docs/governance/project-constraints.md` para fijar requisito operativo.
+- [DONE] Considerar job nocturno/cron (opcional) para `test:integration:postgres` en rama principal con alertado temprano.
+- [DONE] Evaluar ampliar cobertura Postgres de auditoría a más acciones críticas de `leads` (además de `lead.convert`).
+- [DONE] Consolidar tabla única de troubleshooting CI (auth/ai/postgres) para reducir duplicación entre `docs/README.md` y runbooks.
+- [DONE] Definir criterio de salida de este bloque: `postgres-integration` estable en CI + documentación operativa cerrada.
+
+### Criterio de salida (bloque Postgres integration)
+
+- `postgres-integration` ejecuta en CI sin `skip` (manual forzado o nocturno) con `DB_*` configuradas.
+- Evidencia publicada en `GITHUB_STEP_SUMMARY` y log adjunto cuando aplique (`postgres-integration-output.log` o `postgres-nightly-output.log`).
+- Prueba de integración Postgres de auditoría de `leads` cubre `lead.create`, `lead.update` y `lead.convert`.
+- Runbook/README/gobernanza referencian la ruta de diagnóstico única `docs/operations/ci-troubleshooting.md`.
+
+### Bloqueadores conocidos
+
+- [BLOCKED-BY-ENV] Confirmación final de `postgres-integration` depende de entorno CI con `DB_*` y esquema migrado.
+- [BLOCKED-BY-COMPLIANCE] No declarar completada capacidad operativa financiera México sin plan técnico activo de CFDI 4.0/SAT.
+
+### Criterios de salida adicionales (insumos 2026-03-05)
+
+- Postgres CI: al menos una corrida `postgres-integration` sin `skip` en `quality.yml` o `postgres-nightly.yml`.
+- SAT/CFDI: backlog de migraciones inicial definido y priorizado (entidades de certificado/sello/XML).
+- AI real: proveedor seleccionado + métricas base de costo/latencia instrumentadas en entorno de integración.
+- Arquitectura: decisión documentada para `commissions`/`financials` y contrato de contexto `messaging`/`itinerary`.
+
 ## Mantenimiento del documento
 
 Actualizar este archivo cuando cambie cualquiera de estos puntos:
@@ -159,6 +265,53 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 Nota de lectura: entradas con `[Resumen]` agrupan lotes de cambios relacionados para escaneo rápido; los bullets detallados que siguen conservan el historial completo y son la referencia operativa principal.
 
 - 2026-03-04: [Resumen] Bloque de endurecimiento CI/contratos completado: preflight `smoke:matrix:contract`, validadores runtime de summaries (`AUTH/AI_SCHEMA/AI_RENDER`), publicación en `GITHUB_STEP_SUMMARY` y pruebas de regresión de workflow.
+- 2026-03-05: Se agregó playbook operativo `docs/operations/p0-db-ci-unblock-playbook.md` para cierre paso-a-paso de `P0-DB-01` (verificación remota, ejecución forzada, evidencia y remediación).
+- 2026-03-05: Se identificó bloqueo operativo adicional para `P0-DB-01`: workflow remoto `quality.yml` en `main` todavía no incluye input/job de Postgres; se requiere publicar esos cambios antes de ejecutar validación CI sin `skip`.
+- 2026-03-05: Se documentó fallback operativo para cierre de `P0-DB-01` cuando no exista `gh` CLI local (disparo manual desde GitHub UI de `Quality Gates` con `force_postgres_integration=true`).
+- 2026-03-05: Se implementó observabilidad base AI con endpoint `GET /ai/metrics` (latencia/errores/quality-gate/tokens/costo estimado por operación) y cobertura de pruebas.
+- 2026-03-05: Se aprobó ADR `adr-2026-03-05-ai-provider-strategy.md` con estrategia de proveedor LLM (`azure-openai` primario, `openai` fallback, `mock` contingencia).
+- 2026-03-05: Se agregó item explícito de continuidad de build en TODO de arranque (`continuar build sobre P1-AI` condicionado a no desbloquear nuevas features de Fase 1 hasta cerrar `P0-DB-01`).
+- 2026-03-05: Se aprobó ADR `adr-2026-03-05-messaging-itinerary-context-contract.md` para definir contrato de contexto `messaging`↔`itinerary` sin acoplamiento circular (snapshot v1 + eventos de integración).
+- 2026-03-05: Se aprobó ADR `adr-2026-03-05-commissions-vs-financials.md` para fijar frontera de dominio entre `commissions` (regla comercial) y `financials` (ledger contable).
+- 2026-03-05: Se agregó migración `20260305_013_financials_fx_and_commission_splits.sql` para P1-DATA-01 (timestamp/fuente de tipo de cambio en `financial_transactions` + `itinerary_commission_splits` para comisiones multi-proveedor).
+- 2026-03-05: Se agregó migración base SAT/CFDI `20260305_012_cfdi_sat_foundation.sql` (certificados, CFDI y eventos) y se actualizó diccionario de datos como avance de P0-CFDI-01.
+- 2026-03-05: Se creó borrador de Día 2 `docs/planning/daily-checkin-2026-03-06-day2-draft.md` orientado a cerrar P0-DB-01 (Postgres CI sin `skip`) con comandos, evidencia requerida y fallback.
+- 2026-03-05: Se creó check-in real de ejecución `docs/planning/daily-checkin-2026-03-05-day1.md` y se enlazó como seguimiento activo en este plan.
+- 2026-03-05: Se agregó plantilla `docs/planning/daily-checkin-template.md` para seguimiento diario (objetivo, evidencia, bloqueadores, calidad y plan siguiente) del plan de 2 semanas.
+- 2026-03-05: Se agregó checklist operativo Día 1–10 para ejecutar el mini backlog (P0/P1) con objetivos diarios y criterios de Definition of Done.
+- 2026-03-05: Se agregó mini backlog ejecutable de 2 semanas (IDs P0/P1) con owner sugerido, entregable y evidencia de salida para Postgres CI, CFDI/SAT, AI real/observabilidad y validaciones de arquitectura/modelo de datos.
+- 2026-03-05: Se incorporaron prioridades inmediatas al roadmap (Postgres CI como merge-blocker, adelanto CFDI/SAT, gate de proveedor LLM con observabilidad, y validaciones de acoplamiento/modelo de datos para arquitectura).
+- 2026-03-05: Se dividió `src/integration/http.integration.test.ts` en suites especializadas (`http.integration`, `lead-convert.integration`, `lead-convert-auth.integration`) para eliminar violación hard-cap de tamaño y mantener cobertura de integración.
+- 2026-03-05: Se agregó cobertura de regresión para `postgres-nightly.yml` en `tools/quality/check-workflow-yaml.test.mjs` y se documentó ejecución manual/triage del workflow nocturno en `docs/README.md` y `docs/operations/ci-troubleshooting.md`.
+- 2026-03-05: Se definió criterio de salida del bloque Postgres integration (señales de éxito CI, evidencia requerida, cobertura mínima y documentación canónica).
+- 2026-03-05: Se agregó workflow dedicado `postgres-nightly.yml` con trigger `schedule` + `workflow_dispatch` para ejecutar `test:integration:postgres` con gating de `DB_*`, summary operativo y artifact de falla.
+- 2026-03-05: Se amplió cobertura Postgres de auditoría para `leads` con prueba de integración de persistencia en `audit_events` para acciones `lead.create` y `lead.update` (incluyendo verificación de actor y snapshots `before/after`).
+- 2026-03-04: Se creó handoff nocturno `docs/planning/night-handoff-2026-03-04.md` con arranque rápido y criterio de primer éxito para la próxima sesión.
+- 2026-03-04: Se actualizó sección `TODO (Próxima sesión)` a formato tablero con estados (`NEXT/DONE/PENDING/BLOCKED-BY-ENV`) para continuidad de trabajo entre sesiones.
+- 2026-03-04: Se consolidó triage de CI en `docs/operations/ci-troubleshooting.md` (auth/ai/postgres) y se reemplazaron tablas duplicadas en `docs/README.md` y `auth-incident-runbook` por referencia canónica.
+- 2026-03-04: Se agregó sección de gobernanza “Postgres CI Readiness” en `project-constraints.md` con checklist operativo para ejecución/evidencia de `postgres-integration`.
+- 2026-03-04: Se añadió quick triage de `postgres-integration` en `auth-incident-runbook` con señales de `skip/fail`, interpretación y acciones recomendadas para respuesta operativa.
+- 2026-03-04: Se agregó tabla de troubleshooting rápido para `postgres-integration` en `docs/README.md` (señales de `skip/fail`, causas probables y acciones recomendadas).
+- 2026-03-04: Se agregó ejemplo copy/paste de payload `workflow_dispatch` para `force_postgres_integration=true` (incluyendo comando `gh workflow run`) en `docs/README.md` para acelerar ejecuciones manuales de CI.
+- 2026-03-04: Se extendió `.github/pull_request_template.md` con checklist de `postgres-integration` (`force_postgres_integration=true`) y verificación de variables `DB_*` para reducir falsos negativos por ejecución con `skip`.
+- 2026-03-04: Se documentó guía operativa para ejecutar `postgres-integration` por `workflow_dispatch` (`force_postgres_integration=true`) y prerequisitos de variables `DB_*` en `docs/README.md` y `auth-incident-runbook`.
+- 2026-03-04: Workflow `quality.yml` ahora incluye job `postgres-integration` (trigger por paths/manual `force_postgres_integration`) para ejecutar `test:integration:postgres`, con gating por disponibilidad de variables `DB_*` y resumen operativo en `GITHUB_STEP_SUMMARY`.
+- 2026-03-04: Se agregó precheck operativo `postgres:integration:precheck` (env + tablas requeridas) y script dedicado `test:integration:postgres` para ejecutar cobertura de integración PostgreSQL con validación previa de migraciones.
+- 2026-03-04: Se agregó prueba de integración PostgreSQL para verificar persistencia de auditoría `lead.convert` en `audit_events` (incluyendo `actor_user_id` y vínculo `leadId` en snapshot `after`).
+- 2026-03-04: Se agregaron aserciones de localización (`es-MX`/`en-US`) para guardas de auth en `POST /leads/:id/convert`, validando mensajes `401` y `403` además del status code.
+- 2026-03-04: Se agregó cobertura de integración para guardas de auth en `POST /leads/:id/convert` (`401` no autenticado y `403` rol sin permiso), reforzando contrato RBAC del subrecurso de conversión.
+- 2026-03-04: Se agregó trazabilidad de auditoría para `leads` en acciones `create`, `update` y `convert` (con snapshots `before/after` en conversión Lead→Cliente cuando `STORAGE_MODE=postgres`).
+- 2026-03-04: Se agregó cobertura de integración para payload inválido en `POST /leads/:id/convert` bajo `AUTH_MODE=token` con locale `en-US` (`400` + mensaje localizado + `errors[]` no vacío).
+- 2026-03-04: Se agregó paridad de integración en `AUTH_MODE=token` para payload inválido en `POST /leads/:id/convert` (`400` + mensaje localizado + `errors[]` no vacío).
+- 2026-03-04: Se agregó prueba de integración para payload inválido en `POST /leads/:id/convert` exigiendo `400`, mensaje localizado y `errors[]` no vacío, alineada con endurecimiento de `auth:smoke`.
+- 2026-03-04: Se endureció `auth:smoke` para exigir además `errors[]` no vacío en payload inválido de conversión (`/leads/:id/convert`), extendiendo contrato `AUTH_SMOKE_SUMMARY.checkedLeadConversion.invalidPayloadErrorsArray` y sus pruebas/fixtures.
+- 2026-03-04: `auth:smoke` ahora valida también payload inválido en `POST /leads/:id/convert` (`400` + mensaje localizado) y se extendió contrato `AUTH_SMOKE_SUMMARY.checkedLeadConversion.invalidPayload400` con cobertura de tests/fixtures.
+- 2026-03-04: Se agregó regresión en `tools/ops/ci-smoke-summary.test.mjs` para asegurar que `GITHUB_STEP_SUMMARY` preserve `checkedLeadConversion` dentro de `AUTH_SMOKE_SUMMARY` parseado.
+- 2026-03-04: `auth:smoke` ahora cubre conversión `Lead→Cliente` (éxito `201` + conflicto duplicado `409`) en `header|token`; contrato `AUTH_SMOKE_SUMMARY` y tests de contrato actualizados con `checkedLeadConversion`.
+- 2026-03-04: Se agregó cobertura de integración en modo `AUTH_MODE=token` para conversión `Lead→Cliente`, incluyendo camino exitoso (`201`) y conflicto por duplicado (`409`).
+- 2026-03-04: Se agregaron aserciones de localización para conflicto de conversión `Lead→Cliente` (`409`) en integración, cubriendo mensajes `es-MX` y `en-US`.
+- 2026-03-04: Se endureció la conversión `Lead→Cliente` con guard de conflicto (`409`) cuando el lead ya fue convertido, más índice único parcial en PostgreSQL para `clients.lead_id` no nulo.
+- 2026-03-04: Se agregó flujo de conversión `Lead→Cliente` con endpoint `POST /leads/:id/convert`, cierre automático del lead a `closed_won` y traspaso de contexto comercial a `travelPreferences` del cliente.
 
 - 2026-03-04: Se refactorizó `tools/quality/check-workflow-yaml.test.mjs` con helpers compartidos de assertions para pasos/orden (`assertStepExists`, `assertStepOrder`) manteniendo la misma cobertura de regresión.
 - 2026-03-04: Se reforzó prueba de regresión de workflow para exigir orden en `quality.yml`: `Run smoke contract preflight` debe ejecutarse antes de `Run quality checks`.
