@@ -1,7 +1,7 @@
 # Build Plan (Documento Vivo)
 
 Estado: Activo
-Última actualización: 2026-03-06
+Última actualización: 2026-03-05
 
 ## Objetivo del producto
 
@@ -149,47 +149,36 @@ Construir un CRM de agencia de viajes AI-native con interfaz primaria en `es-MX`
 
 Referencia de cierre de hoy: `docs/planning/night-handoff-2026-03-05.md`.
 
+### Estado operativo actualizado (corte 2026-03-05)
+
+- [DONE] P0-DB-01: Postgres CI validado con corrida real sin `skip` en `quality.yml`.
+- [DONE] P1-AI-01: estrategia de proveedor/fallback definida en `docs/governance/adr-2026-03-05-ai-provider-strategy.md`.
+- [DONE] P1-AI-02: observabilidad base AI disponible (`GET /ai/metrics`) y guía operativa en `docs/operations/ai-observability-baseline.md`.
+- [DONE] P1-ARCH-01: frontera `commissions`/`financials` y contrato `messaging`↔`itinerary` documentados en ADRs.
+- [DONE] P1-DATA-01: migración de FX timestamp + split de comisiones creada (`db/migrations/20260305_013_financials_fx_and_commission_splits.sql`).
+- [IN-PROGRESS] P0-CFDI-01: base SAT/CFDI operativa y endurecimiento de contratos de lectura en avance continuo.
+
 ### Siguiente (arranque recomendado)
 
-1. [NEXT] Ejecutar `workflow_dispatch` con `force_postgres_integration=true` en un entorno con `DB_*` configuradas y confirmar corrida completa (sin `skip`).
-2. [NEXT] Verificar evidencia de CI en `GITHUB_STEP_SUMMARY` + artifact `postgres-integration-output.log` y registrar resultado en este documento.
-3. [NEXT] Si falla por esquema, aplicar migraciones pendientes y repetir `test:integration:postgres` hasta verde.
-4. [NEXT] Continuar build en paralelo sobre P1-AI (`P1-AI-01`, `P1-AI-02`) sin abrir nuevas features de Fase 1 hasta resolver `P0-DB-01`.
+1. [NEXT][P0-CFDI-01] Completar aserciones deterministas de orden/desempate para lecturas CFDI restantes (`/management/cfdi/events` y `GET /management/cfdi/invoices/:invoiceId`) en suite PostgreSQL.
+2. [NEXT][P0-CFDI-01] Consolidar criterio de salida del bloque CFDI (contrato + integración + i18n + filtros) en esta sección con checklist explícito de cierre.
+3. [NEXT][P0-CFDI-01] Ejecutar barrido final de validación (`typecheck`, `test:integration`, `test:integration:postgres`) y anexar evidencia resumida en check-in diario.
 
 Playbook de cierre de blocker:
 - `docs/operations/p0-db-ci-unblock-playbook.md`
 
-### Prioridades inmediatas (próximas 2 semanas)
+### Prioridad inmediata activa
 
-- [MERGE-BLOCKER] Validación PostgreSQL en CI: no declarar cierre de Fase 1 sin al menos una corrida `postgres-integration` (manual o nocturna) sin `skip` y con evidencia en summary/log.
-- [COMPLIANCE-BLOCKER] Preparación CFDI 4.0/SAT adelantada: incluir en roadmap de migraciones entidades técnicas mínimas de facturación fiscal (certificado, sello digital, metadata XML CFDI y validación de esquema).
-- [PHASE-2-GATE] AI pipeline real: definir proveedor LLM objetivo (OpenAI/Azure/local), contrato de integración y observabilidad de latencia/costo antes de cerrar Fase 2.
-- [ARCH-VALIDATION] Validar límites de dominio `commissions` vs `financials` (ADR breve de separación o unificación) y documentar decisión.
-- [ARCH-VALIDATION] Confirmar contrato de contexto `messaging`↔`itinerary` para notificaciones enriquecidas sin acoplamiento circular.
-- [DATA-MODEL] Validar timestamp de tipo de cambio por evento (quote/booking) y estrategia de split de comisiones multi-proveedor por itinerario.
+- [COMPLIANCE-BLOCKER] Cerrar P0-CFDI-01 con criterio de salida verificable (API contracts + pruebas + evidencia operativa).
 
-Estado rápido (corte 2026-03-05):
-- P0-DB-01: completado (corrida forzada `quality.yml` con ejecución real de `test:integration:postgres`, run `22706042466`).
-- P0-CFDI-01: en progreso (migración base creada).
-- P1-AI-01 / P1-AI-02: pendientes.
-- P1-ARCH-01: completado (ADR dominio + contrato de contexto).
-- P1-DATA-01: completado (migración FX timestamp/source + split multi-proveedor).
-
-### Mini backlog ejecutable (2 semanas)
+### Backlog activo (pendientes)
 
 | ID | Prioridad | Owner sugerido | Entregable | Evidencia de salida |
 | --- | --- | --- | --- | --- |
-| P0-DB-01 | Postgres CI merge-blocker | Backend/DevOps | Configurar `DB_*` en Actions y ejecutar corrida forzada sin `skip` | `GITHUB_STEP_SUMMARY` con ejecución real + log `postgres-integration-output.log` o `postgres-nightly-output.log` |
-| P0-CFDI-01 | CFDI/SAT base legal-operativa | Backend/Finanzas | Propuesta de migraciones iniciales SAT (certificado, sello, metadata XML CFDI, estado de timbrado) | Entrada de plan + archivo de migración draft en `db/migrations/*` |
-| P1-AI-01 | Proveedor LLM real | AI/Backend | ADR corta de proveedor (OpenAI/Azure/local), estrategia de fallback y límites de costo | Documento de decisión + variables de entorno objetivo en docs |
-| P1-AI-02 | Observabilidad AI costo/latencia | AI/Observability | Instrumentación mínima por request (latencia, tokens estimados, costo estimado) | Métrica expuesta en endpoint/summary operativo + prueba de contrato |
-| P1-ARCH-01 | Límite de dominio commissions/financials | Backend/Arquitectura | ADR de separación o unificación con impacto en entidades/rutas | Decisión documentada y checklist de refactor (si aplica) |
-| P1-DATA-01 | FX timestamp + split comisiones | Backend/Finanzas | Diseño de campos y reglas para timestamp de tipo de cambio y split por proveedor | Contrato de datos actualizado + casos de prueba de integración definidos |
+| P0-CFDI-01 | CFDI/SAT base legal-operativa | Backend/Finanzas | Cerrar hardening de consultas/contratos CFDI y consolidar checklist final de cumplimiento operativo | Integración en verde (`test:integration` + `test:integration:postgres`) y registro de cierre en este documento |
 
 Notas de ejecución:
-- P0-DB-01 y P0-CFDI-01 se consideran bloqueadores de avance seguro hacia cierre operativo de Fase 1.
-- P1-AI-01 y P1-AI-02 deben cerrarse antes del cierre formal de Fase 2 (sin excepción).
-- P1-ARCH-01 y P1-DATA-01 deben producir decisiones explícitas antes de ampliar features en `financials/commissions/messaging`.
+- P0-CFDI-01 permanece como único bloqueador activo para declarar cierre operativo de cumplimiento en esta fase.
 - Avance P0-CFDI-01: migración draft creada en `db/migrations/20260305_012_cfdi_sat_foundation.sql` y diccionario actualizado.
 - Avance P0-CFDI-01: endpoint operativo `GET /management/cfdi/readiness` agregado con cobertura de integración para validar readiness de tablas SAT/CFDI por entorno.
 - Avance P0-CFDI-01: contratos/validaciones operativas de timbrado y cancelación CFDI agregadas vía `POST /management/cfdi/stamp/validate` y `POST /management/cfdi/cancel/validate` con cobertura unitaria e integración.
@@ -228,25 +217,17 @@ Notas de ejecución:
 - Avance P1-AI-01: ADR de proveedor y fallback definida en `docs/governance/adr-2026-03-05-ai-provider-strategy.md`.
 - Avance P1-AI-02: observabilidad base implementada (`GET /ai/metrics`) y guía operativa en `docs/operations/ai-observability-baseline.md`.
 
-### Checklist de ejecución diaria (Día 1–10)
+### Checklist activo de ejecución (P0-CFDI-01)
 
-| Día | Objetivo | Resultado esperado |
+| Paso | Objetivo | Resultado esperado |
 | --- | --- | --- |
-| Día 1 | Configurar/validar `DB_*` en GitHub Actions para entorno objetivo | Variables disponibles y checklist de acceso de runner confirmado |
-| Día 2 | Ejecutar `quality.yml` con `force_postgres_integration=true` y capturar evidencia | Corrida sin `skip` documentada en summary/log |
-| Día 3 | Definir alcance técnico SAT/CFDI y entidades mínimas | Lista de entidades/campos y dependencias legales priorizadas |
-| Día 4 | Crear draft de migraciones SAT/CFDI (`certificado/sello/xml`) | Archivo(s) de migración inicial en `db/migrations/*` |
-| Día 5 | Decidir proveedor LLM (ADR corta con riesgos/costos) | Decisión documentada + estrategia fallback |
-| Día 6 | Instrumentar telemetría base AI (latencia/costo/tokens estimados) | Métricas disponibles en entorno de integración |
-| Día 7 | Definir frontera de dominio `commissions` vs `financials` | ADR aprobada con impacto en modelo/rutas |
-| Día 8 | Diseñar contrato `messaging`↔`itinerary` sin acoplamiento circular | Contrato de contexto y eventos/campos acordados |
-| Día 9 | Diseñar timestamp FX y split de comisiones multi-proveedor | Reglas de negocio + campos de datos definidos |
-| Día 10 | Consolidar evidencia y revalidar gates (`quality/typecheck/test`) | Baseline verde + actualización de estado en este documento |
+| 1 | Completar contratos pendientes de orden/desempate en lecturas CFDI | Aserciones de integración PostgreSQL cubren escenarios con timestamps empatados |
+| 2 | Cerrar checklist de consistencia de consultas CFDI (`from/to/limit/windowDays`) | Validación temprana + i18n + shape contract documentados sin huecos |
+| 3 | Ejecutar barrido final de pruebas | `typecheck`, `test:integration`, `test:integration:postgres` en verde |
+| 4 | Registrar cierre operativo | Entrada de cierre en este documento y check-in diario |
 
-Definition of done (2 semanas):
-- Se cierra P0-DB-01 y P0-CFDI-01 con evidencia verificable en CI/roadmap.
-- Se cierran P1-AI-01 y P1-AI-02 con proveedor y observabilidad operativa mínima.
-- Se cierran P1-ARCH-01 y P1-DATA-01 con decisiones documentadas y checklist de implementación.
+Definition of done (bloque activo):
+- Se cierra P0-CFDI-01 con evidencia verificable de contrato y ejecución (tests + registro en roadmap).
 
 Plantilla operativa recomendada para seguimiento diario:
 - `docs/planning/daily-checkin-template.md`
@@ -272,15 +253,12 @@ Seguimiento activo:
 
 ### Bloqueadores conocidos
 
-- [RESOLVED] Confirmación final de `postgres-integration` validada en CI con `DB_*` configuradas y step de test ejecutado.
 - [BLOCKED-BY-COMPLIANCE] No declarar completada capacidad operativa financiera México sin plan técnico activo de CFDI 4.0/SAT.
 
 ### Criterios de salida adicionales (insumos 2026-03-05)
 
-- Postgres CI: al menos una corrida `postgres-integration` sin `skip` en `quality.yml` o `postgres-nightly.yml`.
-- SAT/CFDI: backlog de migraciones inicial definido y priorizado (entidades de certificado/sello/XML).
-- AI real: proveedor seleccionado + métricas base de costo/latencia instrumentadas en entorno de integración.
-- Arquitectura: decisión documentada para `commissions`/`financials` y contrato de contexto `messaging`/`itinerary`.
+- SAT/CFDI: checklist de hardening de lecturas/eventos completado y documentado.
+- SAT/CFDI: barrido final de pruebas en verde con evidencia en este plan/check-in.
 
 ## Mantenimiento del documento
 
@@ -295,6 +273,7 @@ Actualizar este archivo cuando cambie cualquiera de estos puntos:
 
 Nota de lectura: entradas con `[Resumen]` agrupan lotes de cambios relacionados para escaneo rápido; los bullets detallados que siguen conservan el historial completo y son la referencia operativa principal.
 
+- 2026-03-05: [Resumen] Se limpió el bloque operativo de "TODO/Backlog" para conservar solo pendientes activos; `P0-DB-01`, `P1-AI-01`, `P1-AI-02`, `P1-ARCH-01` y `P1-DATA-01` quedan marcados como completados y el foco vigente se concentra en `P0-CFDI-01`.
 - 2026-03-04: [Resumen] Bloque de endurecimiento CI/contratos completado: preflight `smoke:matrix:contract`, validadores runtime de summaries (`AUTH/AI_SCHEMA/AI_RENDER`), publicación en `GITHUB_STEP_SUMMARY` y pruebas de regresión de workflow.
 - 2026-03-05: Se agregó playbook operativo `docs/operations/p0-db-ci-unblock-playbook.md` para cierre paso-a-paso de `P0-DB-01` (verificación remota, ejecución forzada, evidencia y remediación).
 - 2026-03-05: Se creó handoff de cierre `docs/planning/night-handoff-2026-03-05.md` con estado final, evidencia CI y arranque recomendado para continuidad del día siguiente.
