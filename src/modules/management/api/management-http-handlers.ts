@@ -119,6 +119,11 @@ function englishMessage(spanish: string): string {
     'Errores de firmado CFDI no disponibles en modo memoria': 'CFDI signing errors are unavailable in memory mode',
     'Errores de firmado CFDI consultados': 'CFDI signing errors retrieved',
     'No fue posible consultar errores de firmado CFDI': 'Unable to retrieve CFDI signing errors',
+    'Tendencias de errores de firmado CFDI no disponibles en modo memoria':
+      'CFDI signing error trends are unavailable in memory mode',
+    'Tendencias de errores de firmado CFDI consultadas': 'CFDI signing error trends retrieved',
+    'No fue posible consultar tendencias de errores de firmado CFDI':
+      'Unable to retrieve CFDI signing error trends',
     'Solicitud inválida': 'Invalid request',
     'Método no permitido': 'Method not allowed'
   };

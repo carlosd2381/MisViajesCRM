@@ -204,6 +204,7 @@ Notas de ejecución:
 - Avance P0-CFDI-01: enforcement de trazabilidad para cancelación CFDI con razón `01` aplicado en `validate/confirm` (requiere `replacementCfdiUuid` existente y en estado `stamped`), con respuesta `409` cuando el CFDI de reemplazo no existe.
 - Avance P0-CFDI-01: endpoint de firmado CFDI ahora exige material de firmado en certificado SAT (`private_key_ref` + `passphrase_ref`) y persiste diagnósticos operativos en `cfdi_invoices.last_error` + evento `error` cuando falla el firmado.
 - Avance P0-CFDI-01: endpoint operativo `GET /management/cfdi/signing/errors` agregado para observabilidad de fallas de firmado CFDI (filtros por `reason`, `invoiceId`, rango `from/to` y `limit`).
+- Avance P0-CFDI-01: endpoint operativo `GET /management/cfdi/signing/errors/trends` agregado para agregación de tendencias de fallas de firmado CFDI por día y razón (`windowDays`, `from/to`, `reason`).
 - Avance P1-DATA-01: migración draft creada en `db/migrations/20260305_013_financials_fx_and_commission_splits.sql` (timestamp/fuente FX y split multi-proveedor) y diccionario actualizado.
 - Avance P1-ARCH-01: ADR aprobada en `docs/governance/adr-2026-03-05-commissions-vs-financials.md` (se mantiene separación de dominio `commissions`/`financials`).
 - Avance P1-ARCH-01: contrato de contexto `messaging`↔`itinerary` definido en `docs/governance/adr-2026-03-05-messaging-itinerary-context-contract.md`.

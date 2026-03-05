@@ -443,6 +443,38 @@ test('owner can query CFDI signing errors endpoint in memory mode', async () => 
   }
 });
 
+test('owner can query CFDI signing error trends endpoint in memory mode', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/signing/errors/trends?windowDays=7`, {
+      method: 'GET',
+      headers: testHeaders('owner')
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      message: string;
+      data: {
+        storageMode: string;
+        totalErrors: number;
+        bucketCount: number;
+        buckets: unknown[];
+        totals: unknown[];
+      };
+    };
+
+    assert.equal(payload.message, 'Tendencias de errores de firmado CFDI no disponibles en modo memoria');
+    assert.equal(payload.data.storageMode, 'memory');
+    assert.equal(payload.data.totalErrors, 0);
+    assert.equal(payload.data.bucketCount, 0);
+    assert.deepEqual(payload.data.buckets, []);
+    assert.deepEqual(payload.data.totals, []);
+  } finally {
+    await stopServer(server);
+  }
+});
+
 test('owner gets validation errors for invalid CFDI stamp confirm payload', async () => {
   const { server, baseUrl } = await startServer();
 

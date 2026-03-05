@@ -1209,6 +1209,40 @@ test('cfdi sign stores diagnostic last_error when certificate signing material i
     assert.equal(signingErrorsPayload.data.errors[0].invoiceId, invoiceId);
     assert.equal(signingErrorsPayload.data.errors[0].reason, 'certificate_signing_material_missing');
     assert.equal(signingErrorsPayload.data.errors[0].invoiceLastError, 'certificate_signing_material_missing');
+
+    const signingErrorTrendsResponse = await fetch(
+      `${started.baseUrl}/management/cfdi/signing/errors/trends?reason=certificate_signing_material_missing&windowDays=30`,
+      {
+        method: 'GET',
+        headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID)
+      }
+    );
+
+    assert.equal(signingErrorTrendsResponse.status, 200);
+    const signingErrorTrendsPayload = (await signingErrorTrendsResponse.json()) as {
+      message: string;
+      data: {
+        totalErrors: number;
+        bucketCount: number;
+        buckets: Array<{
+          day: string;
+          totalCount: number;
+          reasons: Array<{ reason: string; count: number }>;
+        }>;
+        totals: Array<{ reason: string; count: number }>;
+      };
+    };
+
+    assert.equal(signingErrorTrendsPayload.message, 'Tendencias de errores de firmado CFDI consultadas');
+    assert.ok(signingErrorTrendsPayload.data.totalErrors >= 1);
+    assert.ok(signingErrorTrendsPayload.data.bucketCount >= 1);
+    assert.equal(signingErrorTrendsPayload.data.totals[0].reason, 'certificate_signing_material_missing');
+    assert.ok(signingErrorTrendsPayload.data.totals[0].count >= 1);
+    assert.ok(
+      signingErrorTrendsPayload.data.buckets.some((bucket) =>
+        bucket.reasons.some((item) => item.reason === 'certificate_signing_material_missing' && item.count >= 1)
+      )
+    );
   } finally {
     if (server) {
       await stopServer(server);

@@ -44,7 +44,8 @@ import {
   handleManagementCfdiInvoiceStatus,
   handleManagementCfdiReadiness,
   handleManagementCfdiEvents,
-  handleManagementCfdiSigningErrors
+  handleManagementCfdiSigningErrors,
+  handleManagementCfdiSigningErrorTrends
 } from '../../modules/management/api/management-cfdi-query-http-handlers';
 import {
   handleManagementCfdiCancelValidation,
@@ -261,6 +262,15 @@ function handleManagementRoute(context: ModuleRouteContext): Promise<void> | nul
   }
   if (pathSegments.length === 4 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'signing' && pathSegments[3] === 'errors') {
     return handleManagementCfdiSigningErrors(requestContext);
+  }
+  if (
+    pathSegments.length === 5 &&
+    pathSegments[1] === 'cfdi' &&
+    pathSegments[2] === 'signing' &&
+    pathSegments[3] === 'errors' &&
+    pathSegments[4] === 'trends'
+  ) {
+    return handleManagementCfdiSigningErrorTrends(requestContext);
   }
   if (pathSegments.length === 3 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'certificates') {
     return handleManagementCfdiCertificatesCollection(requestContext);
