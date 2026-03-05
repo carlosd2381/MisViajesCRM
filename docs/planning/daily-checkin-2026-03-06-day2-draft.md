@@ -64,6 +64,7 @@ Evidencia técnica más reciente (2026-03-05):
 - Run: `https://github.com/carlosd2381/MisViajesCRM/actions/runs/22704466009`
 - Resultado de run: `completed success`
 - Evidencia del job `postgres-integration`: step `Run Postgres integration test` en `skipped` (falta de `DB_*`), por lo que `P0-DB-01` sigue bloqueado por entorno.
+- Verificación de configuración en repo: `gh secret list` = `no secrets found`, `gh variable list` = `no variables found`.
 
 ## 6) Criterio de éxito del día
 
