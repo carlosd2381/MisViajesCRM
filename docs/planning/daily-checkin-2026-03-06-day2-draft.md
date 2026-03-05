@@ -85,3 +85,4 @@ Nota de contexto:
 Continuación posterior al cierre de `P0-DB-01`:
 - Se inició siguiente incremento de `P0-CFDI-01` con endpoint operativo `GET /management/cfdi/readiness` y cobertura de integración para validar readiness SAT/CFDI por entorno.
 - Se agregó siguiente incremento de `P0-CFDI-01` con contratos de timbrado/cancelación (`POST /management/cfdi/stamp/validate`, `POST /management/cfdi/cancel/validate`) y cobertura unitaria/integración.
+- Se agregó persistencia de eventos de validación CFDI en PostgreSQL (`cfdi_invoice_events`) para `stamp/cancel` con registro de `validation_passed` y `validation_failed`.

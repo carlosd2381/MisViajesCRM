@@ -27,6 +27,18 @@ async function isAuditSchemaReady(): Promise<boolean> {
   return row.audit_table === 'audit_events' && row.leads_table === 'leads' && row.clients_table === 'clients';
 }
 
+async function isCfdiSchemaReady(): Promise<boolean> {
+  const result = await pgQuery<{ cfdi_invoice_events: string | null }>(
+    `
+      select
+        to_regclass('public.cfdi_invoice_events')::text as cfdi_invoice_events
+    `
+  );
+
+  const row = result.rows[0];
+  return row.cfdi_invoice_events === 'cfdi_invoice_events';
+}
+
 function setEnv(key: string, value: string): () => void {
   const previous = process.env[key];
   process.env[key] = value;
@@ -68,6 +80,10 @@ async function cleanupLeadArtifacts(leadId: string): Promise<void> {
   );
   await pgQuery('delete from clients where lead_id = $1', [leadId]);
   await pgQuery('delete from leads where id = $1', [leadId]);
+}
+
+async function cleanupCfdiValidationArtifacts(invoiceId: string): Promise<void> {
+  await pgQuery('delete from cfdi_invoice_events where cfdi_invoice_id = $1', [invoiceId]);
 }
 
 test('lead create and update persist audit events in postgres mode', async (t: TestContext) => {
@@ -276,6 +292,116 @@ test('lead convert persists audit event in postgres mode', async (t: TestContext
       await cleanupLeadArtifacts(createdLeadId);
     }
 
+    await closePgPool();
+    restoreStorageMode();
+  }
+});
+
+test('cfdi validation endpoints persist events in postgres mode', async (t: TestContext) => {
+  if (!hasRequiredPostgresEnv()) {
+    t.skip('Postgres env vars are not configured');
+    return;
+  }
+
+  const restoreStorageMode = setEnv('STORAGE_MODE', 'postgres');
+
+  const stampInvoiceId = 'inv_cfdi_stamp_pg_001';
+  const cancelInvoiceId = 'inv_cfdi_cancel_pg_001';
+  let server: Server | null = null;
+
+  try {
+    if (!(await isCfdiSchemaReady())) {
+      t.skip('Postgres schema is not initialized (cfdi_invoice_events missing)');
+      return;
+    }
+
+    await cleanupCfdiValidationArtifacts(stampInvoiceId);
+    await cleanupCfdiValidationArtifacts(cancelInvoiceId);
+
+    const started = await startPostgresServer();
+    server = started.server;
+
+    const stampResponse = await fetch(`${started.baseUrl}/management/cfdi/stamp/validate`, {
+      method: 'POST',
+      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID),
+      body: JSON.stringify({
+        invoiceId: stampInvoiceId,
+        satCertificateId: 'cert_pg_001',
+        rfcEmisor: 'AAA010101AAA',
+        rfcReceptor: 'BBB010101BBB',
+        currency: 'MXN',
+        total: 8900,
+        issueDate: '2026-03-05T10:00:00.000Z'
+      })
+    });
+
+    assert.equal(stampResponse.status, 200);
+
+    const stampEventResult = await pgQuery<{
+      event_type: string;
+      operation: string | null;
+      valid: string | null;
+    }>(
+      `
+        select
+          event_type,
+          detail_json->>'operation' as operation,
+          detail_json->>'valid' as valid
+        from cfdi_invoice_events
+        where cfdi_invoice_id = $1
+        order by event_at desc
+        limit 1
+      `,
+      [stampInvoiceId]
+    );
+
+    assert.equal(stampEventResult.rowCount, 1);
+    assert.equal(stampEventResult.rows[0].event_type, 'validation_passed');
+    assert.equal(stampEventResult.rows[0].operation, 'stamp');
+    assert.equal(stampEventResult.rows[0].valid, 'true');
+
+    const cancelInvalidResponse = await fetch(`${started.baseUrl}/management/cfdi/cancel/validate`, {
+      method: 'POST',
+      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID),
+      body: JSON.stringify({
+        invoiceId: cancelInvoiceId,
+        cfdiUuid: 'd2719f53-0dca-4eeb-b6bb-9bcd2ccf61fc',
+        cancellationReason: '01',
+        cancelledAt: '2026-03-05T11:00:00.000Z'
+      })
+    });
+
+    assert.equal(cancelInvalidResponse.status, 400);
+
+    const cancelEventResult = await pgQuery<{
+      event_type: string;
+      operation: string | null;
+      valid: string | null;
+    }>(
+      `
+        select
+          event_type,
+          detail_json->>'operation' as operation,
+          detail_json->>'valid' as valid
+        from cfdi_invoice_events
+        where cfdi_invoice_id = $1
+        order by event_at desc
+        limit 1
+      `,
+      [cancelInvoiceId]
+    );
+
+    assert.equal(cancelEventResult.rowCount, 1);
+    assert.equal(cancelEventResult.rows[0].event_type, 'validation_failed');
+    assert.equal(cancelEventResult.rows[0].operation, 'cancel');
+    assert.equal(cancelEventResult.rows[0].valid, 'false');
+  } finally {
+    if (server) {
+      await stopServer(server);
+    }
+
+    await cleanupCfdiValidationArtifacts(stampInvoiceId);
+    await cleanupCfdiValidationArtifacts(cancelInvoiceId);
     await closePgPool();
     restoreStorageMode();
   }

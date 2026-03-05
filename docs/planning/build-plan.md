@@ -193,6 +193,7 @@ Notas de ejecución:
 - Avance P0-CFDI-01: migración draft creada en `db/migrations/20260305_012_cfdi_sat_foundation.sql` y diccionario actualizado.
 - Avance P0-CFDI-01: endpoint operativo `GET /management/cfdi/readiness` agregado con cobertura de integración para validar readiness de tablas SAT/CFDI por entorno.
 - Avance P0-CFDI-01: contratos/validaciones operativas de timbrado y cancelación CFDI agregadas vía `POST /management/cfdi/stamp/validate` y `POST /management/cfdi/cancel/validate` con cobertura unitaria e integración.
+- Avance P0-CFDI-01: persistencia de eventos de validación CFDI en `cfdi_invoice_events` (tipos `validation_passed` / `validation_failed`) integrada en endpoints de timbrado/cancelación y cubierta en `http.postgres.integration.test.ts`.
 - Avance P1-DATA-01: migración draft creada en `db/migrations/20260305_013_financials_fx_and_commission_splits.sql` (timestamp/fuente FX y split multi-proveedor) y diccionario actualizado.
 - Avance P1-ARCH-01: ADR aprobada en `docs/governance/adr-2026-03-05-commissions-vs-financials.md` (se mantiene separación de dominio `commissions`/`financials`).
 - Avance P1-ARCH-01: contrato de contexto `messaging`↔`itinerary` definido en `docs/governance/adr-2026-03-05-messaging-itinerary-context-contract.md`.
@@ -271,6 +272,7 @@ Nota de lectura: entradas con `[Resumen]` agrupan lotes de cambios relacionados 
 - 2026-03-05: Se creó handoff de cierre `docs/planning/night-handoff-2026-03-05.md` con estado final, evidencia CI y arranque recomendado para continuidad del día siguiente.
 - 2026-03-05: Se agregó endpoint de readiness CFDI/SAT `GET /management/cfdi/readiness` (modo `postgres`: valida tablas `sat_certificates`, `cfdi_invoices`, `cfdi_invoice_events`; modo `memory`: retorna estado no listo explícito) con cobertura en `src/integration/management.integration.test.ts`.
 - 2026-03-05: Se agregaron contratos de validación para CFDI timbrado/cancelación (`POST /management/cfdi/stamp/validate`, `POST /management/cfdi/cancel/validate`) con reglas de RFC/UUID/fecha/razón de cancelación y cobertura en `management-validation.test.ts` + `management.integration.test.ts`.
+- 2026-03-05: Se agregó trazabilidad operativa de validación CFDI en PostgreSQL (`cfdi_invoice_events`) desde endpoints de timbrado/cancelación, incluyendo registro de éxito/error (`validation_passed`/`validation_failed`) y cobertura en pruebas de integración PostgreSQL.
 - 2026-03-05: Se corrigió `quality.yml` para inyectar `DB_*`/`DB_SSL` desde secrets/vars en job `postgres-integration` (antes no se exportaban y el test quedaba en `skipped`).
 - 2026-03-05: Se validó cierre de `P0-DB-01` con run forzado `quality.yml` `22706042466`, donde el step `Run Postgres integration test` ejecutó en `success`.
 - 2026-03-05: Se publicó a `main` el lote de cambios de CI/docs/código (incluyendo `quality.yml` con `force_postgres_integration` y workflow `postgres-nightly.yml`) para habilitar validación remota real de Postgres.
