@@ -107,6 +107,94 @@ export async function handleManagementCfdiReadiness(context: RequestContext): Pr
   }
 }
 
+export async function handleManagementCfdiEvents(context: RequestContext): Promise<void> {
+  if (context.req.method !== 'GET') {
+    sendJson(context.res, 405, { message: messageByLocale(context.locale, 'Método no permitido') });
+    return;
+  }
+
+  const storageMode = process.env.STORAGE_MODE ?? 'memory';
+  const searchParams = new URL(context.req.url ?? '/', 'http://localhost').searchParams;
+  const invoiceId = asText(searchParams.get('invoiceId'));
+  const limitInput = Number.parseInt(searchParams.get('limit') ?? '20', 10);
+  const limit = Number.isFinite(limitInput) ? Math.min(Math.max(limitInput, 1), 100) : 20;
+
+  if (!invoiceId) {
+    sendJson(context.res, 400, {
+      message: messageByLocale(context.locale, 'Solicitud inválida'),
+      errors: ['invoiceId es requerido']
+    });
+    return;
+  }
+
+  if (storageMode !== 'postgres') {
+    sendJson(context.res, 200, {
+      data: {
+        storageMode,
+        invoiceId,
+        count: 0,
+        events: []
+      },
+      message: messageByLocale(context.locale, 'Eventos CFDI no disponibles en modo memoria')
+    });
+    return;
+  }
+
+  try {
+    const result = await pgQuery<{
+      id: string;
+      cfdi_invoice_id: string;
+      event_type: string;
+      detail_json: Record<string, unknown> | null;
+      event_at: string;
+      created_at: string;
+    }>(
+      `
+        select
+          id,
+          cfdi_invoice_id,
+          event_type,
+          detail_json,
+          event_at,
+          created_at
+        from cfdi_invoice_events
+        where cfdi_invoice_id = $1
+        order by event_at desc
+        limit $2
+      `,
+      [invoiceId, limit]
+    );
+
+    sendJson(context.res, 200, {
+      data: {
+        storageMode,
+        invoiceId,
+        count: result.rows.length,
+        events: result.rows.map((row) => ({
+          id: row.id,
+          invoiceId: row.cfdi_invoice_id,
+          eventType: row.event_type,
+          detail: row.detail_json ?? {},
+          eventAt: row.event_at,
+          createdAt: row.created_at
+        }))
+      },
+      message: messageByLocale(context.locale, 'Eventos CFDI consultados')
+    });
+  } catch (error) {
+    sendJson(context.res, 503, {
+      data: {
+        storageMode,
+        invoiceId,
+        count: 0,
+        events: []
+      },
+      message: messageByLocale(context.locale, 'No fue posible consultar eventos CFDI'),
+      errors: [error instanceof Error ? error.message : 'Unknown database error']
+    });
+  }
+}
+
 export async function handleManagementCfdiStampValidation(context: RequestContext): Promise<void> {
   if (context.req.method !== 'POST') {
     sendJson(context.res, 405, { message: messageByLocale(context.locale, 'Método no permitido') });
@@ -309,6 +397,9 @@ function englishMessage(spanish: string): string {
     'Configuración actualizada': 'Setting updated',
     'Readiness CFDI evaluado': 'CFDI readiness evaluated',
     'Readiness CFDI no disponible en modo memoria': 'CFDI readiness is unavailable in memory mode',
+    'Eventos CFDI consultados': 'CFDI events retrieved',
+    'Eventos CFDI no disponibles en modo memoria': 'CFDI events are unavailable in memory mode',
+    'No fue posible consultar eventos CFDI': 'Unable to retrieve CFDI events',
     'No fue posible evaluar readiness CFDI': 'Unable to evaluate CFDI readiness',
     'Contrato CFDI timbrado válido': 'CFDI stamp contract is valid',
     'Contrato CFDI cancelación válido': 'CFDI cancellation contract is valid',

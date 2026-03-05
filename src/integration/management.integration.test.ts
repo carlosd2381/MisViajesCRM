@@ -187,3 +187,56 @@ test('owner gets validation errors for invalid CFDI cancel contract payload', as
     await stopServer(server);
   }
 });
+
+test('owner can query CFDI events endpoint in memory mode', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/events?invoiceId=inv_cfdi_001&limit=5`, {
+      method: 'GET',
+      headers: testHeaders('owner')
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      message: string;
+      data: {
+        storageMode: string;
+        invoiceId: string;
+        count: number;
+        events: unknown[];
+      };
+    };
+
+    assert.equal(payload.message, 'Eventos CFDI no disponibles en modo memoria');
+    assert.equal(payload.data.storageMode, 'memory');
+    assert.equal(payload.data.invoiceId, 'inv_cfdi_001');
+    assert.equal(payload.data.count, 0);
+    assert.deepEqual(payload.data.events, []);
+  } finally {
+    await stopServer(server);
+  }
+});
+
+test('owner gets 400 for CFDI events endpoint without invoiceId', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/events`, {
+      method: 'GET',
+      headers: testHeaders('owner')
+    });
+
+    assert.equal(response.status, 400);
+    const payload = (await response.json()) as {
+      message: string;
+      errors?: string[];
+    };
+
+    assert.equal(payload.message, 'Solicitud inválida');
+    assert.ok(Array.isArray(payload.errors));
+    assert.ok((payload.errors ?? []).includes('invoiceId es requerido'));
+  } finally {
+    await stopServer(server);
+  }
+});

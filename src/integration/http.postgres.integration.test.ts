@@ -395,6 +395,31 @@ test('cfdi validation endpoints persist events in postgres mode', async (t: Test
     assert.equal(cancelEventResult.rows[0].event_type, 'validation_failed');
     assert.equal(cancelEventResult.rows[0].operation, 'cancel');
     assert.equal(cancelEventResult.rows[0].valid, 'false');
+
+    const eventsEndpointResponse = await fetch(
+      `${started.baseUrl}/management/cfdi/events?invoiceId=${stampInvoiceId}&limit=5`,
+      {
+        method: 'GET',
+        headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID)
+      }
+    );
+
+    assert.equal(eventsEndpointResponse.status, 200);
+    const eventsPayload = (await eventsEndpointResponse.json()) as {
+      message: string;
+      data: {
+        storageMode: string;
+        invoiceId: string;
+        count: number;
+        events: Array<{ eventType: string }>;
+      };
+    };
+
+    assert.equal(eventsPayload.message, 'Eventos CFDI consultados');
+    assert.equal(eventsPayload.data.storageMode, 'postgres');
+    assert.equal(eventsPayload.data.invoiceId, stampInvoiceId);
+    assert.ok(eventsPayload.data.count >= 1);
+    assert.equal(eventsPayload.data.events[0]?.eventType, 'validation_passed');
   } finally {
     if (server) {
       await stopServer(server);

@@ -38,6 +38,7 @@ import {
 } from '../../modules/dashboard/api/dashboard-http-handlers';
 import {
   handleManagementCfdiCancelValidation,
+  handleManagementCfdiEvents,
   handleManagementCfdiStampValidation,
   handleManagementCfdiReadiness,
   handleManagementCollection,
@@ -235,6 +236,9 @@ function handleManagementRoute(context: ModuleRouteContext): Promise<void> | nul
   if (pathSegments.length === 1) return handleManagementCollection(requestContext, repositories.management);
   if (pathSegments.length === 3 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'readiness') {
     return handleManagementCfdiReadiness(requestContext);
+  }
+  if (pathSegments.length === 3 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'events') {
+    return handleManagementCfdiEvents(requestContext);
   }
   if (pathSegments.length === 4 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'stamp' && pathSegments[3] === 'validate') {
     return handleManagementCfdiStampValidation(requestContext);
