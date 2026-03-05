@@ -63,3 +63,59 @@ test('manager can read settings but cannot write', async () => {
     await stopServer(server);
   }
 });
+
+test('owner can read CFDI readiness endpoint in memory mode', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/readiness`, {
+      method: 'GET',
+      headers: testHeaders('owner')
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      message: string;
+      data: {
+        ready: boolean;
+        storageMode: string;
+        reason?: string;
+        checkedTables: string[];
+        missingTables: string[];
+      };
+    };
+
+    assert.equal(payload.message, 'Readiness CFDI no disponible en modo memoria');
+    assert.equal(payload.data.ready, false);
+    assert.equal(payload.data.storageMode, 'memory');
+    assert.equal(payload.data.reason, 'storage_mode_not_postgres');
+    assert.deepEqual(payload.data.checkedTables, ['sat_certificates', 'cfdi_invoices', 'cfdi_invoice_events']);
+    assert.deepEqual(payload.data.missingTables, ['sat_certificates', 'cfdi_invoices', 'cfdi_invoice_events']);
+  } finally {
+    await stopServer(server);
+  }
+});
+
+test('manager can read CFDI readiness endpoint with en-US locale', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/readiness`, {
+      method: 'GET',
+      headers: integrationTestHeaders('manager', 'en-US')
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      message: string;
+      data: {
+        ready: boolean;
+      };
+    };
+
+    assert.equal(payload.message, 'CFDI readiness is unavailable in memory mode');
+    assert.equal(payload.data.ready, false);
+  } finally {
+    await stopServer(server);
+  }
+});

@@ -81,3 +81,6 @@ Resultado real (2026-03-05):
 Nota de contexto:
 - P0-CFDI-01 y P1-ARCH/P1-DATA ya tienen entregables iniciales documentados; Día 2 se enfoca en cerrar el bloqueo de infraestructura CI (DB_*).
 - P1-AI-01/P1-AI-02 ya cuentan con ADR y baseline operativa (`/ai/metrics`), por lo que no desplazan la prioridad de cierre de `P0-DB-01`.
+
+Continuación posterior al cierre de `P0-DB-01`:
+- Se inició siguiente incremento de `P0-CFDI-01` con endpoint operativo `GET /management/cfdi/readiness` y cobertura de integración para validar readiness SAT/CFDI por entorno.

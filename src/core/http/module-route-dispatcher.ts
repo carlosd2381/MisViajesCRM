@@ -37,6 +37,7 @@ import {
   handleDashboardResource
 } from '../../modules/dashboard/api/dashboard-http-handlers';
 import {
+  handleManagementCfdiReadiness,
   handleManagementCollection,
   handleManagementResource
 } from '../../modules/management/api/management-http-handlers';
@@ -230,6 +231,9 @@ function handleManagementRoute(context: ModuleRouteContext): Promise<void> | nul
 
   const requestContext = { req, res, pathSegments, locale };
   if (pathSegments.length === 1) return handleManagementCollection(requestContext, repositories.management);
+  if (pathSegments.length === 3 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'readiness') {
+    return handleManagementCfdiReadiness(requestContext);
+  }
   if (pathSegments.length === 2) return handleManagementResource(requestContext, repositories.management);
   return Promise.resolve();
 }
