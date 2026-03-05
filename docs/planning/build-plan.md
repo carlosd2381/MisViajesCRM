@@ -222,6 +222,7 @@ Notas de ejecución:
 - Avance P1-ARCH-01: contrato de contexto `messaging`↔`itinerary` definido en `docs/governance/adr-2026-03-05-messaging-itinerary-context-contract.md`.
 - Avance P1-AI-01: ADR de proveedor y fallback definida en `docs/governance/adr-2026-03-05-ai-provider-strategy.md`.
 - Avance P1-AI-02: observabilidad base implementada (`GET /ai/metrics`) y guía operativa en `docs/operations/ai-observability-baseline.md`.
+- Avance P1-AI-02: `GET /ai/metrics` ahora expone también configuración efectiva de proveedor AI (`provider` + `fallbackProvider`) para transparencia operativa entre configuración y ejecución observada.
 
 ### Checklist activo de ejecución (P0-CFDI-01)
 

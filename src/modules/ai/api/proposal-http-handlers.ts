@@ -124,7 +124,16 @@ export async function handleAiMetrics(context: RequestContext): Promise<void> {
     return;
   }
 
-  const data = aiProposalObservability.snapshot();
+  const snapshot = aiProposalObservability.snapshot();
+  const configuredProvider = process.env.AI_PROVIDER ?? 'mock';
+  const configuredFallbackProvider = process.env.AI_PROVIDER_FALLBACK ?? null;
+  const data = {
+    ...snapshot,
+    configuration: {
+      provider: configuredProvider,
+      fallbackProvider: configuredFallbackProvider
+    }
+  };
   sendJson(context.res, 200, { data, message: messageByLocale(context.locale, 'Métricas AI disponibles') });
 }
 

@@ -259,6 +259,10 @@ test('agent can read AI metrics after proposal requests', async () => {
     const payload = (await metricsResponse.json()) as {
       data: {
         provider: string;
+        configuration: {
+          provider: string;
+          fallbackProvider: string | null;
+        };
         totals: { requests: number; totalEstimatedTokens: number; totalEstimatedCostUsd: number };
         byOperation: { proposal: { count: number; avgDurationMs: number } };
       };
@@ -267,6 +271,8 @@ test('agent can read AI metrics after proposal requests', async () => {
 
     assert.equal(payload.message, 'Métricas AI disponibles');
     assert.equal(payload.data.provider, 'mock');
+    assert.equal(payload.data.configuration.provider, 'mock');
+    assert.equal(payload.data.configuration.fallbackProvider, null);
     assert.ok(payload.data.totals.requests >= 1);
     assert.ok(payload.data.byOperation.proposal.count >= 1);
     assert.ok(payload.data.byOperation.proposal.avgDurationMs >= 0);
