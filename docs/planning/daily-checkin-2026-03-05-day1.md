@@ -114,6 +114,8 @@ Evidencia técnica validada: typecheck ✅ | test:integration ✅ | test:integra
 Notas: <riesgos residuales/observaciones o "sin observaciones">
 ```
 
+Nota: las secciones "Objetivo del día" y "Plan para mañana" en este documento conservan el contexto original del Día 1; el estado vigente actualizado para cierre está reflejado en "Actualización de continuidad" y en `docs/planning/build-plan.md`.
+
 ---
 
 ## Quick checklist por prioridad

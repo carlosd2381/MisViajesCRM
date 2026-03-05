@@ -227,10 +227,10 @@ Notas de ejecución:
 
 | Paso | Objetivo | Resultado esperado |
 | --- | --- | --- |
-| 1 | Completar contratos pendientes de orden/desempate en lecturas CFDI | Aserciones de integración PostgreSQL cubren escenarios con timestamps empatados |
-| 2 | Cerrar checklist de consistencia de consultas CFDI (`from/to/limit/windowDays`) | Validación temprana + i18n + shape contract documentados sin huecos |
-| 3 | Ejecutar barrido final de pruebas | `typecheck`, `test:integration`, `test:integration:postgres` en verde |
-| 4 | Registrar cierre operativo | Entrada de cierre en este documento y check-in diario |
+| 1 | Contratos de orden/desempate en lecturas CFDI completados | Aserciones de integración PostgreSQL cubren escenarios con timestamps empatados |
+| 2 | Checklist de consistencia de consultas CFDI cerrado | Validación temprana + i18n + shape contract documentados sin huecos |
+| 3 | Barrido final de pruebas ejecutado | `typecheck`, `test:integration`, `test:integration:postgres` en verde |
+| 4 | Registrar cierre operativo formal (pendiente) | Entrada final de aprobación de compliance/negocio en este documento y check-in diario |
 
 Definition of done (bloque activo):
 - Se cierra P0-CFDI-01 con evidencia verificable de contrato y ejecución (tests + registro en roadmap).
