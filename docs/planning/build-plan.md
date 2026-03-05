@@ -221,6 +221,7 @@ Notas de ejecución:
 - Avance P0-CFDI-01: aserciones de contrato de forma (`shape`) reforzadas en integración PostgreSQL para respuestas de eventos CFDI (`/management/cfdi/events` y `GET /management/cfdi/invoices/:invoiceId`) para prevenir drift de campos.
 - Avance P0-CFDI-01: aserciones de contrato de forma (`shape`) extendidas en integración PostgreSQL para payloads de errores de firmado CFDI (`/management/cfdi/signing/errors`, `/management/cfdi/signing/errors/trends` y `/dashboard/ops/cfdi-signing/errors`) para prevenir drift de llaves en items.
 - Avance P0-CFDI-01: contrato de orden/paginación reforzado en integración PostgreSQL para `GET /management/cfdi/signing/errors` (orden descendente por `eventAt` y respeto estricto de `limit=1`).
+- Avance P0-CFDI-01: orden determinista reforzado para lecturas CFDI en PostgreSQL (`order by event_at desc, id desc`) y aserción de desempate por `id` cuando existen eventos con mismo timestamp en `GET /management/cfdi/signing/errors`.
 - Avance P1-DATA-01: migración draft creada en `db/migrations/20260305_013_financials_fx_and_commission_splits.sql` (timestamp/fuente FX y split multi-proveedor) y diccionario actualizado.
 - Avance P1-ARCH-01: ADR aprobada en `docs/governance/adr-2026-03-05-commissions-vs-financials.md` (se mantiene separación de dominio `commissions`/`financials`).
 - Avance P1-ARCH-01: contrato de contexto `messaging`↔`itinerary` definido en `docs/governance/adr-2026-03-05-messaging-itinerary-context-contract.md`.

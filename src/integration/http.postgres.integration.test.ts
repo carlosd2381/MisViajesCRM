@@ -258,6 +258,34 @@ async function seedStampedCfdiInvoice(invoiceId: string, cfdiUuid: string): Prom
   );
 }
 
+async function seedCfdiInvoiceErrorEvent(
+  invoiceId: string,
+  eventId: string,
+  eventAt: string,
+  reason = 'certificate_signing_material_missing'
+): Promise<void> {
+  await pgQuery(
+    `
+      insert into cfdi_invoice_events (
+        id,
+        cfdi_invoice_id,
+        event_type,
+        detail_json,
+        event_at,
+        created_at
+      ) values (
+        $1,
+        $2,
+        'error',
+        jsonb_build_object('operation', 'sign', 'reason', $3::text),
+        $4::timestamptz,
+        $4::timestamptz
+      )
+    `,
+    [eventId, invoiceId, reason, eventAt]
+  );
+}
+
 test('lead create and update persist audit events in postgres mode', async (t: TestContext) => {
   if (!hasRequiredPostgresEnv()) {
     t.skip('Postgres env vars are not configured');
@@ -1292,6 +1320,35 @@ test('cfdi sign stores diagnostic last_error when certificate signing material i
     assert.equal(signingErrorsLimitOnePayload.data.errors.length, 1);
     assert.equal(signingErrorsLimitOnePayload.data.errors[0].invoiceId, invoiceId);
     assert.equal(signingErrorsLimitOnePayload.data.errors[0].reason, 'certificate_signing_material_missing');
+
+    const tiedEventTimestamp = '2026-03-05T21:30:00.000Z';
+    const tieEventLowId = 'cfdi_sign_error_tie_a_pg_001';
+    const tieEventHighId = 'cfdi_sign_error_tie_b_pg_001';
+
+    await seedCfdiInvoiceErrorEvent(invoiceId, tieEventLowId, tiedEventTimestamp);
+    await seedCfdiInvoiceErrorEvent(invoiceId, tieEventHighId, tiedEventTimestamp);
+
+    const signingErrorsTieResponse = await fetch(
+      `${started.baseUrl}/management/cfdi/signing/errors?reason=certificate_signing_material_missing&invoiceId=${invoiceId}&from=${encodeURIComponent(tiedEventTimestamp)}&to=${encodeURIComponent(tiedEventTimestamp)}&limit=2`,
+      {
+        method: 'GET',
+        headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID)
+      }
+    );
+
+    assert.equal(signingErrorsTieResponse.status, 200);
+    const signingErrorsTiePayload = (await signingErrorsTieResponse.json()) as {
+      data: {
+        count: number;
+        errors: Array<{ id: string }>;
+      };
+    };
+
+    assert.equal(signingErrorsTiePayload.data.count, 2);
+    assert.deepEqual(
+      signingErrorsTiePayload.data.errors.map((item) => item.id),
+      [tieEventHighId, tieEventLowId]
+    );
 
     const signingErrorTrendsResponse = await fetch(
       `${started.baseUrl}/management/cfdi/signing/errors/trends?reason=certificate_signing_material_missing&windowDays=30`,

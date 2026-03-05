@@ -147,7 +147,7 @@ export async function handleManagementCfdiEvents(context: RequestContext): Promi
           created_at
         from cfdi_invoice_events
         where ${filters.join(' and ')}
-        order by event_at desc
+        order by event_at desc, id desc
         limit $${params.length}
       `,
       params
@@ -251,7 +251,7 @@ export async function handleManagementCfdiSigningErrors(context: RequestContext)
         from cfdi_invoice_events e
         join cfdi_invoices i on i.id = e.cfdi_invoice_id
         where ${filters.join(' and ')}
-        order by e.event_at desc
+        order by e.event_at desc, e.id desc
         limit $${params.length}
       `,
       params
@@ -529,7 +529,7 @@ export async function handleManagementCfdiInvoiceStatus(context: RequestContext)
           created_at
         from cfdi_invoice_events
         where ${eventFilters.join(' and ')}
-        order by event_at desc
+        order by event_at desc, id desc
         limit $${eventParams.length}
       `,
       eventParams
