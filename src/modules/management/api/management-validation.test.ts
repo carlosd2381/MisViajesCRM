@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {
   validateCfdiCancelConfirmRequest,
   validateCfdiCancelRequest,
+  validateCfdiXmlRequest,
+  validatePersistCfdiXmlRequest,
   validateCfdiStampConfirmRequest,
   validateCfdiStampRequest,
   validateCreateSatCertificateRequest,
@@ -136,6 +138,37 @@ test('validateCreateSatCertificateRequest rejects invalid date range', () => {
     status: 'active',
     validFrom: '2027-01-01',
     validTo: '2026-01-01'
+  });
+
+  assert.equal(result.ok, false);
+});
+
+test('validateCfdiXmlRequest succeeds with stamped xml payload', () => {
+  const result = validateCfdiXmlRequest({
+    invoiceId: 'inv_xml_001',
+    xmlType: 'stamped',
+    xmlContent:
+      '<?xml version="1.0" encoding="UTF-8"?><cfdi:Comprobante><tfd:TimbreFiscalDigital/></cfdi:Comprobante>'
+  });
+
+  assert.equal(result.ok, true);
+});
+
+test('validateCfdiXmlRequest rejects xml without Comprobante node', () => {
+  const result = validateCfdiXmlRequest({
+    invoiceId: 'inv_xml_001',
+    xmlType: 'unsigned',
+    xmlContent: '<?xml version="1.0"?><root></root>'
+  });
+
+  assert.equal(result.ok, false);
+});
+
+test('validatePersistCfdiXmlRequest reuses xml validation rules', () => {
+  const result = validatePersistCfdiXmlRequest({
+    invoiceId: 'inv_xml_001',
+    xmlType: 'stamped',
+    xmlContent: '<?xml version="1.0"?><cfdi:Comprobante></cfdi:Comprobante>'
   });
 
   assert.equal(result.ok, false);

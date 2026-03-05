@@ -729,3 +729,98 @@ test('cfdi SAT certificate endpoints create and query records in postgres mode',
     restoreStorageMode();
   }
 });
+
+test('cfdi XML validate and persist endpoints update invoice xml metadata in postgres mode', async (t: TestContext) => {
+  if (!hasRequiredPostgresEnv()) {
+    t.skip('Postgres env vars are not configured');
+    return;
+  }
+
+  const restoreStorageMode = setEnv('STORAGE_MODE', 'postgres');
+  const invoiceId = 'inv_cfdi_xml_pg_001';
+  let server: Server | null = null;
+
+  try {
+    if (!(await isCfdiSchemaReady())) {
+      t.skip('Postgres schema is not initialized (cfdi_invoices/cfdi_invoice_events missing)');
+      return;
+    }
+
+    await cleanupCfdiValidationArtifacts(invoiceId);
+    await seedCfdiInvoice(invoiceId);
+
+    const started = await startPostgresServer();
+    server = started.server;
+
+    const xmlUnsigned = '<?xml version="1.0"?><cfdi:Comprobante></cfdi:Comprobante>';
+    const validateResponse = await fetch(`${started.baseUrl}/management/cfdi/xml/validate`, {
+      method: 'POST',
+      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID),
+      body: JSON.stringify({
+        invoiceId,
+        xmlType: 'unsigned',
+        xmlContent: xmlUnsigned
+      })
+    });
+
+    assert.equal(validateResponse.status, 200);
+
+    const persistResponse = await fetch(`${started.baseUrl}/management/cfdi/xml/persist`, {
+      method: 'POST',
+      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID),
+      body: JSON.stringify({
+        invoiceId,
+        xmlType: 'unsigned',
+        xmlContent: xmlUnsigned
+      })
+    });
+
+    assert.equal(persistResponse.status, 200);
+
+    const statusResponse = await fetch(`${started.baseUrl}/management/cfdi/invoices/${invoiceId}?limit=5`, {
+      method: 'GET',
+      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID)
+    });
+
+    assert.equal(statusResponse.status, 200);
+    const statusPayload = (await statusResponse.json()) as {
+      data: {
+        invoice: {
+          xml: {
+            hasUnsigned: boolean;
+            hasStamped: boolean;
+            unsignedBytes: number;
+            stampedBytes: number;
+          };
+        };
+      };
+    };
+
+    assert.equal(statusPayload.data.invoice.xml.hasUnsigned, true);
+    assert.equal(statusPayload.data.invoice.xml.hasStamped, false);
+    assert.ok(statusPayload.data.invoice.xml.unsignedBytes > 0);
+    assert.equal(statusPayload.data.invoice.xml.stampedBytes, 0);
+
+    const xmlEventResult = await pgQuery<{ event_type: string }>(
+      `
+        select event_type
+        from cfdi_invoice_events
+        where cfdi_invoice_id = $1
+          and event_type in ('validation_passed', 'generated')
+        order by event_at desc
+        limit 2
+      `,
+      [invoiceId]
+    );
+
+    assert.ok((xmlEventResult.rowCount ?? 0) >= 2);
+  } finally {
+    if (server) {
+      await stopServer(server);
+    }
+
+    await cleanupCfdiValidationArtifacts(invoiceId);
+    await closePgPool();
+    restoreStorageMode();
+  }
+});

@@ -4,6 +4,8 @@ import type {
   ConfirmCfdiStampRequest,
   CreateSatCertificateRequest,
   CreateManagementSettingRequest,
+  PersistCfdiXmlRequest,
+  ValidateCfdiXmlRequest,
   ValidateCfdiCancelRequest,
   ValidateCfdiStampRequest,
   UpdateManagementSettingRequest
@@ -249,5 +251,62 @@ export function validateCreateSatCertificateRequest(
     certificatePemRef,
     privateKeyRef,
     passphraseRef
+  });
+}
+
+function hasXmlEnvelope(xml: string): boolean {
+  return xml.includes('<cfdi:Comprobante') || xml.includes('<Comprobante');
+}
+
+function hasTimbreFiscalDigital(xml: string): boolean {
+  return xml.includes('TimbreFiscalDigital');
+}
+
+function validateCfdiXmlShape(
+  xmlType: 'unsigned' | 'stamped',
+  xmlContent: string,
+  errors: string[]
+): void {
+  if (!xmlContent.includes('<?xml')) errors.push('xmlContent debe incluir declaración XML');
+  if (!hasXmlEnvelope(xmlContent)) errors.push('xmlContent debe incluir nodo Comprobante CFDI');
+  if (xmlType === 'stamped' && !hasTimbreFiscalDigital(xmlContent)) {
+    errors.push('xmlContent stamped debe incluir TimbreFiscalDigital');
+  }
+}
+
+export function validateCfdiXmlRequest(
+  payload: UnknownRecord
+): ValidationResult<ValidateCfdiXmlRequest> {
+  const errors: string[] = [];
+
+  const invoiceId = asText(payload.invoiceId);
+  const xmlType = asText(payload.xmlType) as ValidateCfdiXmlRequest['xmlType'] | undefined;
+  const xmlContent = asText(payload.xmlContent);
+
+  if (!invoiceId) errors.push('invoiceId es requerido');
+  if (!xmlType) errors.push('xmlType es requerido');
+  if (xmlType && !['unsigned', 'stamped'].includes(xmlType)) errors.push('xmlType inválido');
+  if (!xmlContent) errors.push('xmlContent es requerido');
+  if (xmlType && xmlContent) validateCfdiXmlShape(xmlType, xmlContent, errors);
+
+  if (errors.length > 0) return failure(errors);
+
+  return success({
+    invoiceId: invoiceId as string,
+    xmlType: xmlType as ValidateCfdiXmlRequest['xmlType'],
+    xmlContent: xmlContent as string
+  });
+}
+
+export function validatePersistCfdiXmlRequest(
+  payload: UnknownRecord
+): ValidationResult<PersistCfdiXmlRequest> {
+  const validation = validateCfdiXmlRequest(payload);
+  if (!validation.ok) return validation;
+
+  return success({
+    invoiceId: validation.value.invoiceId,
+    xmlType: validation.value.xmlType,
+    xmlContent: validation.value.xmlContent
   });
 }

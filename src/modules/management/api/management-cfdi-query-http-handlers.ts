@@ -204,6 +204,10 @@ export async function handleManagementCfdiInvoiceStatus(context: RequestContext)
       cancelled_at: string | null;
       updated_at: string;
       last_error: string | null;
+      has_xml_unsigned: boolean;
+      has_xml_stamped: boolean;
+      xml_unsigned_bytes: number;
+      xml_stamped_bytes: number;
     }>(
       `
         select
@@ -214,7 +218,11 @@ export async function handleManagementCfdiInvoiceStatus(context: RequestContext)
           stamped_at,
           cancelled_at,
           updated_at,
-          last_error
+          last_error,
+          (xml_unsigned is not null) as has_xml_unsigned,
+          (xml_stamped is not null) as has_xml_stamped,
+          coalesce(length(xml_unsigned), 0) as xml_unsigned_bytes,
+          coalesce(length(xml_stamped), 0) as xml_stamped_bytes
         from cfdi_invoices
         where id = $1
       `,
@@ -261,7 +269,13 @@ export async function handleManagementCfdiInvoiceStatus(context: RequestContext)
           stampedAt: invoice.stamped_at,
           cancelledAt: invoice.cancelled_at,
           updatedAt: invoice.updated_at,
-          lastError: invoice.last_error
+          lastError: invoice.last_error,
+          xml: {
+            hasUnsigned: invoice.has_xml_unsigned,
+            hasStamped: invoice.has_xml_stamped,
+            unsignedBytes: Number(invoice.xml_unsigned_bytes),
+            stampedBytes: Number(invoice.xml_stamped_bytes)
+          }
         },
         events: eventsResult.rows.map((row) => ({
           id: row.id,

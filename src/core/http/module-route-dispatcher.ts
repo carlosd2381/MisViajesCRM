@@ -54,6 +54,10 @@ import {
   handleManagementCfdiStampConfirm
 } from '../../modules/management/api/management-cfdi-transition-http-handlers';
 import {
+  handleManagementCfdiXmlPersist,
+  handleManagementCfdiXmlValidation
+} from '../../modules/management/api/management-cfdi-xml-http-handlers';
+import {
   handleManagementCfdiCertificateResource,
   handleManagementCfdiCertificatesCollection
 } from '../../modules/management/api/management-cfdi-certificate-http-handlers';
@@ -273,6 +277,12 @@ function handleManagementRoute(context: ModuleRouteContext): Promise<void> | nul
   }
   if (pathSegments.length === 4 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'cancel' && pathSegments[3] === 'confirm') {
     return handleManagementCfdiCancelConfirm(requestContext);
+  }
+  if (pathSegments.length === 4 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'xml' && pathSegments[3] === 'validate') {
+    return handleManagementCfdiXmlValidation(requestContext);
+  }
+  if (pathSegments.length === 4 && pathSegments[1] === 'cfdi' && pathSegments[2] === 'xml' && pathSegments[3] === 'persist') {
+    return handleManagementCfdiXmlPersist(requestContext);
   }
   if (pathSegments.length === 2) return handleManagementResource(requestContext, repositories.management);
   return Promise.resolve();

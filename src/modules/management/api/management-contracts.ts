@@ -56,6 +56,18 @@ export interface CreateSatCertificateRequest {
   passphraseRef?: string;
 }
 
+export interface ValidateCfdiXmlRequest {
+  invoiceId: string;
+  xmlType: 'unsigned' | 'stamped';
+  xmlContent: string;
+}
+
+export interface PersistCfdiXmlRequest {
+  invoiceId: string;
+  xmlType: 'unsigned' | 'stamped';
+  xmlContent: string;
+}
+
 export interface ManagementSettingResponse {
   data: ManagementSetting;
 }

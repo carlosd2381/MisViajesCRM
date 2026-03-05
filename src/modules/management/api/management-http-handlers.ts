@@ -103,6 +103,10 @@ function englishMessage(spanish: string): string {
     'No fue posible consultar certificado SAT': 'Unable to retrieve SAT certificate',
     'No fue posible crear certificado SAT': 'Unable to create SAT certificate',
     'Certificado SAT no encontrado': 'SAT certificate not found',
+    'Contrato XML CFDI válido': 'CFDI XML contract is valid',
+    'Persistencia XML CFDI no disponible en modo memoria': 'CFDI XML persistence is unavailable in memory mode',
+    'XML CFDI persistido': 'CFDI XML persisted',
+    'No fue posible persistir XML CFDI': 'Unable to persist CFDI XML',
     'Solicitud inválida': 'Invalid request',
     'Método no permitido': 'Method not allowed'
   };

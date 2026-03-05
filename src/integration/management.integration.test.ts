@@ -334,6 +334,62 @@ test('owner can create SAT certificate in memory mode with explicit fallback', a
   }
 });
 
+test('owner can validate CFDI XML contract payload', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/xml/validate`, {
+      method: 'POST',
+      headers: testHeaders('owner'),
+      body: JSON.stringify({
+        invoiceId: 'inv_xml_memory_001',
+        xmlType: 'unsigned',
+        xmlContent: '<?xml version="1.0"?><cfdi:Comprobante></cfdi:Comprobante>'
+      })
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      message: string;
+      data: { valid: boolean; operation: string };
+    };
+
+    assert.equal(payload.message, 'Contrato XML CFDI válido');
+    assert.equal(payload.data.valid, true);
+    assert.equal(payload.data.operation, 'xml_validate');
+  } finally {
+    await stopServer(server);
+  }
+});
+
+test('owner can request CFDI XML persistence in memory mode with explicit fallback', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/xml/persist`, {
+      method: 'POST',
+      headers: testHeaders('owner'),
+      body: JSON.stringify({
+        invoiceId: 'inv_xml_memory_002',
+        xmlType: 'unsigned',
+        xmlContent: '<?xml version="1.0"?><cfdi:Comprobante></cfdi:Comprobante>'
+      })
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      message: string;
+      data: { persisted: boolean; storageMode: string };
+    };
+
+    assert.equal(payload.message, 'Persistencia XML CFDI no disponible en modo memoria');
+    assert.equal(payload.data.persisted, false);
+    assert.equal(payload.data.storageMode, 'memory');
+  } finally {
+    await stopServer(server);
+  }
+});
+
 test('owner gets validation errors for invalid CFDI stamp confirm payload', async () => {
   const { server, baseUrl } = await startServer();
 
