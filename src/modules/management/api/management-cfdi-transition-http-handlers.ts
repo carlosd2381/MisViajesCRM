@@ -112,6 +112,18 @@ export async function handleManagementCfdiCancelConfirm(context: RequestContext)
   }
 
   try {
+    if (validation.value.cancellationReason === '01') {
+      const replacementValidation = await validateReplacementCfdiForCancellation(
+        validation.value.invoiceId,
+        validation.value.replacementCfdiUuid
+      );
+
+      if (!replacementValidation.ok) {
+        sendJson(context.res, 409, { message: messageByLocale(context.locale, 'CFDI de reemplazo no encontrado') });
+        return;
+      }
+    }
+
     const now = new Date().toISOString();
     const updateResult = await pgQuery<{
       id: string;
@@ -205,4 +217,25 @@ async function recordCfdiLifecycleEvent(input: CfdiLifecycleEventInput): Promise
   } catch {
     return false;
   }
+}
+
+async function validateReplacementCfdiForCancellation(
+  invoiceId: string,
+  replacementCfdiUuid: string | undefined
+): Promise<{ ok: boolean }> {
+  if (!replacementCfdiUuid) return { ok: false };
+
+  const result = await pgQuery<{ id: string }>(
+    `
+      select id
+      from cfdi_invoices
+      where cfdi_uuid = $1
+        and status = 'stamped'
+        and id <> $2
+      limit 1
+    `,
+    [replacementCfdiUuid, invoiceId]
+  );
+
+  return { ok: (result.rowCount ?? 0) > 0 };
 }

@@ -197,6 +197,45 @@ async function seedCfdiInvoice(invoiceId: string): Promise<void> {
   );
 }
 
+async function seedStampedCfdiInvoice(invoiceId: string, cfdiUuid: string): Promise<void> {
+  const now = new Date().toISOString();
+  await pgQuery(
+    `
+      insert into cfdi_invoices (
+        id,
+        rfc_emisor,
+        rfc_receptor,
+        tipo_comprobante,
+        moneda,
+        subtotal,
+        impuestos_total,
+        total,
+        status,
+        issue_date,
+        cfdi_uuid,
+        stamped_at,
+        created_at,
+        updated_at
+      ) values ($1, $2, $3, $4, $5, $6, $7, $8, 'stamped', $9, $10, $11, $12, $13)
+    `,
+    [
+      invoiceId,
+      'AAA010101AAA',
+      'BBB010101BBB',
+      'I',
+      'MXN',
+      2000,
+      320,
+      2320,
+      now,
+      cfdiUuid,
+      now,
+      now,
+      now
+    ]
+  );
+}
+
 test('lead create and update persist audit events in postgres mode', async (t: TestContext) => {
   if (!hasRequiredPostgresEnv()) {
     t.skip('Postgres env vars are not configured');
@@ -953,6 +992,86 @@ test('cfdi sign endpoint persists signing fields in postgres mode', async (t: Te
 
     await cleanupCfdiValidationArtifacts(invoiceId);
     await cleanupSatCertificateArtifacts(certificateId);
+    await closePgPool();
+    restoreStorageMode();
+  }
+});
+
+test('cfdi cancel reason 01 enforces replacement CFDI traceability in postgres mode', async (t: TestContext) => {
+  if (!hasRequiredPostgresEnv()) {
+    t.skip('Postgres env vars are not configured');
+    return;
+  }
+
+  const restoreStorageMode = setEnv('STORAGE_MODE', 'postgres');
+  const invoiceId = 'inv_cfdi_cancel_r01_pg_001';
+  const replacementInvoiceId = 'inv_cfdi_cancel_r01_replacement_pg_001';
+  const replacementCfdiUuid = '1f1422b6-0d57-4c3b-b0d8-26f67edaf5cf';
+  let server: Server | null = null;
+
+  try {
+    if (!(await isCfdiSchemaReady())) {
+      t.skip('Postgres schema is not initialized (cfdi_invoices/cfdi_invoice_events missing)');
+      return;
+    }
+
+    await cleanupCfdiValidationArtifacts(invoiceId);
+    await cleanupCfdiValidationArtifacts(replacementInvoiceId);
+    await seedCfdiInvoice(invoiceId);
+
+    const started = await startPostgresServer();
+    server = started.server;
+
+    const validateMissingReplacement = await fetch(`${started.baseUrl}/management/cfdi/cancel/validate`, {
+      method: 'POST',
+      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID),
+      body: JSON.stringify({
+        invoiceId,
+        cfdiUuid: '58f72000-a4ec-40aa-bfd9-92e33652d7d9',
+        cancellationReason: '01',
+        replacementCfdiUuid,
+        cancelledAt: '2026-03-05T16:00:00.000Z'
+      })
+    });
+
+    assert.equal(validateMissingReplacement.status, 409);
+
+    await seedStampedCfdiInvoice(replacementInvoiceId, replacementCfdiUuid);
+
+    const validateWithReplacement = await fetch(`${started.baseUrl}/management/cfdi/cancel/validate`, {
+      method: 'POST',
+      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID),
+      body: JSON.stringify({
+        invoiceId,
+        cfdiUuid: '58f72000-a4ec-40aa-bfd9-92e33652d7d9',
+        cancellationReason: '01',
+        replacementCfdiUuid,
+        cancelledAt: '2026-03-05T16:10:00.000Z'
+      })
+    });
+
+    assert.equal(validateWithReplacement.status, 200);
+
+    const confirmResponse = await fetch(`${started.baseUrl}/management/cfdi/cancel/confirm`, {
+      method: 'POST',
+      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID),
+      body: JSON.stringify({
+        invoiceId,
+        cfdiUuid: '58f72000-a4ec-40aa-bfd9-92e33652d7d9',
+        cancellationReason: '01',
+        replacementCfdiUuid,
+        cancelledAt: '2026-03-05T16:20:00.000Z'
+      })
+    });
+
+    assert.equal(confirmResponse.status, 200);
+  } finally {
+    if (server) {
+      await stopServer(server);
+    }
+
+    await cleanupCfdiValidationArtifacts(invoiceId);
+    await cleanupCfdiValidationArtifacts(replacementInvoiceId);
     await closePgPool();
     restoreStorageMode();
   }

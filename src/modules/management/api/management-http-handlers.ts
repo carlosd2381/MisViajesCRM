@@ -88,6 +88,7 @@ function englishMessage(spanish: string): string {
     'CFDI no encontrado': 'CFDI invoice not found',
     'CFDI marcado como timbrado': 'CFDI marked as stamped',
     'CFDI marcado como cancelado': 'CFDI marked as cancelled',
+    'CFDI de reemplazo no encontrado': 'Replacement CFDI not found',
     'No fue posible confirmar timbrado CFDI': 'Unable to confirm CFDI stamping',
     'No fue posible confirmar cancelación CFDI': 'Unable to confirm CFDI cancellation',
     'Estado CFDI consultado': 'CFDI status retrieved',

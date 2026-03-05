@@ -87,6 +87,34 @@ export async function handleManagementCfdiCancelValidation(context: RequestConte
     return;
   }
 
+  if (
+    validation.value.cancellationReason === '01' &&
+    (process.env.STORAGE_MODE ?? 'memory') === 'postgres'
+  ) {
+    const replacementValidation = await validateReplacementCfdiForCancellation(
+      validation.value.invoiceId,
+      validation.value.replacementCfdiUuid
+    );
+
+    if (!replacementValidation.ok) {
+      const eventRecorded = await recordCfdiValidationEvent({
+        invoiceId: validation.value.invoiceId,
+        eventType: 'validation_failed',
+        operation: 'cancel',
+        valid: false,
+        detail: {
+          errors: ['replacementCfdiUuid no corresponde a un CFDI timbrado existente']
+        }
+      });
+
+      sendJson(context.res, 409, {
+        message: messageByLocale(context.locale, 'CFDI de reemplazo no encontrado'),
+        metadata: { eventRecorded }
+      });
+      return;
+    }
+  }
+
   const eventRecorded = await recordCfdiValidationEvent({
     invoiceId: validation.value.invoiceId,
     eventType: 'validation_passed',
@@ -160,4 +188,25 @@ async function recordCfdiValidationEvent(input: CfdiValidationEventInput): Promi
   } catch {
     return false;
   }
+}
+
+async function validateReplacementCfdiForCancellation(
+  invoiceId: string,
+  replacementCfdiUuid: string | undefined
+): Promise<{ ok: boolean }> {
+  if (!replacementCfdiUuid) return { ok: false };
+
+  const result = await pgQuery<{ id: string }>(
+    `
+      select id
+      from cfdi_invoices
+      where cfdi_uuid = $1
+        and status = 'stamped'
+        and id <> $2
+      limit 1
+    `,
+    [replacementCfdiUuid, invoiceId]
+  );
+
+  return { ok: (result.rowCount ?? 0) > 0 };
 }
