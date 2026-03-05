@@ -1,5 +1,6 @@
 import type { RequestContext } from '../../../core/http/http-types';
 import { readJsonBody, sendJson } from '../../../core/http/http-utils';
+import { asOptionalText, isIsoDateTime, parseBoundedInt } from '../../../core/http/http-query-params';
 import { pgQuery } from '../../../core/db/pg-client';
 import type { DashboardRepository } from '../domain/dashboard-repository';
 import {
@@ -74,13 +75,11 @@ export async function handleDashboardCfdiSigningErrorSummary(context: RequestCon
 
   const storageMode = process.env.STORAGE_MODE ?? 'memory';
   const searchParams = new URL(context.req.url ?? '/', 'http://localhost').searchParams;
-  const reason = asText(searchParams.get('reason'));
-  const from = asText(searchParams.get('from'));
-  const to = asText(searchParams.get('to'));
-  const windowDaysInput = Number.parseInt(searchParams.get('windowDays') ?? '14', 10);
-  const windowDays = Number.isFinite(windowDaysInput) ? Math.min(Math.max(windowDaysInput, 1), 90) : 14;
-  const limitInput = Number.parseInt(searchParams.get('limit') ?? '30', 10);
-  const limit = Number.isFinite(limitInput) ? Math.min(Math.max(limitInput, 1), 90) : 30;
+  const reason = asOptionalText(searchParams.get('reason'));
+  const from = asOptionalText(searchParams.get('from'));
+  const to = asOptionalText(searchParams.get('to'));
+  const windowDays = parseBoundedInt(searchParams.get('windowDays'), 14, 1, 90);
+  const limit = parseBoundedInt(searchParams.get('limit'), 30, 1, 90);
 
   if (from && !isIsoDateTime(from)) {
     sendJson(context.res, 400, {
@@ -219,13 +218,3 @@ function englishMessage(spanish: string): string {
   return map[spanish] ?? 'Operation completed';
 }
 
-function asText(value: unknown): string | undefined {
-  if (typeof value !== 'string') return undefined;
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : undefined;
-}
-
-function isIsoDateTime(value: string): boolean {
-  const parsed = Date.parse(value);
-  return Number.isFinite(parsed);
-}

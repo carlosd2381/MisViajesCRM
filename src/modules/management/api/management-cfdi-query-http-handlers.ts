@@ -1,5 +1,6 @@
 import type { RequestContext } from '../../../core/http/http-types';
 import { sendJson } from '../../../core/http/http-utils';
+import { asOptionalText, isIsoDateTime, parseBoundedInt } from '../../../core/http/http-query-params';
 import { pgQuery } from '../../../core/db/pg-client';
 import { messageByLocale } from './management-http-handlers';
 
@@ -81,11 +82,10 @@ export async function handleManagementCfdiEvents(context: RequestContext): Promi
 
   const storageMode = process.env.STORAGE_MODE ?? 'memory';
   const searchParams = new URL(context.req.url ?? '/', 'http://localhost').searchParams;
-  const invoiceId = asText(searchParams.get('invoiceId'));
-  const from = asText(searchParams.get('from'));
-  const to = asText(searchParams.get('to'));
-  const limitInput = Number.parseInt(searchParams.get('limit') ?? '20', 10);
-  const limit = Number.isFinite(limitInput) ? Math.min(Math.max(limitInput, 1), 100) : 20;
+  const invoiceId = asOptionalText(searchParams.get('invoiceId'));
+  const from = asOptionalText(searchParams.get('from'));
+  const to = asOptionalText(searchParams.get('to'));
+  const limit = parseBoundedInt(searchParams.get('limit'), 20, 1, 100);
 
   if (!invoiceId) {
     sendJson(context.res, 400, {
@@ -202,12 +202,11 @@ export async function handleManagementCfdiSigningErrors(context: RequestContext)
 
   const storageMode = process.env.STORAGE_MODE ?? 'memory';
   const searchParams = new URL(context.req.url ?? '/', 'http://localhost').searchParams;
-  const reason = asText(searchParams.get('reason'));
-  const invoiceId = asText(searchParams.get('invoiceId'));
-  const from = asText(searchParams.get('from'));
-  const to = asText(searchParams.get('to'));
-  const limitInput = Number.parseInt(searchParams.get('limit') ?? '20', 10);
-  const limit = Number.isFinite(limitInput) ? Math.min(Math.max(limitInput, 1), 200) : 20;
+  const reason = asOptionalText(searchParams.get('reason'));
+  const invoiceId = asOptionalText(searchParams.get('invoiceId'));
+  const from = asOptionalText(searchParams.get('from'));
+  const to = asOptionalText(searchParams.get('to'));
+  const limit = parseBoundedInt(searchParams.get('limit'), 20, 1, 200);
 
   if (from && !isIsoDateTime(from)) {
     sendJson(context.res, 400, {
@@ -327,11 +326,10 @@ export async function handleManagementCfdiSigningErrorTrends(context: RequestCon
 
   const storageMode = process.env.STORAGE_MODE ?? 'memory';
   const searchParams = new URL(context.req.url ?? '/', 'http://localhost').searchParams;
-  const reason = asText(searchParams.get('reason'));
-  const from = asText(searchParams.get('from'));
-  const to = asText(searchParams.get('to'));
-  const windowDaysInput = Number.parseInt(searchParams.get('windowDays') ?? '14', 10);
-  const windowDays = Number.isFinite(windowDaysInput) ? Math.min(Math.max(windowDaysInput, 1), 90) : 14;
+  const reason = asOptionalText(searchParams.get('reason'));
+  const from = asOptionalText(searchParams.get('from'));
+  const to = asOptionalText(searchParams.get('to'));
+  const windowDays = parseBoundedInt(searchParams.get('windowDays'), 14, 1, 90);
 
   if (from && !isIsoDateTime(from)) {
     sendJson(context.res, 400, {
@@ -466,10 +464,9 @@ export async function handleManagementCfdiInvoiceStatus(context: RequestContext)
   }
 
   const storageMode = process.env.STORAGE_MODE ?? 'memory';
-  const invoiceId = asText(context.pathSegments[3]);
+  const invoiceId = asOptionalText(context.pathSegments[3]);
   const searchParams = new URL(context.req.url ?? '/', 'http://localhost').searchParams;
-  const limitInput = Number.parseInt(searchParams.get('limit') ?? '10', 10);
-  const limit = Number.isFinite(limitInput) ? Math.min(Math.max(limitInput, 1), 100) : 10;
+  const limit = parseBoundedInt(searchParams.get('limit'), 10, 1, 100);
 
   if (!invoiceId) {
     sendJson(context.res, 400, {
@@ -610,13 +607,3 @@ export async function handleManagementCfdiInvoiceStatus(context: RequestContext)
   }
 }
 
-function asText(value: unknown): string | undefined {
-  if (typeof value !== 'string') return undefined;
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : undefined;
-}
-
-function isIsoDateTime(value: string): boolean {
-  const parsed = Date.parse(value);
-  return Number.isFinite(parsed);
-}
