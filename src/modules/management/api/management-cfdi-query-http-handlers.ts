@@ -466,12 +466,30 @@ export async function handleManagementCfdiInvoiceStatus(context: RequestContext)
   const storageMode = process.env.STORAGE_MODE ?? 'memory';
   const invoiceId = asOptionalText(context.pathSegments[3]);
   const searchParams = new URL(context.req.url ?? '/', 'http://localhost').searchParams;
+  const from = asOptionalText(searchParams.get('from'));
+  const to = asOptionalText(searchParams.get('to'));
   const limit = parseBoundedInt(searchParams.get('limit'), 10, 1, 100);
 
   if (!invoiceId) {
     sendJson(context.res, 400, {
       message: messageByLocale(context.locale, 'Solicitud inválida'),
       errors: ['invoiceId es requerido']
+    });
+    return;
+  }
+
+  if (from && !isIsoDateTime(from)) {
+    sendJson(context.res, 400, {
+      message: messageByLocale(context.locale, 'Solicitud inválida'),
+      errors: ['from inválido']
+    });
+    return;
+  }
+
+  if (to && !isIsoDateTime(to)) {
+    sendJson(context.res, 400, {
+      message: messageByLocale(context.locale, 'Solicitud inválida'),
+      errors: ['to inválido']
     });
     return;
   }
@@ -535,6 +553,21 @@ export async function handleManagementCfdiInvoiceStatus(context: RequestContext)
       return;
     }
 
+    const eventFilters: string[] = ['cfdi_invoice_id = $1'];
+    const eventParams: unknown[] = [invoiceId];
+
+    if (from) {
+      eventParams.push(from);
+      eventFilters.push(`event_at >= $${eventParams.length}::timestamptz`);
+    }
+
+    if (to) {
+      eventParams.push(to);
+      eventFilters.push(`event_at <= $${eventParams.length}::timestamptz`);
+    }
+
+    eventParams.push(limit);
+
     const eventsResult = await pgQuery<{
       id: string;
       event_type: string;
@@ -550,11 +583,11 @@ export async function handleManagementCfdiInvoiceStatus(context: RequestContext)
           event_at,
           created_at
         from cfdi_invoice_events
-        where cfdi_invoice_id = $1
+        where ${eventFilters.join(' and ')}
         order by event_at desc
-        limit $2
+        limit $${eventParams.length}
       `,
-      [invoiceId, limit]
+      eventParams
     );
 
     const invoice = invoiceResult.rows[0];

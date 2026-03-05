@@ -541,6 +541,28 @@ test('owner gets 400 for CFDI signing error trends endpoint with invalid to time
   }
 });
 
+test('owner gets 400 for CFDI invoice status endpoint with invalid from timestamp', async () => {
+  const { server, baseUrl } = await startServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/management/cfdi/invoices/inv_cfdi_001?from=not-a-date`, {
+      method: 'GET',
+      headers: testHeaders('owner')
+    });
+
+    assert.equal(response.status, 400);
+    const payload = (await response.json()) as {
+      message: string;
+      errors?: string[];
+    };
+
+    assert.equal(payload.message, 'Solicitud inválida');
+    assert.ok((payload.errors ?? []).includes('from inválido'));
+  } finally {
+    await stopServer(server);
+  }
+});
+
 test('owner gets validation errors for invalid CFDI stamp confirm payload', async () => {
   const { server, baseUrl } = await startServer();
 

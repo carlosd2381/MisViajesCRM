@@ -872,10 +872,13 @@ test('cfdi XML validate and persist endpoints update invoice xml metadata in pos
 
     assert.equal(persistResponse.status, 200);
 
-    const statusResponse = await fetch(`${started.baseUrl}/management/cfdi/invoices/${invoiceId}?limit=5`, {
-      method: 'GET',
-      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID)
-    });
+    const statusResponse = await fetch(
+      `${started.baseUrl}/management/cfdi/invoices/${invoiceId}?limit=5&from=2020-01-01T00:00:00.000Z&to=2100-01-01T00:00:00.000Z`,
+      {
+        method: 'GET',
+        headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID)
+      }
+    );
 
     assert.equal(statusResponse.status, 200);
     const statusPayload = (await statusResponse.json()) as {
@@ -988,10 +991,13 @@ test('cfdi sign endpoint persists signing fields in postgres mode', async (t: Te
     assert.ok((invoiceResult.rows[0].cadena_original ?? '').length > 0);
     assert.ok((invoiceResult.rows[0].sello_digital ?? '').length > 0);
 
-    const statusResponse = await fetch(`${started.baseUrl}/management/cfdi/invoices/${invoiceId}?limit=5`, {
-      method: 'GET',
-      headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID)
-    });
+    const statusResponse = await fetch(
+      `${started.baseUrl}/management/cfdi/invoices/${invoiceId}?limit=5&from=2020-01-01T00:00:00.000Z&to=2100-01-01T00:00:00.000Z`,
+      {
+        method: 'GET',
+        headers: integrationTestHeaders('owner', 'es-MX', ACTOR_USER_ID)
+      }
+    );
     assert.equal(statusResponse.status, 200);
     const statusPayload = (await statusResponse.json()) as {
       data: {
