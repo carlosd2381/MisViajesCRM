@@ -4,6 +4,7 @@ import { asOptionalText } from '../../../core/http/http-query-params';
 import { validateCfdiReadQueryParams } from '../../../core/http/http-query-validation';
 import { pgQuery } from '../../../core/db/pg-client';
 import { applyTimestampRangeFilters } from '../../../core/db/pg-filter-builders';
+import { mapCfdiEventRow, mapCfdiEventRowWithInvoice } from '../../../core/db/pg-cfdi-event-mappers';
 import { messageByLocale } from './management-http-handlers';
 
 export async function handleManagementCfdiReadiness(context: RequestContext): Promise<void> {
@@ -157,14 +158,7 @@ export async function handleManagementCfdiEvents(context: RequestContext): Promi
         storageMode,
         invoiceId,
         count: result.rows.length,
-        events: result.rows.map((row) => ({
-          id: row.id,
-          invoiceId: row.cfdi_invoice_id,
-          eventType: row.event_type,
-          detail: row.detail_json ?? {},
-          eventAt: row.event_at,
-          createdAt: row.created_at
-        }))
+        events: result.rows.map((row) => mapCfdiEventRowWithInvoice(row))
       },
       message: messageByLocale(context.locale, 'Eventos CFDI consultados')
     });
@@ -567,13 +561,7 @@ export async function handleManagementCfdiInvoiceStatus(context: RequestContext)
             satCertificateId: invoice.sat_certificate_id
           }
         },
-        events: eventsResult.rows.map((row) => ({
-          id: row.id,
-          eventType: row.event_type,
-          detail: row.detail_json ?? {},
-          eventAt: row.event_at,
-          createdAt: row.created_at
-        }))
+        events: eventsResult.rows.map((row) => mapCfdiEventRow(row))
       },
       message: messageByLocale(context.locale, 'Estado CFDI consultado')
     });

@@ -217,6 +217,7 @@ Notas de ejecución:
 - Avance P0-CFDI-01: cobertura de localización `en-US` consolidada en prueba de contrato table-driven `src/integration/cfdi-read-query-validation.integration.test.ts` para endpoints CFDI de lectura (`management` + `dashboard`).
 - Avance P0-CFDI-01: prueba de contrato table-driven de validación query CFDI extendida a paridad de locale `es-MX|en-US` (mensaje `Solicitud inválida|Invalid request`) sobre el mismo set de endpoints de lectura.
 - Avance P0-CFDI-01: construcción SQL de filtros temporales CFDI (`from/to`) centralizada en helper compartido `src/core/db/pg-filter-builders.ts` y aplicada en consultas de `management`/`dashboard` para reducir duplicación.
+- Avance P0-CFDI-01: mapeo de filas de eventos CFDI (`eventType/detail/eventAt/createdAt`) centralizado en helper compartido `src/core/db/pg-cfdi-event-mappers.ts` con adopción en handlers de consulta `management`.
 - Avance P1-DATA-01: migración draft creada en `db/migrations/20260305_013_financials_fx_and_commission_splits.sql` (timestamp/fuente FX y split multi-proveedor) y diccionario actualizado.
 - Avance P1-ARCH-01: ADR aprobada en `docs/governance/adr-2026-03-05-commissions-vs-financials.md` (se mantiene separación de dominio `commissions`/`financials`).
 - Avance P1-ARCH-01: contrato de contexto `messaging`↔`itinerary` definido en `docs/governance/adr-2026-03-05-messaging-itinerary-context-contract.md`.
