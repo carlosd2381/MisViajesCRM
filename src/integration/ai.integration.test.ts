@@ -6,6 +6,25 @@ import {
   stopIntegrationServer
 } from './test-harness';
 
+function setEnv(key: string, value: string | undefined): () => void {
+  const previous = process.env[key];
+
+  if (value === undefined) {
+    delete process.env[key];
+  } else {
+    process.env[key] = value;
+  }
+
+  return () => {
+    if (previous === undefined) {
+      delete process.env[key];
+      return;
+    }
+
+    process.env[key] = previous;
+  };
+}
+
 test('agent can generate AI proposal mock', async () => {
   const { server, baseUrl } = await startIntegrationServer();
 
@@ -282,5 +301,52 @@ test('agent can read AI metrics after proposal requests', async () => {
     assert.ok(payload.data.totals.totalEstimatedCostUsd >= 0);
   } finally {
     await stopIntegrationServer(server);
+  }
+});
+
+test('ai metrics includes provider mode and fallback configuration when AI provider is configured', async () => {
+  const restoreProvider = setEnv('AI_PROVIDER', 'azure-openai');
+  const restoreFallback = setEnv('AI_PROVIDER_FALLBACK', 'openai');
+  const { server, baseUrl } = await startIntegrationServer();
+
+  try {
+    const proposalResponse = await fetch(`${baseUrl}/ai/proposal`, {
+      method: 'POST',
+      headers: integrationTestHeaders('agent'),
+      body: JSON.stringify({
+        promptProfile: 'storyteller',
+        itinerarySummary: 'Itinerario con narrativa y actividades por día.',
+        destination: 'Mérida',
+        days: 3
+      })
+    });
+
+    assert.equal(proposalResponse.status, 200);
+
+    const metricsResponse = await fetch(`${baseUrl}/ai/metrics`, {
+      method: 'GET',
+      headers: integrationTestHeaders('agent')
+    });
+
+    assert.equal(metricsResponse.status, 200);
+    const payload = (await metricsResponse.json()) as {
+      data: {
+        provider: string;
+        configuration: {
+          mode: 'mock' | 'provider';
+          provider: string;
+          fallbackProvider: string | null;
+        };
+      };
+    };
+
+    assert.equal(payload.data.provider, 'azure-openai');
+    assert.equal(payload.data.configuration.mode, 'provider');
+    assert.equal(payload.data.configuration.provider, 'azure-openai');
+    assert.equal(payload.data.configuration.fallbackProvider, 'openai');
+  } finally {
+    await stopIntegrationServer(server);
+    restoreFallback();
+    restoreProvider();
   }
 });
