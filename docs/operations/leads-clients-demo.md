@@ -21,6 +21,7 @@ Notas de alcance del MVP actual:
 
 - Módulos funcionales en UI: `Leads`, `Clients`.
 - Perfil de `Clients` incluye formulario tabulado extenso; persistencia backend actual guarda campos del contrato y extiende metadatos en `travelPreferences`.
+- El tab de `Loyalty Programs` ya incluye catálogo amplio (hoteles, aerolíneas, cruceros, autos, rail/bus) para una experiencia cercana al producto final.
 - Módulos listados en sidebar pero no habilitados aún: `Itineraries`, `Suppliers`, `Commissions`, `Financials`, `Messaging`, `Ops Dashboard`, `Management`, `AI`, `Settings`.
 
 Ruta alternativa (alias): `http://localhost:3000/demo/crm`

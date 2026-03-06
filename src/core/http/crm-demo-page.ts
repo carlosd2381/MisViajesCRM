@@ -34,6 +34,7 @@ export function crmDemoPageHtml(): string {
       .field { display: grid; gap: 6px; margin-bottom: 10px; }
       .field label { font-size: 12px; color: #4b5563; }
       .field input, .field select { border: 1px solid #d1d5db; border-radius: 8px; padding: 8px; font-size: 14px; }
+      .required { color: #dc2626; font-weight: 700; }
       .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
       button { border: 0; border-radius: 8px; padding: 9px 11px; font-size: 13px; cursor: pointer; background: #111827; color: #fff; }
       .secondary { background: #374151; }
@@ -62,6 +63,7 @@ export function crmDemoPageHtml(): string {
       .repeater-row { display: grid; grid-template-columns: 180px 1fr; gap: 8px; margin-bottom: 8px; }
       .repeater-row.address { grid-template-columns: 180px 1fr; }
       .note { font-size: 11px; color: #6b7280; }
+      .profile-footer { position: sticky; bottom: 0; background: #fff; border-top: 1px solid #e5e7eb; padding-top: 10px; margin-top: 10px; display: flex; justify-content: flex-end; gap: 8px; }
       @media (max-width: 1000px) {
         .layout { grid-template-columns: 1fr; }
         .sidebar { display: none; }
@@ -182,9 +184,9 @@ export function crmDemoPageHtml(): string {
                     <div class="sub-card">
                       <h3>Personal Details</h3>
                       <div class="profile-grid-2">
-                        <div class="field"><label>First Name</label><input id="cp-first-name" /></div>
+                        <div class="field"><label>First Name <span class="required">*</span></label><input id="cp-first-name" /></div>
                         <div class="field"><label>Middle Name</label><input id="cp-middle-name" /></div>
-                        <div class="field"><label>Last Name (Paternal)</label><input id="cp-last-name-paternal" /></div>
+                        <div class="field"><label>Last Name (Paternal) <span class="required">*</span></label><input id="cp-last-name-paternal" /></div>
                         <div class="field"><label>Last Name (Maternal)</label><input id="cp-last-name-maternal" /></div>
                       </div>
                     </div>
@@ -270,11 +272,7 @@ export function crmDemoPageHtml(): string {
                       <div id="cp-loyalty-container">
                         <div class="profile-grid-3" style="margin-bottom: 8px;">
                           <select class="cp-loyalty-type"><option>Hotels</option><option>Airlines</option><option>Cruise Lines</option><option>Car Rentals</option><option>Rail & Bus</option></select>
-                          <select class="cp-loyalty-program">
-                            <option>Marriott Bonvoy</option><option>Hilton Honors</option><option>World of Hyatt</option><option>Club Premier (Aeroméxico)</option>
-                            <option>AAdvantage (American)</option><option>MileagePlus (United)</option><option>SkyMiles (Delta)</option><option>VClub (Volaris)</option>
-                            <option>VivaFan (Viva Aerobus)</option><option>Hertz Gold Plus Rewards</option><option>Avis Preferred</option><option>Amtrak Guest Rewards</option>
-                          </select>
+                          <select class="cp-loyalty-program"><option>Loading programs...</option></select>
                           <input class="cp-loyalty-number" placeholder="Program Number" />
                         </div>
                       </div>
@@ -415,9 +413,9 @@ export function crmDemoPageHtml(): string {
                     </div>
                   </div>
 
-                  <div class="btn-row" style="margin-top: 10px;">
-                    <button id="cp-save-client" type="button">Save Client</button>
-                    <button class="ghost" id="refresh-clients" type="button">Refrescar clients</button>
+                  <div class="profile-footer">
+                    <button class="ghost" id="cp-cancel-client" type="button">Cancel</button>
+                    <button id="cp-save-client" type="button">Save</button>
                   </div>
                   <div class="result" id="cp-save-result" style="margin-top: 8px;"></div>
                 </div>
@@ -474,6 +472,58 @@ export function crmDemoPageHtml(): string {
       let selectedLeadId = null;
       let leadsCache = [];
       let clientsCache = [];
+      const LOYALTY_PROGRAMS = [
+        'Marriott Bonvoy (Marriott)',
+        'Hilton Honors (Hilton)',
+        'World of Hyatt (Hyatt)',
+        'IHG One Rewards (IHG)',
+        'Accor ALL (Accor)',
+        'Wyndham Rewards (Wyndham)',
+        'Best Western Rewards (Best Western)',
+        'Choice Privileges (Choice Hotels)',
+        'Radisson Rewards (Radisson)',
+        'NH Rewards (NH Hotels)',
+        'Grupo Posadas — Fiesta Rewards',
+        'City Express — City Premios',
+        'Grupo Xcaret benefits',
+        'Club Premier (Aeroméxico)',
+        'VClub (Volaris)',
+        'VivaFan (Viva Aerobus)',
+        'AAdvantage (American Airlines)',
+        'MileagePlus (United Airlines)',
+        'SkyMiles (Delta Air Lines)',
+        'Avios (BA / Iberia / Aer Lingus)',
+        'Flying Blue (Air France–KLM)',
+        'Alaska Mileage Plan',
+        'KrisFlyer (Singapore Airlines)',
+        'Miles & More (Lufthansa)',
+        'Qantas Frequent Flyer',
+        'ANA Mileage Club',
+        'Captain’s Club (Royal Caribbean)',
+        'Crown & Anchor Society (Carnival)',
+        'Latitudes Rewards (Celebrity)',
+        'Mariner Society (Princess)',
+        'Holland America loyalty variations',
+        'Loyalty Club (MSC Cruises)',
+        'VIFP Club (Norwegian Cruise Line)',
+        'Silversea Captain’s Club',
+        'Windstar Star Plus',
+        'Seabourn Club',
+        'Hertz Gold Plus Rewards',
+        'Avis Preferred',
+        'Enterprise Plus',
+        'National Emerald Club',
+        'Sixt Loyalty',
+        'Dollar Express / Thrifty Rewards',
+        'Europcar Privilege Club',
+        'Alamo Insiders',
+        'Mex Rent a Car loyalty / corporate rates',
+        'Amtrak Guest Rewards',
+        'Eurail / Interrail',
+        'VIA Rail points',
+        'National railcard programs',
+        'FlixBus / BlaBlaCar loyalty or credits'
+      ];
 
       function asText(id) {
         const value = document.getElementById(id)?.value;
@@ -510,8 +560,19 @@ export function crmDemoPageHtml(): string {
         });
       }
 
+      function applyLoyaltyProgramOptions() {
+        const options = LOYALTY_PROGRAMS.map((program) => '<option>' + program + '</option>').join('');
+        document.querySelectorAll('.cp-loyalty-program').forEach((select) => {
+          const previous = select.value;
+          select.innerHTML = options;
+          if (previous && LOYALTY_PROGRAMS.includes(previous)) {
+            select.value = previous;
+          }
+        });
+      }
+
       function populateRelationshipClientOptions() {
-        const options = ['<option value="">+ New Client</option>']
+        const options = ['<option value="">+ New Client</option>', '<option value="_all_clients_db">All Clients in DB</option>']
           .concat(clientsCache.map((client) => {
             const fullName = ((client?.firstName ?? '') + ' ' + (client?.paternalLastName ?? '')).trim() || shortId(client?.id ?? '');
             return '<option value="' + (client?.id ?? '') + '">' + fullName + '</option>';
@@ -844,6 +905,15 @@ export function crmDemoPageHtml(): string {
         document.getElementById('refresh-leads').addEventListener('click', loadLeads);
         document.getElementById('refresh-clients').addEventListener('click', loadClients);
         document.getElementById('cp-save-client').addEventListener('click', saveClientProfile);
+        document.getElementById('cp-cancel-client').addEventListener('click', () => {
+          clientSaveResultEl.textContent = '';
+          document.getElementById('profile-pane-contact')?.classList.add('active');
+          document.querySelectorAll('.profile-pane').forEach((pane) => {
+            if (pane.id !== 'profile-pane-contact') pane.classList.remove('active');
+          });
+          document.querySelectorAll('.profile-tab-btn').forEach((btn) => btn.classList.remove('active'));
+          document.querySelector('.profile-tab-btn[data-profile-tab="contact"]')?.classList.add('active');
+        });
         document.getElementById('cp-add-phone').addEventListener('click', () => {
           appendRepeaterRow('cp-phones-container', '<div class="repeater-row"><select class="cp-phone-type"><option>home</option><option>cell</option><option>office</option></select><input class="cp-phone-value" placeholder="Phone #" /></div>');
         });
@@ -858,9 +928,11 @@ export function crmDemoPageHtml(): string {
           populateRelationshipClientOptions();
         });
         document.getElementById('cp-add-loyalty').addEventListener('click', () => {
-          appendRepeaterRow('cp-loyalty-container', '<div class="profile-grid-3" style="margin-bottom: 8px;"><select class="cp-loyalty-type"><option>Hotels</option><option>Airlines</option><option>Cruise Lines</option><option>Car Rentals</option><option>Rail & Bus</option></select><select class="cp-loyalty-program"><option>Marriott Bonvoy</option><option>Hilton Honors</option><option>World of Hyatt</option><option>Club Premier (Aeroméxico)</option><option>AAdvantage (American)</option><option>MileagePlus (United)</option><option>SkyMiles (Delta)</option><option>VClub (Volaris)</option><option>VivaFan (Viva Aerobus)</option><option>Hertz Gold Plus Rewards</option><option>Avis Preferred</option><option>Amtrak Guest Rewards</option></select><input class="cp-loyalty-number" placeholder="Program Number" /></div>');
+          appendRepeaterRow('cp-loyalty-container', '<div class="profile-grid-3" style="margin-bottom: 8px;"><select class="cp-loyalty-type"><option>Hotels</option><option>Airlines</option><option>Cruise Lines</option><option>Car Rentals</option><option>Rail & Bus</option></select><select class="cp-loyalty-program"><option>Loading programs...</option></select><input class="cp-loyalty-number" placeholder="Program Number" /></div>');
+          applyLoyaltyProgramOptions();
         });
         bindProfileTabs();
+        applyLoyaltyProgramOptions();
 
         await loadLeads();
         await loadClients();
