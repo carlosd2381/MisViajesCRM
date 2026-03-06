@@ -11,6 +11,7 @@ import { OpenTelemetryRefreshTokenMetricsSink } from './core/auth/otel-refresh-t
 import { InstrumentedRefreshTokenService } from './core/auth/instrumented-refresh-token-service';
 import { handleAuthRoutes } from './modules/auth/api/auth-http-handlers';
 import { dispatchModuleRoute } from './core/http/module-route-dispatcher';
+import { crmDemoPageHtml } from './core/http/crm-demo-page';
 
 export interface AppOptions {
   authMode?: AuthMode;
@@ -73,6 +74,12 @@ function handler(repositories: RepositoryBundle, options: AppOptions) {
 
       if (pathSegments[0] === 'health') {
         sendJson(res, 200, { status: 'ok', localeDefault: 'es-MX' });
+        return;
+      }
+
+      if (pathSegments[0] === 'demo' && pathSegments[1] === 'crm' && req.method === 'GET') {
+        res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+        res.end(crmDemoPageHtml());
         return;
       }
 

@@ -2,6 +2,15 @@
 
 Objetivo: mostrar en vivo un flujo completo de valor en 3-5 minutos (lead → cliente).
 
+## Opción recomendada para owner (interfaz visual)
+
+1. Levantar API: `npm run dev:api`
+2. Abrir en navegador: `http://localhost:3000/demo/crm`
+3. En la página:
+	- click en **Crear lead**
+	- click en **Convertir lead**
+4. Mostrar IDs y respuesta JSON en pantalla como evidencia del flujo real.
+
 ## Flujo que demuestra
 
 1. API responde salud (`GET /health`).
