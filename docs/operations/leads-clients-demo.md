@@ -7,11 +7,18 @@ Objetivo: mostrar en vivo un flujo completo de valor en 3-5 minutos (lead → cl
 1. Levantar API: `npm run dev:api`
 2. Abrir en navegador: `http://localhost:3000/ui/leads-clients`
 3. En la página:
+	- revisar **Dashboard** (KPIs + gráficas demo)
+	- validar **Top bar** y **Sidebar** con mapa completo de módulos
 	- crear lead desde el formulario
 	- seleccionar lead en tabla
 	- convertir lead a client
 	- validar que ambos listados se actualizan
 4. Mostrar IDs y respuesta JSON en pantalla como evidencia del flujo real.
+
+Notas de alcance del MVP actual:
+
+- Módulos funcionales en UI: `Leads`, `Clients`.
+- Módulos listados en sidebar pero no habilitados aún: `Itineraries`, `Suppliers`, `Commissions`, `Financials`, `Messaging`, `Ops Dashboard`, `Management`, `AI`, `Settings`.
 
 Ruta alternativa (alias): `http://localhost:3000/demo/crm`
 
