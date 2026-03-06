@@ -299,6 +299,16 @@ Evidencia técnica validada: typecheck ✅ | test:integration ✅ | test:integra
 Notas: <riesgos residuales/observaciones o "sin observaciones">
 ```
 
+Borrador owner-ready (prellenado con evidencia; completar fecha/aprobador):
+
+```
+[CLOSE][P0-CFDI-01] Aprobado para cierre operativo.
+Fecha de aprobación: <PENDIENTE_CONFIRMACION>
+Aprobado por (Compliance/Negocio): <PENDIENTE_NOMBRE_ROL>
+Evidencia técnica validada: typecheck ✅ | test:integration ✅ | test:integration:postgres ✅
+Notas: cierre técnico completado; pendiente únicamente formalización administrativa del signoff.
+```
+
 ## Mantenimiento del documento
 
 Actualizar este archivo cuando cambie cualquiera de estos puntos:

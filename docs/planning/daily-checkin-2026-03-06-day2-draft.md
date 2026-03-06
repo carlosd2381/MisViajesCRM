@@ -59,6 +59,16 @@ Evidencia técnica más reciente (2026-03-05):
 - [ ] Si no hay aprobación hoy: fecha confirmada y owner identificado para cierre en T+1/T+2.
 - [ ] Lote post-signoff iniciado sin bloquear continuidad del sprint.
 
+Bloque de cierre listo para usar (completar fecha/aprobador al confirmar):
+
+```
+[CLOSE][P0-CFDI-01] Aprobado para cierre operativo.
+Fecha de aprobación: <PENDIENTE_CONFIRMACION>
+Aprobado por (Compliance/Negocio): <PENDIENTE_NOMBRE_ROL>
+Evidencia técnica validada: typecheck ✅ | test:integration ✅ | test:integration:postgres ✅
+Notas: cierre técnico completado; pendiente únicamente formalización administrativa del signoff.
+```
+
 Estado de contexto (corte 2026-03-05):
 - `P0-DB-01` resuelto y estable.
 - `P0-CFDI-01` queda como único punto pendiente para cierre administrativo.
