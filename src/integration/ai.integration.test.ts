@@ -350,3 +350,50 @@ test('ai metrics includes provider mode and fallback configuration when AI provi
     restoreProvider();
   }
 });
+
+test('ai metrics keeps fallbackProvider null when provider mode has no fallback configured', async () => {
+  const restoreProvider = setEnv('AI_PROVIDER', 'azure-openai');
+  const restoreFallback = setEnv('AI_PROVIDER_FALLBACK', undefined);
+  const { server, baseUrl } = await startIntegrationServer();
+
+  try {
+    const proposalResponse = await fetch(`${baseUrl}/ai/proposal`, {
+      method: 'POST',
+      headers: integrationTestHeaders('agent'),
+      body: JSON.stringify({
+        promptProfile: 'storyteller',
+        itinerarySummary: 'Resumen de viaje con actividades y propuesta diaria.',
+        destination: 'Mérida',
+        days: 3
+      })
+    });
+
+    assert.equal(proposalResponse.status, 200);
+
+    const metricsResponse = await fetch(`${baseUrl}/ai/metrics`, {
+      method: 'GET',
+      headers: integrationTestHeaders('agent')
+    });
+
+    assert.equal(metricsResponse.status, 200);
+    const payload = (await metricsResponse.json()) as {
+      data: {
+        provider: string;
+        configuration: {
+          mode: 'mock' | 'provider';
+          provider: string;
+          fallbackProvider: string | null;
+        };
+      };
+    };
+
+    assert.equal(payload.data.provider, 'azure-openai');
+    assert.equal(payload.data.configuration.mode, 'provider');
+    assert.equal(payload.data.configuration.provider, 'azure-openai');
+    assert.equal(payload.data.configuration.fallbackProvider, null);
+  } finally {
+    await stopIntegrationServer(server);
+    restoreFallback();
+    restoreProvider();
+  }
+});

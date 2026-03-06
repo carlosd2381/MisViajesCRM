@@ -225,6 +225,7 @@ Notas de ejecución:
 - Avance P1-AI-02: `GET /ai/metrics` ahora expone también configuración efectiva de proveedor AI (`provider` + `fallbackProvider`) para transparencia operativa entre configuración y ejecución observada.
 - Avance P1-AI-02: `GET /ai/metrics` incluye `configuration.mode` (`mock|provider`) para distinguir explícitamente operación simulada vs proveedor configurado.
 - Avance P1-AI-02: cobertura de integración agregada para escenario de proveedor configurado (`AI_PROVIDER` + `AI_PROVIDER_FALLBACK`) validando contrato de `configuration.mode/provider/fallbackProvider` en `GET /ai/metrics`.
+- Avance P1-AI-02: cobertura de integración agregada para modo proveedor sin fallback configurado (`AI_PROVIDER` sin `AI_PROVIDER_FALLBACK`), validando `fallbackProvider=null` en contrato de `GET /ai/metrics`.
 
 ### Checklist activo de ejecución (P0-CFDI-01)
 
