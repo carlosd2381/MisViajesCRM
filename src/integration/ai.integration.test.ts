@@ -397,3 +397,50 @@ test('ai metrics keeps fallbackProvider null when provider mode has no fallback 
     restoreProvider();
   }
 });
+
+test('ai metrics keeps mock mode when AI_PROVIDER is explicitly set to mock', async () => {
+  const restoreProvider = setEnv('AI_PROVIDER', 'mock');
+  const restoreFallback = setEnv('AI_PROVIDER_FALLBACK', 'openai');
+  const { server, baseUrl } = await startIntegrationServer();
+
+  try {
+    const proposalResponse = await fetch(`${baseUrl}/ai/proposal`, {
+      method: 'POST',
+      headers: integrationTestHeaders('agent'),
+      body: JSON.stringify({
+        promptProfile: 'storyteller',
+        itinerarySummary: 'Resumen de viaje para validar modo mock explícito.',
+        destination: 'Mérida',
+        days: 2
+      })
+    });
+
+    assert.equal(proposalResponse.status, 200);
+
+    const metricsResponse = await fetch(`${baseUrl}/ai/metrics`, {
+      method: 'GET',
+      headers: integrationTestHeaders('agent')
+    });
+
+    assert.equal(metricsResponse.status, 200);
+    const payload = (await metricsResponse.json()) as {
+      data: {
+        provider: string;
+        configuration: {
+          mode: 'mock' | 'provider';
+          provider: string;
+          fallbackProvider: string | null;
+        };
+      };
+    };
+
+    assert.equal(payload.data.provider, 'mock');
+    assert.equal(payload.data.configuration.mode, 'mock');
+    assert.equal(payload.data.configuration.provider, 'mock');
+    assert.equal(payload.data.configuration.fallbackProvider, 'openai');
+  } finally {
+    await stopIntegrationServer(server);
+    restoreFallback();
+    restoreProvider();
+  }
+});
