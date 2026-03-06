@@ -13,6 +13,7 @@ Este proyecto mantiene documentación viva para evitar desviaciones de arquitect
 - `docs/operations/otel-deployment-profiles.md` — perfiles recomendados para activar OpenTelemetry en dev/staging/prod.
 - `docs/operations/auth-incident-runbook.md` — guía de diagnóstico y mitigación para incidentes de autenticación/sesiones.
 - `docs/operations/ci-troubleshooting.md` — señales y acciones de triage rápido para jobs CI (`auth/ai/postgres`).
+- `docs/operations/leads-clients-demo.md` — guía rápida para demo en vivo del flujo lead → cliente.
 
 ## Gobierno de revisiones
 
@@ -78,6 +79,7 @@ Además, si se exceden límites soft de tamaño de archivo/función, el PR debe 
 - Ejecutar matriz solo para locale `en-US`: `npm run smoke:matrix:en`
 - Ejecutar matriz reutilizando API externa en `AUTH_MODE=header`: `npm run smoke:matrix:external:header`
 - Ejecutar matriz reutilizando API externa en `AUTH_MODE=token`: `npm run smoke:matrix:external:token`
+- Ejecutar demo rápido de Leads/Clients (lead → cliente): `npm run leads:demo`
 - Validar precondiciones de integración PostgreSQL (`DB_*` + tablas requeridas): `npm run postgres:integration:precheck`
 - Ejecutar integración PostgreSQL dedicada (`lead.convert` audit persistence): `npm run test:integration:postgres`
 - Ejecutar todas las pruebas: `npm run test`

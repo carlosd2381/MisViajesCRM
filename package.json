@@ -33,6 +33,7 @@
     "smoke:matrix:contract": "node tools/ops/smoke-matrix-check.mjs --contract-only",
     "smoke:matrix:external:header": "SMOKE_MATRIX_REUSE_EXTERNAL_API=true SMOKE_MATRIX_AUTH_MODES=header npm run smoke:matrix",
     "smoke:matrix:external:token": "SMOKE_MATRIX_REUSE_EXTERNAL_API=true SMOKE_MATRIX_AUTH_MODES=token npm run smoke:matrix",
+    "leads:demo": "node tools/ops/leads-clients-demo-check.mjs",
     "postgres:integration:precheck": "node tools/ops/postgres-integration-precheck.mjs",
     "postgres:ci:readiness": "node tools/ops/postgres-ci-readiness-check.mjs",
     "test:integration:postgres": "npm run postgres:integration:precheck && tsx --test src/integration/http.postgres.integration.test.ts",
