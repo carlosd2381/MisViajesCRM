@@ -69,6 +69,18 @@ Evidencia técnica validada: typecheck ✅ | test:integration ✅ | test:integra
 Notas: cierre técnico completado; pendiente únicamente formalización administrativa del signoff.
 ```
 
+Mensaje sugerido para solicitar signoff (owner/compliance):
+
+```
+Solicito aprobación formal de cierre para P0-CFDI-01. El bloque quedó técnicamente completado y validado con evidencia en verde: typecheck ✅, test:integration ✅ y test:integration:postgres ✅. Ya están cubiertos contratos de lectura, validaciones de filtros, paridad i18n y ordenamiento determinista en PostgreSQL para trazabilidad CFDI. Quedo atento a su confirmación para registrar el bloque [CLOSE][P0-CFDI-01] con fecha y aprobador en el build plan/check-in.
+```
+
+Asunto sugerido (correo/chat):
+
+```
+P0-CFDI-01 — Solicitud de aprobación formal de cierre operativo
+```
+
 Estado de contexto (corte 2026-03-05):
 - `P0-DB-01` resuelto y estable.
 - `P0-CFDI-01` queda como único punto pendiente para cierre administrativo.
