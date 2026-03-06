@@ -163,6 +163,12 @@ Referencia de cierre de hoy: `docs/planning/night-handoff-2026-03-05.md`.
 1. [NEXT][P0-CFDI-01] Obtener validación formal de compliance/negocio sobre el bloque técnico ya completado.
 2. [NEXT][P0-CFDI-01] Registrar nota de cierre final (aprobado por stakeholders) en este plan y en el check-in activo.
 
+### Siguiente mientras llega signoff (sin bloqueo)
+
+1. [NEXT][P1-AI-02] Ejecutar siguiente lote de observabilidad AI sin cambio de alcance funcional (hardening de contrato/telemetría).
+2. [NEXT][P1-AI-01/P1-AI-02] Mantener evidencia diaria de estabilidad (`typecheck` + integración focalizada) para conservar baseline verde.
+3. [NEXT][P0-CFDI-01] Preparar paquete owner-ready de cierre (resumen ejecutivo + evidencia técnica + bloque de decisión) para aprobación en T+1/T+2.
+
 Estado de avance de siguientes pasos:
 - [DONE][P0-CFDI-01] Aserciones deterministas de orden/desempate completadas para `/management/cfdi/events` y `GET /management/cfdi/invoices/:invoiceId` en suite PostgreSQL.
 - [DONE][P0-CFDI-01] Criterio de salida del bloque CFDI consolidado en checklist explícito (contrato + integración + i18n + filtros).
@@ -184,6 +190,7 @@ Playbook de cierre de blocker:
 
 Notas de ejecución:
 - P0-CFDI-01 queda en estado `ready-for-signoff`; no hay deuda técnica abierta en este bloque, solo validación formal externa pendiente.
+- P0-CFDI-01: resumen técnico + resumen ejecutivo owner-ready preparados para acelerar signoff; pendiente solo confirmación formal y registro `[CLOSE]`.
 - Avance P0-CFDI-01: migración draft creada en `db/migrations/20260305_012_cfdi_sat_foundation.sql` y diccionario actualizado.
 - Avance P0-CFDI-01: endpoint operativo `GET /management/cfdi/readiness` agregado con cobertura de integración para validar readiness de tablas SAT/CFDI por entorno.
 - Avance P0-CFDI-01: contratos/validaciones operativas de timbrado y cancelación CFDI agregadas vía `POST /management/cfdi/stamp/validate` y `POST /management/cfdi/cancel/validate` con cobertura unitaria e integración.
