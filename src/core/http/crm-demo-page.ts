@@ -17,11 +17,14 @@ export function crmDemoPageHtml(): string {
       .main { display: grid; grid-template-rows: 60px 1fr; }
       .topbar { display: flex; justify-content: space-between; align-items: center; padding: 0 18px; border-bottom: 1px solid #e5e7eb; background: #fff; }
       .topbar h1 { font-size: 17px; margin: 0; }
+      .topbar-right { display: flex; align-items: center; gap: 8px; }
       .user-pill { font-size: 12px; padding: 6px 10px; border-radius: 999px; background: #eef2ff; color: #3730a3; }
+      .dirty-pill { font-size: 11px; padding: 5px 9px; border-radius: 999px; background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
       .content { padding: 18px; display: grid; gap: 16px; }
       .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; }
       .card h2 { margin: 0 0 10px; font-size: 17px; }
       .status { padding: 10px; border-radius: 8px; font-size: 13px; background: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
+      .status.warn { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
       .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
       .kpi { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; }
       .kpi .label { font-size: 12px; color: #6b7280; }
@@ -64,6 +67,7 @@ export function crmDemoPageHtml(): string {
       .repeater-row.address { grid-template-columns: 180px 1fr; }
       .note { font-size: 11px; color: #6b7280; }
       .profile-footer { position: sticky; bottom: 0; background: #fff; border-top: 1px solid #e5e7eb; padding-top: 10px; margin-top: 10px; display: flex; justify-content: flex-end; gap: 8px; }
+      .form-errors { border: 1px solid #fecaca; background: #fef2f2; color: #991b1b; border-radius: 8px; padding: 10px; font-size: 12px; white-space: pre-wrap; min-height: 0; }
       @media (max-width: 1000px) {
         .layout { grid-template-columns: 1fr; }
         .sidebar { display: none; }
@@ -96,7 +100,10 @@ export function crmDemoPageHtml(): string {
       <main class="main">
         <header class="topbar">
           <h1 id="topbar-title">Dashboard</h1>
-          <span class="user-pill">Owner Demo • es-MX</span>
+          <div class="topbar-right">
+            <span id="unsaved-indicator" class="dirty-pill" style="display:none;">Unsaved changes</span>
+            <span class="user-pill">Owner Demo • es-MX</span>
+          </div>
         </header>
 
         <section class="content">
@@ -417,6 +424,7 @@ export function crmDemoPageHtml(): string {
                     <button class="ghost" id="cp-cancel-client" type="button">Cancel</button>
                     <button id="cp-save-client" type="button">Save</button>
                   </div>
+                  <div id="cp-validation-errors" class="form-errors" style="display:none; margin-top: 8px;"></div>
                   <div class="result" id="cp-save-result" style="margin-top: 8px;"></div>
                 </div>
               </div>
@@ -460,6 +468,8 @@ export function crmDemoPageHtml(): string {
       const leadResultEl = document.getElementById('lead-result');
       const clientResultEl = document.getElementById('client-result');
       const clientSaveResultEl = document.getElementById('cp-save-result');
+      const unsavedIndicatorEl = document.getElementById('unsaved-indicator');
+      const profileValidationErrorsEl = document.getElementById('cp-validation-errors');
 
       const kpiLeads = document.getElementById('kpi-leads');
       const kpiNewLeads = document.getElementById('kpi-new-leads');
@@ -472,6 +482,7 @@ export function crmDemoPageHtml(): string {
       let selectedLeadId = null;
       let leadsCache = [];
       let clientsCache = [];
+      let isProfileDirty = false;
       const LOYALTY_PROGRAMS = [
         'Marriott Bonvoy (Marriott)',
         'Hilton Honors (Hilton)',
@@ -532,6 +543,48 @@ export function crmDemoPageHtml(): string {
         return trimmed.length > 0 ? trimmed : undefined;
       }
 
+      function setProfileDirty(value) {
+        isProfileDirty = value;
+        unsavedIndicatorEl.style.display = value ? 'inline-block' : 'none';
+      }
+
+      function showValidationErrors(errors) {
+        if (!errors || errors.length === 0) {
+          profileValidationErrorsEl.style.display = 'none';
+          profileValidationErrorsEl.textContent = '';
+          return;
+        }
+
+        profileValidationErrorsEl.style.display = 'block';
+        profileValidationErrorsEl.textContent = errors.map((error) => '• ' + error).join('\n');
+      }
+
+      function validateProfilePayload(payload) {
+        const errors = [];
+        if (!payload.firstName) errors.push('First Name es requerido.');
+        if (!payload.paternalLastName) errors.push('Last Name (Paternal) es requerido.');
+
+        const contacts = Array.isArray(payload.contacts) ? payload.contacts : [];
+        if (contacts.length === 0) {
+          errors.push('Al menos un contacto (phone o email) es requerido.');
+          return errors;
+        }
+
+        const preferredMethod = payload?.travelPreferences?.preferredContactMethod;
+        const hasEmail = contacts.some((item) => item.type === 'email' && item.value);
+        const hasPhone = contacts.some((item) => item.type !== 'email' && item.value);
+
+        if (preferredMethod === 'Email' && !hasEmail) {
+          errors.push('Preferred Contact Method = Email requiere al menos un email.');
+        }
+
+        if ((preferredMethod === 'Phone' || preferredMethod === 'Text SMS' || preferredMethod === 'WhatsApp') && !hasPhone) {
+          errors.push('Preferred Contact Method seleccionado requiere un teléfono válido.');
+        }
+
+        return errors;
+      }
+
       function selectedRadio(name) {
         const checked = document.querySelector('input[name="' + name + '"]:checked');
         return checked ? checked.value : undefined;
@@ -558,6 +611,12 @@ export function crmDemoPageHtml(): string {
             if (target) target.classList.add('active');
           });
         });
+      }
+
+      function bindProfileDirtyTracking() {
+        const profileRoot = document.getElementById('view-clients');
+        profileRoot.addEventListener('input', () => setProfileDirty(true));
+        profileRoot.addEventListener('change', () => setProfileDirty(true));
       }
 
       function applyLoyaltyProgramOptions() {
@@ -695,10 +754,21 @@ export function crmDemoPageHtml(): string {
 
       async function saveClientProfile() {
         const payload = collectProfilePayload();
-        if (!payload.firstName || !payload.paternalLastName) {
-          clientSaveResultEl.textContent = JSON.stringify({ message: 'firstName y paternalLastName son requeridos' }, null, 2);
+        const errors = validateProfilePayload(payload);
+        showValidationErrors(errors);
+        if (errors.length > 0) {
+          setView('clients');
+          document.querySelectorAll('.profile-pane').forEach((pane) => pane.classList.remove('active'));
+          document.querySelectorAll('.profile-tab-btn').forEach((btn) => btn.classList.remove('active'));
+          document.getElementById('profile-pane-contact')?.classList.add('active');
+          document.querySelector('.profile-tab-btn[data-profile-tab="contact"]')?.classList.add('active');
+          statusEl.textContent = 'Hay validaciones pendientes en el perfil de cliente.';
+          statusEl.classList.add('warn');
           return;
         }
+
+        statusEl.classList.remove('warn');
+        statusEl.textContent = 'API conectada • UI cargada';
 
         const { response, payload: body } = await fetchJson('/clients', {
           method: 'POST',
@@ -708,8 +778,50 @@ export function crmDemoPageHtml(): string {
 
         renderJson(clientSaveResultEl, body);
         if (response.status === 201) {
+          setProfileDirty(false);
+          showValidationErrors([]);
           await loadClients();
         }
+      }
+
+      function resetClientProfileForm() {
+        const root = document.getElementById('view-clients');
+        root.querySelectorAll('input').forEach((input) => {
+          if (input.type === 'checkbox' || input.type === 'radio') {
+            input.checked = false;
+            return;
+          }
+          if (input.type === 'file') {
+            input.value = '';
+            return;
+          }
+          input.value = '';
+        });
+
+        root.querySelectorAll('select').forEach((select) => {
+          select.selectedIndex = 0;
+        });
+
+        const keepFirst = (containerId) => {
+          const container = document.getElementById(containerId);
+          while (container.children.length > 1) {
+            container.removeChild(container.lastElementChild);
+          }
+        };
+
+        keepFirst('cp-phones-container');
+        keepFirst('cp-emails-container');
+        keepFirst('cp-addresses-container');
+        keepFirst('cp-relationships-container');
+        keepFirst('cp-loyalty-container');
+        applyLoyaltyProgramOptions();
+        populateRelationshipClientOptions();
+
+        clientSaveResultEl.textContent = '';
+        showValidationErrors([]);
+        selectedLeadIdEl.textContent = selectedLeadId ?? '—';
+        lastClientIdEl.textContent = '—';
+        setProfileDirty(false);
       }
 
       function shortId(id) {
@@ -906,7 +1018,10 @@ export function crmDemoPageHtml(): string {
         document.getElementById('refresh-clients').addEventListener('click', loadClients);
         document.getElementById('cp-save-client').addEventListener('click', saveClientProfile);
         document.getElementById('cp-cancel-client').addEventListener('click', () => {
-          clientSaveResultEl.textContent = '';
+          if (isProfileDirty && !window.confirm('You have unsaved changes. Discard them?')) {
+            return;
+          }
+          resetClientProfileForm();
           document.getElementById('profile-pane-contact')?.classList.add('active');
           document.querySelectorAll('.profile-pane').forEach((pane) => {
             if (pane.id !== 'profile-pane-contact') pane.classList.remove('active');
@@ -932,7 +1047,14 @@ export function crmDemoPageHtml(): string {
           applyLoyaltyProgramOptions();
         });
         bindProfileTabs();
+        bindProfileDirtyTracking();
         applyLoyaltyProgramOptions();
+
+        window.addEventListener('beforeunload', (event) => {
+          if (!isProfileDirty) return;
+          event.preventDefault();
+          event.returnValue = '';
+        });
 
         await loadLeads();
         await loadClients();
