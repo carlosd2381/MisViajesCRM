@@ -12,12 +12,15 @@ Objetivo: mostrar en vivo un flujo completo de valor en 3-5 minutos (lead → cl
 	- crear lead desde el formulario
 	- seleccionar lead en tabla
 	- convertir lead a client
+	- abrir **Clients** y recorrer tabs de perfil (Contact Info, Relationships, Loyalty, Important Dates, Travel Preferences, Travel Documents, Vaccine Info, Files, Notes, Past Trips)
+	- guardar perfil base con **Save Client**
 	- validar que ambos listados se actualizan
 4. Mostrar IDs y respuesta JSON en pantalla como evidencia del flujo real.
 
 Notas de alcance del MVP actual:
 
 - Módulos funcionales en UI: `Leads`, `Clients`.
+- Perfil de `Clients` incluye formulario tabulado extenso; persistencia backend actual guarda campos del contrato y extiende metadatos en `travelPreferences`.
 - Módulos listados en sidebar pero no habilitados aún: `Itineraries`, `Suppliers`, `Commissions`, `Financials`, `Messaging`, `Ops Dashboard`, `Management`, `AI`, `Settings`.
 
 Ruta alternativa (alias): `http://localhost:3000/demo/crm`

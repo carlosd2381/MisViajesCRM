@@ -47,10 +47,26 @@ export function crmDemoPageHtml(): string {
       .result { background: #0b1020; color: #d1fae5; border-radius: 8px; padding: 10px; font-size: 12px; white-space: pre-wrap; min-height: 64px; }
       .muted { color: #6b7280; font-size: 12px; }
       .placeholder { text-align: center; padding: 34px 10px; color: #6b7280; }
+      .profile-shell { display: grid; grid-template-columns: 220px 1fr; gap: 12px; min-height: 560px; }
+      .profile-tabs { border-right: 1px solid #e5e7eb; padding-right: 10px; }
+      .profile-tab-btn { display: block; width: 100%; text-align: left; margin-bottom: 6px; background: #fff; border: 1px solid #e5e7eb; color: #111827; }
+      .profile-tab-btn.active { background: #111827; color: #fff; border-color: #111827; }
+      .profile-pane { display: none; }
+      .profile-pane.active { display: block; }
+      .profile-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .profile-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+      .profile-grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
+      .sub-card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px; margin-bottom: 10px; }
+      .sub-card h3 { margin: 0 0 8px; font-size: 14px; }
+      .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 13px; }
+      .repeater-row { display: grid; grid-template-columns: 180px 1fr; gap: 8px; margin-bottom: 8px; }
+      .repeater-row.address { grid-template-columns: 180px 1fr; }
+      .note { font-size: 11px; color: #6b7280; }
       @media (max-width: 1000px) {
         .layout { grid-template-columns: 1fr; }
         .sidebar { display: none; }
         .kpis, .two-col { grid-template-columns: 1fr; }
+        .profile-shell, .profile-grid-2, .profile-grid-3, .profile-grid-4 { grid-template-columns: 1fr; }
       }
     </style>
   </head>
@@ -146,10 +162,270 @@ export function crmDemoPageHtml(): string {
 
           <div id="view-clients" class="view">
             <section class="card">
-              <h2>Clients</h2>
-              <div class="btn-row" style="margin-bottom: 8px;">
-                <button class="ghost" id="refresh-clients">Refrescar clients</button>
+              <h2>New Client Profile</h2>
+              <div class="profile-shell">
+                <aside class="profile-tabs">
+                  <button class="profile-tab-btn active" data-profile-tab="contact">Contact Info</button>
+                  <button class="profile-tab-btn" data-profile-tab="relationships">Relationships</button>
+                  <button class="profile-tab-btn" data-profile-tab="loyalty">Loyalty Programs</button>
+                  <button class="profile-tab-btn" data-profile-tab="dates">Important Dates</button>
+                  <button class="profile-tab-btn" data-profile-tab="preferences">Travel Preferences</button>
+                  <button class="profile-tab-btn" data-profile-tab="documents">Travel Documents</button>
+                  <button class="profile-tab-btn" data-profile-tab="vaccines">Vaccine Info</button>
+                  <button class="profile-tab-btn" data-profile-tab="files">Files</button>
+                  <button class="profile-tab-btn" data-profile-tab="notes">Notes</button>
+                  <button class="profile-tab-btn" data-profile-tab="trips">Past Trips</button>
+                </aside>
+
+                <div>
+                  <div class="profile-pane active" id="profile-pane-contact">
+                    <div class="sub-card">
+                      <h3>Personal Details</h3>
+                      <div class="profile-grid-2">
+                        <div class="field"><label>First Name</label><input id="cp-first-name" /></div>
+                        <div class="field"><label>Middle Name</label><input id="cp-middle-name" /></div>
+                        <div class="field"><label>Last Name (Paternal)</label><input id="cp-last-name-paternal" /></div>
+                        <div class="field"><label>Last Name (Maternal)</label><input id="cp-last-name-maternal" /></div>
+                      </div>
+                    </div>
+
+                    <div class="sub-card">
+                      <h3>Contact Methods</h3>
+                      <div class="field"><label>Preferred Contact Method</label>
+                        <select id="cp-preferred-contact-method">
+                          <option>Phone</option><option>Text SMS</option><option>WhatsApp</option><option>Email</option><option>Other</option>
+                        </select>
+                      </div>
+                      <div id="cp-phones-container">
+                        <div class="repeater-row">
+                          <select class="cp-phone-type"><option>home</option><option>cell</option><option>office</option></select>
+                          <input class="cp-phone-value" placeholder="Phone #" />
+                        </div>
+                      </div>
+                      <button class="ghost" id="cp-add-phone" type="button">+ Add phone</button>
+
+                      <div id="cp-emails-container" style="margin-top: 10px;">
+                        <div class="repeater-row">
+                          <select class="cp-email-type"><option>personal</option><option>office</option></select>
+                          <input class="cp-email-value" placeholder="Email" />
+                        </div>
+                      </div>
+                      <button class="ghost" id="cp-add-email" type="button">+ Add email</button>
+
+                      <div id="cp-addresses-container" style="margin-top: 10px;">
+                        <div class="repeater-row address">
+                          <select class="cp-address-type"><option>personal</option><option>office</option></select>
+                          <div class="profile-grid-2">
+                            <input class="cp-address-1" placeholder="Address 1" />
+                            <input class="cp-address-2" placeholder="Address 2" />
+                            <input class="cp-city" placeholder="City" />
+                            <input class="cp-state" placeholder="State/Province" />
+                            <input class="cp-zip" placeholder="PC/Zip" />
+                            <input class="cp-country" placeholder="Country" />
+                          </div>
+                        </div>
+                      </div>
+                      <button class="ghost" id="cp-add-address" type="button">+ Add address</button>
+                    </div>
+
+                    <div class="sub-card">
+                      <h3>Work Details</h3>
+                      <div class="profile-grid-3">
+                        <div class="field"><label>Company</label><input id="cp-company" /></div>
+                        <div class="field"><label>Job Title</label><input id="cp-job-title" /></div>
+                        <div class="field"><label>Website</label><input id="cp-website" /></div>
+                      </div>
+                    </div>
+
+                    <div class="sub-card">
+                      <h3>Social Media</h3>
+                      <div class="profile-grid-2">
+                        <div class="field"><label>Facebook Profile</label><input id="cp-social-facebook" /></div>
+                        <div class="field"><label>Instagram Profile</label><input id="cp-social-instagram" /></div>
+                        <div class="field"><label>TikTok Profile</label><input id="cp-social-tiktok" /></div>
+                        <div class="field"><label>LinkedIn Profile</label><input id="cp-social-linkedin" /></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="profile-pane" id="profile-pane-relationships">
+                    <div class="sub-card">
+                      <h3>Relationships (multi-way sync ready)</h3>
+                      <div id="cp-relationships-container">
+                        <div class="repeater-row">
+                          <select class="cp-relationship-type">
+                            <option>Spouse</option><option>Child</option><option>Parent</option><option>Sibling</option><option>Friend</option><option>Relative</option>
+                            <option>Partner</option><option>Domestic Partner</option><option>Co-Worker</option><option>Other</option>
+                          </select>
+                          <select class="cp-relationship-client"></select>
+                        </div>
+                      </div>
+                      <button class="ghost" id="cp-add-relationship" type="button">+ Add relationship</button>
+                    </div>
+                  </div>
+
+                  <div class="profile-pane" id="profile-pane-loyalty">
+                    <div class="sub-card">
+                      <h3>Loyalty Programs</h3>
+                      <div id="cp-loyalty-container">
+                        <div class="profile-grid-3" style="margin-bottom: 8px;">
+                          <select class="cp-loyalty-type"><option>Hotels</option><option>Airlines</option><option>Cruise Lines</option><option>Car Rentals</option><option>Rail & Bus</option></select>
+                          <select class="cp-loyalty-program">
+                            <option>Marriott Bonvoy</option><option>Hilton Honors</option><option>World of Hyatt</option><option>Club Premier (Aeroméxico)</option>
+                            <option>AAdvantage (American)</option><option>MileagePlus (United)</option><option>SkyMiles (Delta)</option><option>VClub (Volaris)</option>
+                            <option>VivaFan (Viva Aerobus)</option><option>Hertz Gold Plus Rewards</option><option>Avis Preferred</option><option>Amtrak Guest Rewards</option>
+                          </select>
+                          <input class="cp-loyalty-number" placeholder="Program Number" />
+                        </div>
+                      </div>
+                      <button class="ghost" id="cp-add-loyalty" type="button">+ Add loyalty program</button>
+                    </div>
+                  </div>
+
+                  <div class="profile-pane" id="profile-pane-dates">
+                    <div class="sub-card">
+                      <h3>Important Dates</h3>
+                      <div class="profile-grid-2">
+                        <div class="field"><label>Date of Birth</label><input id="cp-date-birth" type="date" /></div>
+                        <div class="field"><label>Anniversary</label><input id="cp-date-anniversary" type="date" /></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="profile-pane" id="profile-pane-preferences">
+                    <div class="sub-card">
+                      <h3>Travel Preferences</h3>
+                      <div class="profile-grid-2">
+                        <div>
+                          <p class="note">Seat preference</p>
+                          <label><input type="radio" name="cp-seat" value="Window" /> Window</label><br />
+                          <label><input type="radio" name="cp-seat" value="Aisle" /> Aisle</label><br />
+                          <label><input type="radio" name="cp-seat" value="Opposite aisle" /> Opposite aisle</label>
+                        </div>
+                        <div>
+                          <p class="note">Bed preference</p>
+                          <label><input type="radio" name="cp-bed" value="King" /> King</label><br />
+                          <label><input type="radio" name="cp-bed" value="2 Double/Queen" /> 2 Double/Queen</label>
+                        </div>
+                      </div>
+                      <div class="field"><label>Meal preference</label><input id="cp-meal-preference" /></div>
+
+                      <p class="note">Accommodations preference</p>
+                      <div class="checkbox-grid">
+                        <label><input type="checkbox" class="cp-accommodation" value="Economy" /> Economy</label>
+                        <label><input type="checkbox" class="cp-accommodation" value="Moderate" /> Moderate</label>
+                        <label><input type="checkbox" class="cp-accommodation" value="Luxury" /> Luxury</label>
+                        <label><input type="checkbox" class="cp-accommodation" value="Boutique" /> Boutique</label>
+                        <label><input type="checkbox" class="cp-accommodation" value="AirBnB" /> AirBnB</label>
+                      </div>
+
+                      <p class="note" style="margin-top: 8px;">Vibe preferences</p>
+                      <div class="checkbox-grid">
+                        <label><input type="checkbox" class="cp-vibe" value="Romantic" /> Romantic</label>
+                        <label><input type="checkbox" class="cp-vibe" value="Rest and relaxation" /> Rest and relaxation</label>
+                        <label><input type="checkbox" class="cp-vibe" value="Off the beaten path" /> Off the beaten path</label>
+                        <label><input type="checkbox" class="cp-vibe" value="Party" /> Party</label>
+                        <label><input type="checkbox" class="cp-vibe" value="Local culture" /> Local culture</label>
+                        <label><input type="checkbox" class="cp-vibe" value="Family friendly" /> Family friendly</label>
+                        <label><input type="checkbox" class="cp-vibe" value="Food and wine" /> Food and wine</label>
+                        <label><input type="checkbox" class="cp-vibe" value="Multi-generational" /> Multi-generational</label>
+                        <label><input type="checkbox" class="cp-vibe" value="Adventure" /> Adventure</label>
+                        <label><input type="checkbox" class="cp-vibe" value="LGBT" /> LGBT</label>
+                      </div>
+
+                      <p class="note" style="margin-top: 8px;">Activity preferences</p>
+                      <div class="checkbox-grid">
+                        <label><input type="checkbox" class="cp-activity" value="Beach and water" /> Beach and water</label>
+                        <label><input type="checkbox" class="cp-activity" value="Gambling" /> Gambling</label>
+                        <label><input type="checkbox" class="cp-activity" value="Scuba" /> Scuba</label>
+                        <label><input type="checkbox" class="cp-activity" value="Adventure activities" /> Adventure activities</label>
+                        <label><input type="checkbox" class="cp-activity" value="Golf" /> Golf</label>
+                        <label><input type="checkbox" class="cp-activity" value="Nightlife" /> Nightlife</label>
+                        <label><input type="checkbox" class="cp-activity" value="Arts and theatre" /> Arts and theatre</label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="profile-pane" id="profile-pane-documents">
+                    <div class="sub-card">
+                      <h3>Passport</h3>
+                      <div class="profile-grid-2">
+                        <div class="field"><label>Full name as on passport</label><input id="cp-passport-fullname" /></div>
+                        <div class="field"><label>Passport number</label><input id="cp-passport-number" /></div>
+                        <div class="field"><label>Country of issue</label><input id="cp-passport-country" /></div>
+                        <div class="field"><label>Date of issue</label><input id="cp-passport-issue" type="date" /></div>
+                        <div class="field"><label>Date of expiration</label><input id="cp-passport-expiry" type="date" /></div>
+                        <div class="field"><label>Sex</label><input id="cp-passport-sex" /></div>
+                        <div class="field"><label>Place of birth</label><input id="cp-passport-pob" /></div>
+                        <div class="field"><label>Nationality</label><input id="cp-passport-nationality" /></div>
+                        <div class="field"><label>Citizenship</label><input id="cp-passport-citizenship" /></div>
+                        <div class="field"><label>Passport Photo Upload</label><input id="cp-passport-photo" type="file" /></div>
+                      </div>
+                    </div>
+
+                    <div class="sub-card">
+                      <h3>Visas + TSA / Global Entry</h3>
+                      <div class="profile-grid-2">
+                        <div class="field"><label>Full name as on visa</label><input id="cp-visa-fullname" /></div>
+                        <div class="field"><label>Visa number</label><input id="cp-visa-number" /></div>
+                        <div class="field"><label>Country of issue</label><input id="cp-visa-country" /></div>
+                        <div class="field"><label>Date of issue</label><input id="cp-visa-issue" type="date" /></div>
+                        <div class="field"><label>Date of expiration</label><input id="cp-visa-expiry" type="date" /></div>
+                        <div class="field"><label>TSA PreCheck / Global Entry</label><input id="cp-tsa-global" /></div>
+                      </div>
+                    </div>
+
+                    <div class="sub-card">
+                      <h3>Emergency Contact</h3>
+                      <div class="profile-grid-2">
+                        <div class="field"><label>Relation</label><input id="cp-emergency-relation" /></div>
+                        <div class="field"><label>First Name</label><input id="cp-emergency-first" /></div>
+                        <div class="field"><label>Last Name</label><input id="cp-emergency-last" /></div>
+                        <div class="field"><label>Phone #</label><input id="cp-emergency-phone" /></div>
+                        <div class="field"><label>Email</label><input id="cp-emergency-email" /></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="profile-pane" id="profile-pane-vaccines">
+                    <div class="sub-card">
+                      <h3>Vaccine Info</h3>
+                      <div class="field"><label>Vaccine details</label><input id="cp-vaccine-info" placeholder="Ej: Yellow fever valid until..." /></div>
+                    </div>
+                  </div>
+
+                  <div class="profile-pane" id="profile-pane-files">
+                    <div class="sub-card">
+                      <h3>Files</h3>
+                      <div class="field"><label>Upload file</label><input id="cp-files-upload" type="file" multiple /></div>
+                    </div>
+                  </div>
+
+                  <div class="profile-pane" id="profile-pane-notes">
+                    <div class="sub-card">
+                      <h3>Notes</h3>
+                      <div class="field"><label>Internal notes</label><input id="cp-notes" /></div>
+                    </div>
+                  </div>
+
+                  <div class="profile-pane" id="profile-pane-trips">
+                    <div class="sub-card">
+                      <h3>Past Trips</h3>
+                      <div class="field"><label>Past trip summary</label><input id="cp-past-trips" placeholder="Ej: 2024 Cancún - family all inclusive" /></div>
+                    </div>
+                  </div>
+
+                  <div class="btn-row" style="margin-top: 10px;">
+                    <button id="cp-save-client" type="button">Save Client</button>
+                    <button class="ghost" id="refresh-clients" type="button">Refrescar clients</button>
+                  </div>
+                  <div class="result" id="cp-save-result" style="margin-top: 8px;"></div>
+                </div>
               </div>
+            </section>
+
+            <section class="card" style="margin-top: 12px;">
+              <h2>Clients</h2>
               <table>
                 <thead>
                   <tr><th>ID</th><th>Nombre</th><th>Lead origen</th><th>Contacto</th></tr>
@@ -185,6 +461,7 @@ export function crmDemoPageHtml(): string {
       const lastClientIdEl = document.getElementById('last-client-id');
       const leadResultEl = document.getElementById('lead-result');
       const clientResultEl = document.getElementById('client-result');
+      const clientSaveResultEl = document.getElementById('cp-save-result');
 
       const kpiLeads = document.getElementById('kpi-leads');
       const kpiNewLeads = document.getElementById('kpi-new-leads');
@@ -197,6 +474,182 @@ export function crmDemoPageHtml(): string {
       let selectedLeadId = null;
       let leadsCache = [];
       let clientsCache = [];
+
+      function asText(id) {
+        const value = document.getElementById(id)?.value;
+        if (typeof value !== 'string') return undefined;
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? trimmed : undefined;
+      }
+
+      function selectedRadio(name) {
+        const checked = document.querySelector('input[name="' + name + '"]:checked');
+        return checked ? checked.value : undefined;
+      }
+
+      function checkedValues(selector) {
+        return Array.from(document.querySelectorAll(selector)).filter((item) => item.checked).map((item) => item.value);
+      }
+
+      function appendRepeaterRow(containerId, html) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = html;
+        document.getElementById(containerId).appendChild(wrapper.firstElementChild);
+      }
+
+      function bindProfileTabs() {
+        document.querySelectorAll('.profile-tab-btn').forEach((button) => {
+          button.addEventListener('click', () => {
+            const tab = button.getAttribute('data-profile-tab');
+            document.querySelectorAll('.profile-tab-btn').forEach((item) => item.classList.remove('active'));
+            button.classList.add('active');
+            document.querySelectorAll('.profile-pane').forEach((pane) => pane.classList.remove('active'));
+            const target = document.getElementById('profile-pane-' + tab);
+            if (target) target.classList.add('active');
+          });
+        });
+      }
+
+      function populateRelationshipClientOptions() {
+        const options = ['<option value="">+ New Client</option>']
+          .concat(clientsCache.map((client) => {
+            const fullName = ((client?.firstName ?? '') + ' ' + (client?.paternalLastName ?? '')).trim() || shortId(client?.id ?? '');
+            return '<option value="' + (client?.id ?? '') + '">' + fullName + '</option>';
+          }))
+          .join('');
+
+        document.querySelectorAll('.cp-relationship-client').forEach((select) => {
+          const previous = select.value;
+          select.innerHTML = options;
+          if (previous) select.value = previous;
+        });
+      }
+
+      function collectRepeaterRows() {
+        const contacts = [];
+
+        document.querySelectorAll('#cp-phones-container .repeater-row').forEach((row) => {
+          const type = row.querySelector('.cp-phone-type')?.value;
+          const value = row.querySelector('.cp-phone-value')?.value?.trim();
+          if (value) contacts.push({ type: type || 'cell', value });
+        });
+
+        document.querySelectorAll('#cp-emails-container .repeater-row').forEach((row) => {
+          const value = row.querySelector('.cp-email-value')?.value?.trim();
+          if (value) contacts.push({ type: 'email', value });
+        });
+
+        const addresses = [];
+        document.querySelectorAll('#cp-addresses-container .repeater-row').forEach((row) => {
+          const type = row.querySelector('.cp-address-type')?.value || 'personal';
+          const street1 = row.querySelector('.cp-address-1')?.value?.trim() || '';
+          const city = row.querySelector('.cp-city')?.value?.trim() || '';
+          const state = row.querySelector('.cp-state')?.value?.trim() || '';
+          const zipCode = row.querySelector('.cp-zip')?.value?.trim() || '';
+          const country = row.querySelector('.cp-country')?.value?.trim() || '';
+          const street2 = row.querySelector('.cp-address-2')?.value?.trim() || undefined;
+          if (street1 && city && state && zipCode && country) {
+            addresses.push({ type, street1, street2, city, state, zipCode, country });
+          }
+        });
+
+        return { contacts, addresses };
+      }
+
+      function collectProfilePayload() {
+        const repeaters = collectRepeaterRows();
+        const relationships = Array.from(document.querySelectorAll('#cp-relationships-container .repeater-row')).map((row) => ({
+          relation: row.querySelector('.cp-relationship-type')?.value,
+          clientId: row.querySelector('.cp-relationship-client')?.value || null
+        }));
+
+        const loyaltyPrograms = Array.from(document.querySelectorAll('#cp-loyalty-container .profile-grid-3')).map((row) => ({
+          type: row.querySelector('.cp-loyalty-type')?.value,
+          program: row.querySelector('.cp-loyalty-program')?.value,
+          number: row.querySelector('.cp-loyalty-number')?.value?.trim()
+        })).filter((row) => row.number);
+
+        return {
+          firstName: asText('cp-first-name'),
+          middleName: asText('cp-middle-name'),
+          paternalLastName: asText('cp-last-name-paternal'),
+          maternalLastName: asText('cp-last-name-maternal'),
+          birthDate: asText('cp-date-birth'),
+          anniversaryDate: asText('cp-date-anniversary'),
+          companyName: asText('cp-company'),
+          jobTitle: asText('cp-job-title'),
+          website: asText('cp-website'),
+          contacts: repeaters.contacts,
+          addresses: repeaters.addresses,
+          travelPreferences: {
+            preferredContactMethod: asText('cp-preferred-contact-method'),
+            socialMedia: {
+              facebook: asText('cp-social-facebook'),
+              instagram: asText('cp-social-instagram'),
+              tiktok: asText('cp-social-tiktok'),
+              linkedIn: asText('cp-social-linkedin')
+            },
+            relationships,
+            loyaltyPrograms,
+            seatPreference: selectedRadio('cp-seat'),
+            bedPreference: selectedRadio('cp-bed'),
+            mealPreference: asText('cp-meal-preference'),
+            accommodations: checkedValues('.cp-accommodation'),
+            vibePreferences: checkedValues('.cp-vibe'),
+            activityPreferences: checkedValues('.cp-activity'),
+            travelDocuments: {
+              passport: {
+                fullName: asText('cp-passport-fullname'),
+                number: asText('cp-passport-number'),
+                countryOfIssue: asText('cp-passport-country'),
+                dateOfIssue: asText('cp-passport-issue'),
+                dateOfExpiration: asText('cp-passport-expiry'),
+                sex: asText('cp-passport-sex'),
+                placeOfBirth: asText('cp-passport-pob'),
+                nationality: asText('cp-passport-nationality'),
+                citizenship: asText('cp-passport-citizenship')
+              },
+              visa: {
+                fullName: asText('cp-visa-fullname'),
+                number: asText('cp-visa-number'),
+                countryOfIssue: asText('cp-visa-country'),
+                dateOfIssue: asText('cp-visa-issue'),
+                dateOfExpiration: asText('cp-visa-expiry')
+              },
+              tsaGlobalEntry: asText('cp-tsa-global')
+            },
+            emergencyContact: {
+              relation: asText('cp-emergency-relation'),
+              firstName: asText('cp-emergency-first'),
+              lastName: asText('cp-emergency-last'),
+              phone: asText('cp-emergency-phone'),
+              email: asText('cp-emergency-email')
+            },
+            vaccineInfo: asText('cp-vaccine-info'),
+            notes: asText('cp-notes'),
+            pastTrips: asText('cp-past-trips')
+          }
+        };
+      }
+
+      async function saveClientProfile() {
+        const payload = collectProfilePayload();
+        if (!payload.firstName || !payload.paternalLastName) {
+          clientSaveResultEl.textContent = JSON.stringify({ message: 'firstName y paternalLastName son requeridos' }, null, 2);
+          return;
+        }
+
+        const { response, payload: body } = await fetchJson('/clients', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(payload)
+        });
+
+        renderJson(clientSaveResultEl, body);
+        if (response.status === 201) {
+          await loadClients();
+        }
+      }
 
       function shortId(id) {
         if (!id || typeof id !== 'string') return '—';
@@ -319,6 +772,7 @@ export function crmDemoPageHtml(): string {
         if (response.status !== 200) return;
         clientsCache = Array.isArray(payload?.data) ? payload.data : [];
         renderClientsTable();
+        populateRelationshipClientOptions();
         updateDashboard();
       }
 
@@ -389,6 +843,24 @@ export function crmDemoPageHtml(): string {
         document.getElementById('convert-lead').addEventListener('click', convertLead);
         document.getElementById('refresh-leads').addEventListener('click', loadLeads);
         document.getElementById('refresh-clients').addEventListener('click', loadClients);
+        document.getElementById('cp-save-client').addEventListener('click', saveClientProfile);
+        document.getElementById('cp-add-phone').addEventListener('click', () => {
+          appendRepeaterRow('cp-phones-container', '<div class="repeater-row"><select class="cp-phone-type"><option>home</option><option>cell</option><option>office</option></select><input class="cp-phone-value" placeholder="Phone #" /></div>');
+        });
+        document.getElementById('cp-add-email').addEventListener('click', () => {
+          appendRepeaterRow('cp-emails-container', '<div class="repeater-row"><select class="cp-email-type"><option>personal</option><option>office</option></select><input class="cp-email-value" placeholder="Email" /></div>');
+        });
+        document.getElementById('cp-add-address').addEventListener('click', () => {
+          appendRepeaterRow('cp-addresses-container', '<div class="repeater-row address"><select class="cp-address-type"><option>personal</option><option>office</option></select><div class="profile-grid-2"><input class="cp-address-1" placeholder="Address 1" /><input class="cp-address-2" placeholder="Address 2" /><input class="cp-city" placeholder="City" /><input class="cp-state" placeholder="State/Province" /><input class="cp-zip" placeholder="PC/Zip" /><input class="cp-country" placeholder="Country" /></div></div>');
+        });
+        document.getElementById('cp-add-relationship').addEventListener('click', () => {
+          appendRepeaterRow('cp-relationships-container', '<div class="repeater-row"><select class="cp-relationship-type"><option>Spouse</option><option>Child</option><option>Parent</option><option>Sibling</option><option>Friend</option><option>Relative</option><option>Partner</option><option>Domestic Partner</option><option>Co-Worker</option><option>Other</option></select><select class="cp-relationship-client"></select></div>');
+          populateRelationshipClientOptions();
+        });
+        document.getElementById('cp-add-loyalty').addEventListener('click', () => {
+          appendRepeaterRow('cp-loyalty-container', '<div class="profile-grid-3" style="margin-bottom: 8px;"><select class="cp-loyalty-type"><option>Hotels</option><option>Airlines</option><option>Cruise Lines</option><option>Car Rentals</option><option>Rail & Bus</option></select><select class="cp-loyalty-program"><option>Marriott Bonvoy</option><option>Hilton Honors</option><option>World of Hyatt</option><option>Club Premier (Aeroméxico)</option><option>AAdvantage (American)</option><option>MileagePlus (United)</option><option>SkyMiles (Delta)</option><option>VClub (Volaris)</option><option>VivaFan (Viva Aerobus)</option><option>Hertz Gold Plus Rewards</option><option>Avis Preferred</option><option>Amtrak Guest Rewards</option></select><input class="cp-loyalty-number" placeholder="Program Number" /></div>');
+        });
+        bindProfileTabs();
 
         await loadLeads();
         await loadClients();
