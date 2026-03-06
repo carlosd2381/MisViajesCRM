@@ -83,6 +83,12 @@ function handler(repositories: RepositoryBundle, options: AppOptions) {
         return;
       }
 
+      if (pathSegments[0] === 'ui' && pathSegments[1] === 'leads-clients' && req.method === 'GET') {
+        res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+        res.end(crmDemoPageHtml());
+        return;
+      }
+
       const authHandled = await handleAuthRoutes({ req, res, pathSegments, locale }, authSessions, metrics);
       if (authHandled) return;
 

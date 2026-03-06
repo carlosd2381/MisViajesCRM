@@ -5,11 +5,15 @@ Objetivo: mostrar en vivo un flujo completo de valor en 3-5 minutos (lead → cl
 ## Opción recomendada para owner (interfaz visual)
 
 1. Levantar API: `npm run dev:api`
-2. Abrir en navegador: `http://localhost:3000/demo/crm`
+2. Abrir en navegador: `http://localhost:3000/ui/leads-clients`
 3. En la página:
-	- click en **Crear lead**
-	- click en **Convertir lead**
+	- crear lead desde el formulario
+	- seleccionar lead en tabla
+	- convertir lead a client
+	- validar que ambos listados se actualizan
 4. Mostrar IDs y respuesta JSON en pantalla como evidencia del flujo real.
+
+Ruta alternativa (alias): `http://localhost:3000/demo/crm`
 
 ## Flujo que demuestra
 
