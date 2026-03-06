@@ -127,9 +127,11 @@ export async function handleAiMetrics(context: RequestContext): Promise<void> {
   const snapshot = aiProposalObservability.snapshot();
   const configuredProvider = process.env.AI_PROVIDER ?? 'mock';
   const configuredFallbackProvider = process.env.AI_PROVIDER_FALLBACK ?? null;
+  const configurationMode = configuredProvider === 'mock' ? 'mock' : 'provider';
   const data = {
     ...snapshot,
     configuration: {
+      mode: configurationMode,
       provider: configuredProvider,
       fallbackProvider: configuredFallbackProvider
     }

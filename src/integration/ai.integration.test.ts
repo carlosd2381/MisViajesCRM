@@ -260,6 +260,7 @@ test('agent can read AI metrics after proposal requests', async () => {
       data: {
         provider: string;
         configuration: {
+          mode: 'mock' | 'provider';
           provider: string;
           fallbackProvider: string | null;
         };
@@ -271,6 +272,7 @@ test('agent can read AI metrics after proposal requests', async () => {
 
     assert.equal(payload.message, 'Métricas AI disponibles');
     assert.equal(payload.data.provider, 'mock');
+    assert.equal(payload.data.configuration.mode, 'mock');
     assert.equal(payload.data.configuration.provider, 'mock');
     assert.equal(payload.data.configuration.fallbackProvider, null);
     assert.ok(payload.data.totals.requests >= 1);

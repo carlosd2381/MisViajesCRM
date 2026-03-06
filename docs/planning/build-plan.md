@@ -223,6 +223,7 @@ Notas de ejecución:
 - Avance P1-AI-01: ADR de proveedor y fallback definida en `docs/governance/adr-2026-03-05-ai-provider-strategy.md`.
 - Avance P1-AI-02: observabilidad base implementada (`GET /ai/metrics`) y guía operativa en `docs/operations/ai-observability-baseline.md`.
 - Avance P1-AI-02: `GET /ai/metrics` ahora expone también configuración efectiva de proveedor AI (`provider` + `fallbackProvider`) para transparencia operativa entre configuración y ejecución observada.
+- Avance P1-AI-02: `GET /ai/metrics` incluye `configuration.mode` (`mock|provider`) para distinguir explícitamente operación simulada vs proveedor configurado.
 
 ### Checklist activo de ejecución (P0-CFDI-01)
 
