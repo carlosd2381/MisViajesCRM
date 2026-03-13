@@ -13,7 +13,6 @@ Este proyecto mantiene documentación viva para evitar desviaciones de arquitect
 - `docs/operations/otel-deployment-profiles.md` — perfiles recomendados para activar OpenTelemetry en dev/staging/prod.
 - `docs/operations/auth-incident-runbook.md` — guía de diagnóstico y mitigación para incidentes de autenticación/sesiones.
 - `docs/operations/ci-troubleshooting.md` — señales y acciones de triage rápido para jobs CI (`auth/ai/postgres`).
-- `docs/operations/leads-clients-demo.md` — guía rápida para demo en vivo del flujo lead → cliente.
 
 ## Gobierno de revisiones
 
@@ -49,6 +48,17 @@ Checklist de PR disponible en `.github/pull_request_template.md` para mantener v
 
 Además, si se exceden límites soft de tamaño de archivo/función, el PR debe documentar una excepción (motivo, riesgo y plan de refactor).
 
+## Leads CSV export hardening (UI)
+
+La exportación CSV de Leads (vista filtrada/ordenada) incluye salvaguardas operativas para uso en Excel/Sheets:
+
+- Exporta únicamente filas visibles y columnas seleccionadas en la UI.
+- Antecede metadatos de contexto (timestamp local + ISO, scope visible/total, queue, filtros, búsqueda y orden).
+- Usa BOM UTF-8 para mejorar compatibilidad de acentos en hojas de cálculo.
+- Mitiga formula injection prefijando valores que inician con `=`, `+`, `-`, `@`.
+- Normaliza saltos de línea/tabulaciones y colapsa espacios repetidos.
+- Aplica límite por celda (truncate con elipsis) para evitar filas excesivamente grandes.
+
 ## Baseline técnico inicial
 
 - Estructura por feature: `src/modules/*`.
@@ -79,7 +89,6 @@ Además, si se exceden límites soft de tamaño de archivo/función, el PR debe 
 - Ejecutar matriz solo para locale `en-US`: `npm run smoke:matrix:en`
 - Ejecutar matriz reutilizando API externa en `AUTH_MODE=header`: `npm run smoke:matrix:external:header`
 - Ejecutar matriz reutilizando API externa en `AUTH_MODE=token`: `npm run smoke:matrix:external:token`
-- Ejecutar demo rápido de Leads/Clients (lead → cliente): `npm run leads:demo`
 - Validar precondiciones de integración PostgreSQL (`DB_*` + tablas requeridas): `npm run postgres:integration:precheck`
 - Ejecutar integración PostgreSQL dedicada (`lead.convert` audit persistence): `npm run test:integration:postgres`
 - Ejecutar todas las pruebas: `npm run test`

@@ -24,17 +24,36 @@ Campos clave:
 - `status` (enum: new, contacted, proposal_sent, follow_up, closed_won, closed_lost)
 - `source` (enum: whatsapp, instagram, facebook, referral, website, walk_in)
 - `priority` (enum: low, medium, high, vip)
+- `first_name` (text, nullable)
+- `paternal_last_name` (text, nullable)
+- `email` (text, nullable)
+- `phone` (text, nullable)
 - `destination` (text)
 - `travel_start_date` (date, nullable)
 - `travel_end_date` (date, nullable)
+- `urgency_timeframe` (text, nullable)
+- `trip_occasion` (text, nullable)
+- `campaign_id` (text, nullable)
+- `referral_name` (text, nullable)
+- `assigned_agent_name` (text, nullable)
+- `last_contact_date` (date, nullable)
+- `probability_of_sale` (int 0-100, nullable)
+- `lead_temperature` (text, nullable)
+- `date_flexibility` (text, nullable)
+- `preferred_contact_method` (text, nullable)
 - `adults_count` (int)
 - `children_count` (int)
 - `budget_min` (numeric)
 - `budget_max` (numeric)
 - `budget_currency` (char(3))
 - `trip_type` (text)
+- `preferences` (text, nullable)
 - `notes` (text)
 - `assigned_agent_id` (uuid, FK users.id)
+
+Exportación CSV (UI):
+- La vista de Leads exporta filas visibles/columnas seleccionadas con hardening operativo (metadatos de contexto, BOM UTF-8, mitigación de fórmula, normalización de texto y límite por celda).
+- Referencia canónica: `docs/README.md` → sección `Leads CSV export hardening (UI)`.
 
 ---
 

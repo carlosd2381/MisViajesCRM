@@ -16,6 +16,7 @@ export function mapCreateSupplierToEntity(input: CreateSupplierRequest): Supplie
   return {
     id: createEntityId('supplier'),
     ...input,
+    marketFocusTags: input.marketFocusTags ?? [],
     createdAt: timestamp,
     updatedAt: timestamp
   };

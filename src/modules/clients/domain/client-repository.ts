@@ -6,4 +6,5 @@ export interface ClientRepository {
   getByLeadId(leadId: string): Promise<Client | null>;
   create(entity: Client): Promise<Client>;
   update(entity: Client): Promise<Client>;
+  delete(id: string, options?: { cascade?: boolean }): Promise<void>;
 }

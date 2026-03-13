@@ -21,4 +21,8 @@ export class InMemorySupplierRepository implements SupplierRepository {
     this.items.set(entity.id, entity);
     return entity;
   }
+
+  async delete(id: string): Promise<void> {
+    this.items.delete(id);
+  }
 }

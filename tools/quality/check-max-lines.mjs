@@ -1,10 +1,10 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, extname } from 'node:path';
 
 const SOFT_MAX_LINES = 300;
 const HARD_MAX_LINES = 450;
 const ROOT = process.cwd();
-const TARGET_DIR = join(ROOT, 'src');
+const TARGET_DIRS = [join(ROOT, 'src'), join(ROOT, 'web', 'src')];
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.py']);
 
 function walk(dirPath) {
@@ -36,7 +36,7 @@ function countLines(content) {
   return content.split(/\r?\n/).length;
 }
 
-const files = walk(TARGET_DIR);
+const files = TARGET_DIRS.filter((dirPath) => existsSync(dirPath)).flatMap((dirPath) => walk(dirPath));
 const warnings = [];
 const violations = [];
 

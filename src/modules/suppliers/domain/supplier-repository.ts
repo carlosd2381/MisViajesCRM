@@ -5,4 +5,5 @@ export interface SupplierRepository {
   getById(id: string): Promise<Supplier | null>;
   create(entity: Supplier): Promise<Supplier>;
   update(entity: Supplier): Promise<Supplier>;
+  delete(id: string, options?: { cascade?: boolean }): Promise<void>;
 }

@@ -36,14 +36,14 @@ test('permissionForLeads maps methods correctly', () => {
   assert.equal(permissionForLeads('GET'), 'read:leads');
   assert.equal(permissionForLeads('POST'), 'write:leads');
   assert.equal(permissionForLeads('PATCH'), 'write:leads');
-  assert.equal(permissionForLeads('DELETE'), null);
+  assert.equal(permissionForLeads('DELETE'), 'write:leads');
 });
 
 test('permissionForClients maps methods correctly', () => {
   assert.equal(permissionForClients('GET'), 'read:clients');
   assert.equal(permissionForClients('POST'), 'write:clients');
   assert.equal(permissionForClients('PATCH'), 'write:clients');
-  assert.equal(permissionForClients('DELETE'), null);
+  assert.equal(permissionForClients('DELETE'), 'write:clients');
 });
 
 test('permissionForItineraries maps methods correctly', () => {
@@ -57,7 +57,7 @@ test('permissionForSuppliers maps methods correctly', () => {
   assert.equal(permissionForSuppliers('GET'), 'read:suppliers');
   assert.equal(permissionForSuppliers('POST'), 'write:suppliers');
   assert.equal(permissionForSuppliers('PATCH'), 'write:suppliers');
-  assert.equal(permissionForSuppliers('DELETE'), null);
+  assert.equal(permissionForSuppliers('DELETE'), 'write:suppliers');
 });
 
 test('permissionForCommissions maps methods correctly', () => {

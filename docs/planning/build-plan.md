@@ -1,7 +1,7 @@
 # Build Plan (Documento Vivo)
 
 Estado: Activo
-Última actualización: 2026-03-05
+Última actualización: 2026-03-12
 
 ## Objetivo del producto
 
@@ -144,6 +144,7 @@ Construir un CRM de agencia de viajes AI-native con interfaz primaria en `es-MX`
 - Smoke-check AI valida también localización del mensaje exitoso (`200`) en `/ai/schema/proposal` por locale activo.
 - Smoke-check de render AI agregado para `POST /ai/proposal/render/web` y `POST /ai/proposal/render/pdf`, con matriz `header|token` y `es-MX|en-US`.
 - Refactor de enrutamiento aplicado: `app.ts` delega rutas de módulos a `src/core/http/module-route-dispatcher.ts` para reducir tamaño de archivo/función y mantener comportamiento.
+- CRM UI (Leads) endurecido con exportación CSV operativa: export por vista filtrada/ordenada, selección de columnas, metadatos de contexto, timestamp local+ISO, BOM UTF-8, mitigación de fórmula, normalización de texto y límite por celda.
 
 ## TODO (Próxima sesión)
 
@@ -257,7 +258,57 @@ Seguimiento activo:
 ### Otros ítems en cola
 
 - [DONE] Agregar checklist breve de “Postgres CI readiness” en `docs/governance/project-constraints.md` para fijar requisito operativo.
+
+## Checklist de votación de columnas (Leads / Clientes / Proveedores)
+
+Objetivo: estandarizar cómo los agentes prueban y votan los defaults de columnas visibles y orden inicial de cada lista.
+
+Referencia técnica de defaults centralizados:
+- `web/src/modules/crm/list-column-defaults.ts`
+
+### Protocolo de prueba por agente
+
+1. Probar cada lista con el flujo real de trabajo (sin abrir detalle):
+	- Leads: triage + priorización + selección de siguiente contacto.
+	- Clientes: identificación rápida + origen + contacto principal.
+	- Proveedores: selección operativa + estado + clasificación.
+2. Ejecutar al menos 10 tareas reales/simuladas por lista.
+3. Medir fricción percibida en la tabla (sin personalizar durante la prueba base).
+4. Aplicar una propuesta de orden/visibilidad y repetir las mismas 10 tareas.
+5. Reportar score y recomendación final por lista.
+
+### Rubrica de scoring (1–5)
+
+- Velocidad de escaneo: ¿qué tan rápido identifica la fila correcta?
+- Claridad operativa: ¿las columnas visibles soportan la decisión inmediata?
+- Señal vs ruido: ¿hay columnas que distraen en el contexto diario?
+- Consistencia entre módulos: ¿el patrón visual se siente uniforme?
+- Requerimiento de clic extra: ¿reduce necesidad de abrir detalle para decidir?
+
+### Regla de decisión
+
+- Cada agente propone:
+  - columnas visibles por defecto,
+  - orden de columnas,
+  - score total y comentario breve.
+- Se adopta como default la propuesta con mayor score promedio.
+- En empate:
+  1) gana la propuesta con mejor “Velocidad de escaneo”,
+  2) si persiste empate, gana la que reduce más “clic extra”.
+
+### Implementación de cambios votados
+
+1. Actualizar defaults en `web/src/modules/crm/list-column-defaults.ts`.
+2. Validar en UI que “Reset defaults” aplica los nuevos valores en:
+	- Leads
+	- Clientes
+	- Proveedores
+3. Correr validaciones:
+	- `npm run typecheck`
+	- `npm run build:web`
+4. Registrar evidencia de decisión (fecha, agentes, score) en el check-in diario activo.
 - [DONE] Considerar job nocturno/cron (opcional) para `test:integration:postgres` en rama principal con alertado temprano.
+- [TODO] Settings: agregar sección de bitácora para acciones sensibles de perfil (incluyendo borrado), mostrando quién ejecutó la acción y fecha/hora.
 - [DONE] Evaluar ampliar cobertura Postgres de auditoría a más acciones críticas de `leads` (además de `lead.convert`).
 - [DONE] Consolidar tabla única de troubleshooting CI (auth/ai/postgres) para reducir duplicación entre `docs/README.md` y runbooks.
 - [DONE] Definir criterio de salida de este bloque: `postgres-integration` estable en CI + documentación operativa cerrada.
@@ -335,7 +386,6 @@ Nota de lectura: entradas con `[Resumen]` agrupan lotes de cambios relacionados 
 - 2026-03-04: [Resumen] Bloque de endurecimiento CI/contratos completado: preflight `smoke:matrix:contract`, validadores runtime de summaries (`AUTH/AI_SCHEMA/AI_RENDER`), publicación en `GITHUB_STEP_SUMMARY` y pruebas de regresión de workflow.
 - 2026-03-05: Se agregó playbook operativo `docs/operations/p0-db-ci-unblock-playbook.md` para cierre paso-a-paso de `P0-DB-01` (verificación remota, ejecución forzada, evidencia y remediación).
 - 2026-03-05: Se creó handoff de cierre `docs/planning/night-handoff-2026-03-05.md` con estado final, evidencia CI y arranque recomendado para continuidad del día siguiente.
-- 2026-03-05: Se agregó demo operativo de módulo Leads/Clients (`npm run leads:demo`) con runbook `docs/operations/leads-clients-demo.md` para mostrar flujo lead→cliente en vivo a stakeholders.
 - 2026-03-05: Se agregó endpoint de readiness CFDI/SAT `GET /management/cfdi/readiness` (modo `postgres`: valida tablas `sat_certificates`, `cfdi_invoices`, `cfdi_invoice_events`; modo `memory`: retorna estado no listo explícito) con cobertura en `src/integration/management.integration.test.ts`.
 - 2026-03-05: Se agregaron contratos de validación para CFDI timbrado/cancelación (`POST /management/cfdi/stamp/validate`, `POST /management/cfdi/cancel/validate`) con reglas de RFC/UUID/fecha/razón de cancelación y cobertura en `management-validation.test.ts` + `management.integration.test.ts`.
 - 2026-03-05: Se agregó trazabilidad operativa de validación CFDI en PostgreSQL (`cfdi_invoice_events`) desde endpoints de timbrado/cancelación, incluyendo registro de éxito/error (`validation_passed`/`validation_failed`) y cobertura en pruebas de integración PostgreSQL.

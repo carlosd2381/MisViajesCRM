@@ -5,4 +5,5 @@ export interface LeadRepository {
   getById(id: string): Promise<Lead | null>;
   create(entity: Lead): Promise<Lead>;
   update(entity: Lead): Promise<Lead>;
+  delete(id: string, options?: { cascade?: boolean }): Promise<void>;
 }

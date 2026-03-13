@@ -10,7 +10,14 @@
 			"command": true,
 			"pdftotext": true,
 			"npm install": true,
-			"npx tsx": true
+			"npx tsx": true,
+			"npm run -s typecheck": true,
+			"pkill": true,
+			"true": true,
+			"npm run -s dev:api": true,
+			"npm run -s quality:file-size": true,
+			"npm run -s quality:function-size": true,
+			"npm --prefix web": true
 		}
 	}
 }

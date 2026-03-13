@@ -225,4 +225,41 @@ export class PostgresClientRepository implements ClientRepository {
 
     return mapClientRow(result.rows[0], entity.contacts, entity.addresses);
   }
+
+  async delete(id: string, options?: { cascade?: boolean }): Promise<void> {
+    if (!options?.cascade) {
+      await pgQuery('delete from clients where id = $1', [id]);
+      return;
+    }
+
+    const itineraryRows = await pgQuery<{ id: string }>('select id from itineraries where client_id = $1', [id]);
+    const itineraryIds = itineraryRows.rows.map((row) => row.id);
+
+    let invoiceIds: string[] = [];
+    if (itineraryIds.length > 0) {
+      const byItinerary = await pgQuery<{ id: string }>(
+        'select id from cfdi_invoices where itinerary_id = any($1::text[])',
+        [itineraryIds]
+      );
+      invoiceIds = [...invoiceIds, ...byItinerary.rows.map((row) => row.id)];
+
+      await pgQuery('delete from itinerary_items where itinerary_id = any($1::text[])', [itineraryIds]);
+      await pgQuery('delete from financial_transactions where itinerary_id = any($1::text[])', [itineraryIds]);
+      await pgQuery('delete from itinerary_commission_splits where itinerary_id = any($1::text[])', [itineraryIds]);
+      await pgQuery('delete from commissions where itinerary_id = any($1::text[])', [itineraryIds]);
+    }
+
+    const byClient = await pgQuery<{ id: string }>('select id from cfdi_invoices where client_id = $1', [id]);
+    invoiceIds = [...invoiceIds, ...byClient.rows.map((row) => row.id)];
+    invoiceIds = Array.from(new Set(invoiceIds));
+
+    if (invoiceIds.length > 0) {
+      await pgQuery('delete from cfdi_invoice_events where cfdi_invoice_id = any($1::text[])', [invoiceIds]);
+      await pgQuery('delete from cfdi_invoices where id = any($1::text[])', [invoiceIds]);
+    }
+
+    await pgQuery('delete from communication_logs where client_id = $1', [id]);
+    await pgQuery('delete from itineraries where client_id = $1', [id]);
+    await pgQuery('delete from clients where id = $1', [id]);
+  }
 }

@@ -17,6 +17,8 @@ import type { PermissionKey } from '../auth/permissions';
 import { handleLeadConvert, handleLeadsCollection, handleLeadResource } from '../../modules/leads/api/lead-http-handlers';
 import { handleClientResource, handleClientsCollection } from '../../modules/clients/api/client-http-handlers';
 import {
+  handleSupplierIncidentsCollection,
+  handleSupplierRecentBookings,
   handleSupplierResource,
   handleSuppliersCollection
 } from '../../modules/suppliers/api/supplier-http-handlers';
@@ -191,6 +193,12 @@ function handleSuppliersRoute(context: ModuleRouteContext): Promise<void> | null
   const requestContext = { req, res, pathSegments, locale };
   if (pathSegments.length === 1) return handleSuppliersCollection(requestContext, repositories.suppliers);
   if (pathSegments.length === 2) return handleSupplierResource(requestContext, repositories.suppliers);
+  if (pathSegments.length === 3 && pathSegments[2] === 'incidents') {
+    return handleSupplierIncidentsCollection(requestContext, repositories.suppliers);
+  }
+  if (pathSegments.length === 3 && pathSegments[2] === 'recent-bookings') {
+    return handleSupplierRecentBookings(requestContext, repositories.suppliers);
+  }
   return Promise.resolve();
 }
 
