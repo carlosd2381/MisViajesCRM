@@ -12,27 +12,28 @@ interface ProposalPortalPublicViewProps {
 
 type PortalUnavailableReason = 'invalid_hash' | 'not_found_or_inactive' | 'unknown';
 type PortalSectionId = 'portal-overview' | 'portal-financial' | 'portal-actions' | 'portal-history';
+const PORTAL_SECTION_IDS: PortalSectionId[] = ['portal-overview', 'portal-financial', 'portal-actions', 'portal-history'];
 
 function isPortalHashFormatValid(hash: string): boolean {
   return /^[a-zA-Z0-9]{16,64}$/.test(hash);
 }
 
-function actionLabel(locale: Locale, action: PortalProposalActionEvent['action']): string {
-  const key = `itineraries.portalAction.${action}`;
+function localizedPortalEnumLabel(locale: Locale, keyPrefix: string, value: string): string {
+  const key = `${keyPrefix}.${value}`;
   const translated = t(locale, key);
-  return translated === key ? action : translated;
+  return translated === key ? value : translated;
+}
+
+function actionLabel(locale: Locale, action: PortalProposalActionEvent['action']): string {
+  return localizedPortalEnumLabel(locale, 'itineraries.portalAction', action);
 }
 
 function publicationStatusLabel(locale: Locale, status: PortalProposalView['publication']['status']): string {
-  const key = `itineraries.portalPublicationStatus.${status}`;
-  const translated = t(locale, key);
-  return translated === key ? status : translated;
+  return localizedPortalEnumLabel(locale, 'itineraries.portalPublicationStatus', status);
 }
 
 function actorTypeLabel(locale: Locale, actorType: PortalProposalActionEvent['actorType']): string {
-  const key = `itineraries.portalActorType.${actorType}`;
-  const translated = t(locale, key);
-  return translated === key ? actorType : translated;
+  return localizedPortalEnumLabel(locale, 'itineraries.portalActorType', actorType);
 }
 
 function formatCurrency(locale: Locale, amount: number, currency: 'MXN' | 'USD' | 'EUR'): string {
@@ -144,7 +145,7 @@ export function ProposalPortalPublicView({
     } finally {
       setIsLoading(false);
     }
-  }, [locale, onLoadProposal, proposalHash]);
+  }, [onLoadProposal, proposalHash]);
 
   useEffect(() => {
     void loadProposal();
@@ -159,8 +160,7 @@ export function ProposalPortalPublicView({
   useEffect(() => {
     if (typeof window === 'undefined' || !proposal) return;
 
-    const sectionIds: PortalSectionId[] = ['portal-overview', 'portal-financial', 'portal-actions', 'portal-history'];
-    const sections = sectionIds
+    const sections = PORTAL_SECTION_IDS
       .map((id) => document.getElementById(id))
       .filter((element): element is HTMLElement => Boolean(element));
 

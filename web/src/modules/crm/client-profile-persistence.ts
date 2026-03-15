@@ -110,6 +110,7 @@ export function diffProfileSnapshots(
   ];
   const currentTripsKeys: Array<keyof ClientProfileForm> = [
     'currentTripDestination',
+    'clientStatus',
     'currentTripDate',
     'currentTripTravelers',
     'currentTripServices',
@@ -194,6 +195,7 @@ export function buildTravelPreferencesPayload(
     emergencyPhone: profile.emergencyPhone.trim(),
     emergencyEmail: profile.emergencyEmail.trim(),
     currentTripDestination: profile.currentTripDestination.trim(),
+    clientStatus: profile.clientStatus.trim(),
     currentTripDate: profile.currentTripDate,
     currentTripTravelers: profile.currentTripTravelers.trim(),
     currentTripServices: profile.currentTripServices,
@@ -295,6 +297,7 @@ export function buildProfileStateFromClient(client: Client): {
       emergencyPhone: asText(travelPreferences.emergencyPhone),
       emergencyEmail: asText(travelPreferences.emergencyEmail),
       currentTripDestination: asText(travelPreferences.currentTripDestination),
+      clientStatus: asText(travelPreferences.clientStatus) || 'researching',
       currentTripDate: asText(travelPreferences.currentTripDate),
       currentTripTravelers: asText(travelPreferences.currentTripTravelers),
       currentTripServices: asStringArray(travelPreferences.currentTripServices),
