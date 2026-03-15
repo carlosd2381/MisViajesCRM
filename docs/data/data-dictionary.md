@@ -180,6 +180,114 @@ Campos base implementados en migración (`20260304_004_itinerary_items.sql`):
 - `created_at` (timestamptz)
 - `updated_at` (timestamptz)
 
+### itinerary_status_events
+
+Descripción: bitácora de transiciones de estado del pipeline comercial de propuesta.
+
+Campos base implementados en migración (`20260314_017_itinerary_proposal_portal_foundation.sql`):
+
+- `id` (uuid, PK)
+- `itinerary_id` (uuid, FK itineraries.id)
+- `from_status` (text, nullable)
+- `to_status` (text)
+- `changed_by` (text, nullable)
+- `changed_at` (timestamptz)
+- `notes` (text, nullable)
+
+Estados soportados:
+- `draft`, `sent`, `revised`, `accepted`, `paid`, `completed`, `cancelled`
+
+### itinerary_days
+
+Descripción: estructura padre por día para builder interactivo day-by-day.
+
+Campos base implementados en migración (`20260314_017_itinerary_proposal_portal_foundation.sql`):
+
+- `id` (uuid, PK)
+- `itinerary_id` (uuid, FK itineraries.id)
+- `day_index` (integer >= 1)
+- `day_date` (date, nullable)
+- `title` (text)
+- `summary` (text, nullable)
+- `created_at` (timestamptz)
+- `updated_at` (timestamptz)
+
+### itinerary_day_activities
+
+Descripción: actividades hijas dentro de cada día de itinerario.
+
+Campos base implementados en migración (`20260314_017_itinerary_proposal_portal_foundation.sql`):
+
+- `id` (uuid, PK)
+- `itinerary_id` (uuid, FK itineraries.id)
+- `itinerary_day_id` (uuid, FK itinerary_days.id)
+- `activity_index` (integer >= 1)
+- `title` (text)
+- `category` (enum lógico: flight, hotel, transfer, tour, dining, activity, insurance, fee, other)
+- `description_es` (text, nullable)
+- `description_en` (text, nullable)
+- `starts_at_local` (text, nullable)
+- `duration_minutes` (integer, nullable)
+- `price_net` (numeric)
+- `price_gross` (numeric)
+- `optional_enabled` (boolean)
+- `media_url` (text, nullable)
+- `latitude` (numeric(9,6), nullable)
+- `longitude` (numeric(9,6), nullable)
+- `created_at` (timestamptz)
+- `updated_at` (timestamptz)
+
+### destination_library
+
+Descripción: catálogo curado de contenidos y media por destino, para priorizar contenido interno.
+
+Campos base implementados en migración (`20260314_017_itinerary_proposal_portal_foundation.sql`):
+
+- `id` (uuid, PK)
+- `location_name` (varchar(255))
+- `category` (enum lógico: activity, hotel, dining, transfer, other)
+- `title` (varchar(255))
+- `custom_description_es` (text, nullable)
+- `custom_description_en` (text, nullable)
+- `high_res_media_url` (text, nullable)
+- `latitude` (numeric(9,6), nullable)
+- `longitude` (numeric(9,6), nullable)
+- `tags` (text[])
+- `is_active` (boolean)
+- `created_at` (timestamptz)
+- `updated_at` (timestamptz)
+
+### proposal_publications
+
+Descripción: publicación de propuesta a portal cliente mediante hash seguro.
+
+Campos base implementados en migración (`20260314_017_itinerary_proposal_portal_foundation.sql`):
+
+- `id` (uuid, PK)
+- `itinerary_id` (uuid, FK itineraries.id)
+- `hash` (text, único)
+- `status` (enum lógico: active, revoked, expired)
+- `published_by` (text, nullable)
+- `published_at` (timestamptz)
+- `expires_at` (timestamptz, nullable)
+- `revoked_at` (timestamptz, nullable)
+- `last_viewed_at` (timestamptz, nullable)
+
+### proposal_action_events
+
+Descripción: eventos de interacción del cliente en portal (aprobación o solicitud de revisión).
+
+Campos base implementados en migración (`20260314_017_itinerary_proposal_portal_foundation.sql`):
+
+- `id` (uuid, PK)
+- `proposal_publication_id` (uuid, FK proposal_publications.id)
+- `itinerary_id` (uuid, FK itineraries.id)
+- `action` (enum lógico: approve, request_revision, open)
+- `actor_type` (enum lógico: client, agent, system)
+- `actor_ref` (text, nullable)
+- `message` (text, nullable)
+- `created_at` (timestamptz)
+
 ---
 
 ## 5) communication_logs
