@@ -4,6 +4,7 @@ import { MODULE_ROUTE_DISPATCH_ORDER } from './module-route-dispatcher';
 
 test('module route dispatch order contract remains stable', () => {
   assert.deepEqual(MODULE_ROUTE_DISPATCH_ORDER, [
+    'portal',
     'leads',
     'clients',
     'suppliers',

@@ -3,11 +3,21 @@ import { readJsonBody, sendJson } from '../../../core/http/http-utils';
 import { resolveLocale } from '../../../core/i18n/resolve-locale';
 import type { SupportedLocale } from '../../../core/i18n/supported-locales';
 import { aiProposalObservability } from '../application/ai-observability';
+import {
+  generateMockItineraryWorkflow,
+  transformMockItineraryTone,
+  validateMockItineraryLogic
+} from '../application/itinerary-workflow-mock-service';
 import { generateMockProposal } from '../application/proposal-mock-service';
 import { renderProposalHtml, renderProposalPdfDraft } from '../application/proposal-render-service';
 import { buildAiProposalRenderSchemaMetadata } from '../domain/proposal-render-schema-metadata';
 import { buildAiProposalSchemaMetadata } from '../domain/proposal-schema-metadata';
-import { validateCreateAiProposal } from './proposal-validation';
+import {
+  validateAiItineraryGenerate,
+  validateAiLogicValidation,
+  validateAiToneTransform,
+  validateCreateAiProposal
+} from './proposal-validation';
 
 export async function handleAiProposalSchema(context: RequestContext): Promise<void> {
   const startedAt = Date.now();
@@ -139,6 +149,57 @@ export async function handleAiMetrics(context: RequestContext): Promise<void> {
   sendJson(context.res, 200, { data, message: messageByLocale(context.locale, 'Métricas AI disponibles') });
 }
 
+export async function handleAiItineraryGenerate(context: RequestContext): Promise<void> {
+  if (context.req.method !== 'POST') {
+    sendJson(context.res, 405, { message: messageByLocale(context.locale, 'Método no permitido') });
+    return;
+  }
+
+  const payload = await readJsonBody(context.req);
+  const validation = validateAiItineraryGenerate(payload);
+  if (!validation.ok) {
+    sendJson(context.res, 400, { message: messageByLocale(context.locale, 'Solicitud inválida'), errors: validation.errors });
+    return;
+  }
+
+  const data = generateMockItineraryWorkflow(validation.value);
+  sendJson(context.res, 200, { data, message: messageByLocale(context.locale, 'Itinerario AI generado (mock)') });
+}
+
+export async function handleAiItineraryToneTransform(context: RequestContext): Promise<void> {
+  if (context.req.method !== 'POST') {
+    sendJson(context.res, 405, { message: messageByLocale(context.locale, 'Método no permitido') });
+    return;
+  }
+
+  const payload = await readJsonBody(context.req);
+  const validation = validateAiToneTransform(payload);
+  if (!validation.ok) {
+    sendJson(context.res, 400, { message: messageByLocale(context.locale, 'Solicitud inválida'), errors: validation.errors });
+    return;
+  }
+
+  const data = transformMockItineraryTone(validation.value);
+  sendJson(context.res, 200, { data, message: messageByLocale(context.locale, 'Transformación de tono AI completada') });
+}
+
+export async function handleAiItineraryValidateLogic(context: RequestContext): Promise<void> {
+  if (context.req.method !== 'POST') {
+    sendJson(context.res, 405, { message: messageByLocale(context.locale, 'Método no permitido') });
+    return;
+  }
+
+  const payload = await readJsonBody(context.req);
+  const validation = validateAiLogicValidation(payload);
+  if (!validation.ok) {
+    sendJson(context.res, 400, { message: messageByLocale(context.locale, 'Solicitud inválida'), errors: validation.errors });
+    return;
+  }
+
+  const data = validateMockItineraryLogic(validation.value);
+  sendJson(context.res, 200, { data, message: messageByLocale(context.locale, 'Validación lógica AI completada') });
+}
+
 interface UsageEstimation {
   estimatedTokens: number;
   estimatedCostUsd: number;
@@ -211,7 +272,10 @@ function englishMessage(spanish: string): string {
     'Métricas AI disponibles': 'AI metrics available',
     'Solicitud inválida': 'Invalid request',
     'Propuesta bloqueada por quality gate': 'Proposal blocked by quality gate',
-    'Propuesta AI generada (mock)': 'AI proposal generated (mock)'
+    'Propuesta AI generada (mock)': 'AI proposal generated (mock)',
+    'Itinerario AI generado (mock)': 'AI itinerary generated (mock)',
+    'Transformación de tono AI completada': 'AI tone transformation completed',
+    'Validación lógica AI completada': 'AI logic validation completed'
   };
 
   return map[spanish] ?? 'Operation completed';
