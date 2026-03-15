@@ -183,6 +183,13 @@ Playbook de cierre de blocker:
 
 - [SIGNOFF-PENDING] P0-CFDI-01 con cierre técnico completado; pendiente aprobación formal de compliance/negocio.
 
+### Nuevo frente activo (Itinerary Proposal Portal)
+
+- [READY] Especificación técnica v1: `docs/planning/itinerary-proposal-portal-spec-2026-03-14.md`
+- [READY] Ticket batch inicial: `docs/planning/itinerary-proposal-ticket-batch-01.md`
+- [READY] Migración foundation draft: `db/migrations/20260314_017_itinerary_proposal_portal_foundation.sql`
+- [READY] Contratos API scaffold: `src/modules/itinerary/api/itinerary-proposal-contracts.ts`
+
 ### Backlog activo (pendientes)
 
 | ID | Prioridad | Owner sugerido | Entregable | Evidencia de salida |

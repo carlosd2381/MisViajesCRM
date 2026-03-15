@@ -17,7 +17,10 @@
 			"npm run -s dev:api": true,
 			"npm run -s quality:file-size": true,
 			"npm run -s quality:function-size": true,
-			"npm --prefix web": true
+			"npm --prefix web": true,
+			"npm run -s build": true,
+			"git add": true,
+			"git restore": true
 		}
 	}
 }
