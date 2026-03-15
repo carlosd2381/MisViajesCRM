@@ -6,6 +6,7 @@ export function titleFromView(locale: Locale, currentView: ViewKey): string {
     dashboard: t(locale, 'nav.dashboard'),
     leads: t(locale, 'nav.leads'),
     clients: t(locale, 'nav.clients'),
+    itineraries: t(locale, 'nav.itineraries'),
     suppliers: t(locale, 'nav.suppliers'),
     settings: t(locale, 'nav.settings'),
     placeholder: t(locale, 'nav.module')

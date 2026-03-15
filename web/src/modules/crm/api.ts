@@ -76,6 +76,7 @@ export function defaultForm(): ClientProfileForm {
     emergencyEmail: '',
     vaccineInfo: '',
     currentTripDestination: '',
+    clientStatus: 'researching',
     currentTripDate: '',
     currentTripTravelers: '',
     currentTripServices: [],
