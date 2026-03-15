@@ -1395,7 +1395,7 @@ export function LeadsView({
           }}
           placeholder={t(locale, 'common.searchPlaceholder')}
         />
-        <button type="button" onClick={() => { onStartCreateLead(); setActivePage('create'); }}>{t(locale, 'common.actions.addNew')}</button>
+        <button type="button" onClick={() => { onStartCreateLead(); setActiveTab('travel'); setActivePage('create'); }}>{t(locale, 'common.actions.addNew')}</button>
         <div className="icon-menu-wrap view-menu-wrap" ref={leadViewMenuRef}>
           <button
             ref={leadViewToggleRef}

@@ -68,6 +68,9 @@ import {
   handleManagementCfdiCertificatesCollection
 } from '../../modules/management/api/management-cfdi-certificate-http-handlers';
 import {
+  handleAiItineraryGenerate,
+  handleAiItineraryToneTransform,
+  handleAiItineraryValidateLogic,
   handleAiMetrics,
   handleAiProposalCollection,
   handleAiProposalPdfDraft,
@@ -76,9 +79,20 @@ import {
   handleAiProposalWebRender
 } from '../../modules/ai/api/proposal-http-handlers';
 import {
+  handleDestinationLibrarySearch,
+  handleItineraryPublish,
+  handleItineraryDayActivityResource,
+  handleItineraryDayActivitiesCollection,
+  handleItineraryDayResource,
+  handleItineraryDaysCollection,
   handleItineraryItemsCollection,
   handleItinerariesCollection,
   handleItineraryApprove,
+  handleItineraryPipelineEvents,
+  handleItineraryPipelineMove,
+  handlePortalProposalApprove,
+  handlePortalProposalRequestRevision,
+  handlePortalProposalView,
   handleItineraryResource
 } from '../../modules/itinerary/api/itinerary-http-handlers';
 
@@ -92,6 +106,7 @@ interface ModuleRouteContext {
 }
 
 type ModuleRouteKey =
+  | 'portal'
   | 'leads'
   | 'clients'
   | 'suppliers'
@@ -104,6 +119,7 @@ type ModuleRouteKey =
   | 'itineraries';
 
 export const MODULE_ROUTE_DISPATCH_ORDER: ReadonlyArray<ModuleRouteKey> = [
+  'portal',
   'leads',
   'clients',
   'suppliers',
@@ -171,6 +187,9 @@ function handleItinerariesRoute(context: ModuleRouteContext): Promise<void> | nu
   if (!canProceed(req, res, locale, permission, authMode)) return Promise.resolve();
 
   const requestContext = { req, res, pathSegments, locale };
+  if (pathSegments.length === 3 && pathSegments[1] === 'library' && pathSegments[2] === 'destinations') {
+    return handleDestinationLibrarySearch(requestContext, repositories.itineraries);
+  }
   if (pathSegments.length === 1) return handleItinerariesCollection(requestContext, repositories.itineraries);
   if (pathSegments.length === 2) return handleItineraryResource(requestContext, repositories.itineraries);
   if (pathSegments.length === 3 && pathSegments[2] === 'items') {
@@ -178,6 +197,45 @@ function handleItinerariesRoute(context: ModuleRouteContext): Promise<void> | nu
   }
   if (pathSegments.length === 3 && pathSegments[2] === 'approve') {
     return handleItineraryApprove(requestContext, repositories.itineraries);
+  }
+  if (pathSegments.length === 3 && pathSegments[2] === 'publish') {
+    return handleItineraryPublish(requestContext, repositories.itineraries);
+  }
+  if (pathSegments.length === 3 && pathSegments[2] === 'days') {
+    return handleItineraryDaysCollection(requestContext, repositories.itineraries);
+  }
+  if (pathSegments.length === 4 && pathSegments[2] === 'days') {
+    return handleItineraryDayResource(requestContext, repositories.itineraries);
+  }
+  if (pathSegments.length === 5 && pathSegments[2] === 'days' && pathSegments[4] === 'activities') {
+    return handleItineraryDayActivitiesCollection(requestContext, repositories.itineraries);
+  }
+  if (pathSegments.length === 6 && pathSegments[2] === 'days' && pathSegments[4] === 'activities') {
+    return handleItineraryDayActivityResource(requestContext, repositories.itineraries);
+  }
+  if (pathSegments.length === 4 && pathSegments[2] === 'pipeline' && pathSegments[3] === 'move') {
+    return handleItineraryPipelineMove(requestContext, repositories.itineraries);
+  }
+  if (pathSegments.length === 4 && pathSegments[2] === 'pipeline' && pathSegments[3] === 'events') {
+    return handleItineraryPipelineEvents(requestContext, repositories.itineraries);
+  }
+
+  return Promise.resolve();
+}
+
+function handlePortalRoute(context: ModuleRouteContext): Promise<void> | null {
+  const { req, pathSegments, locale, repositories } = context;
+  if (pathSegments[0] !== 'portal') return null;
+
+  const requestContext = { req, res: context.res, pathSegments, locale };
+  if (pathSegments.length === 3 && pathSegments[1] === 'proposals') {
+    return handlePortalProposalView(requestContext, repositories.itineraries);
+  }
+  if (pathSegments.length === 5 && pathSegments[1] === 'proposals' && pathSegments[3] === 'actions' && pathSegments[4] === 'approve') {
+    return handlePortalProposalApprove(requestContext, repositories.itineraries, repositories.messaging);
+  }
+  if (pathSegments.length === 5 && pathSegments[1] === 'proposals' && pathSegments[3] === 'actions' && pathSegments[4] === 'request-revision') {
+    return handlePortalProposalRequestRevision(requestContext, repositories.itineraries, repositories.messaging);
   }
 
   return Promise.resolve();
@@ -337,6 +395,11 @@ function handleAiRoute(context: ModuleRouteContext): Promise<void> | null {
   if (pathSegments.length === 2 && pathSegments[1] === 'proposal') {
     return handleAiProposalCollection(requestContext);
   }
+  if (pathSegments.length === 3 && pathSegments[1] === 'itinerary') {
+    if (pathSegments[2] === 'generate') return handleAiItineraryGenerate(requestContext);
+    if (pathSegments[2] === 'tone-transform') return handleAiItineraryToneTransform(requestContext);
+    if (pathSegments[2] === 'validate-logic') return handleAiItineraryValidateLogic(requestContext);
+  }
   if (pathSegments.length === 4 && pathSegments[1] === 'proposal' && pathSegments[2] === 'render') {
     if (pathSegments[3] === 'web') return handleAiProposalWebRender(requestContext);
     if (pathSegments[3] === 'pdf') return handleAiProposalPdfDraft(requestContext);
@@ -351,6 +414,7 @@ function handleAiRoute(context: ModuleRouteContext): Promise<void> | null {
 
 export function dispatchModuleRoute(context: ModuleRouteContext): Promise<void> | null {
   const routeHandlers: Record<ModuleRouteKey, (ctx: ModuleRouteContext) => Promise<void> | null> = {
+    portal: handlePortalRoute,
     leads: handleLeadsRoute,
     clients: handleClientsRoute,
     suppliers: handleSuppliersRoute,

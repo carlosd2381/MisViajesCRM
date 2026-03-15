@@ -3,6 +3,21 @@ import type { ClientTabSharedProps } from '../types';
 
 export function CurrentTripsTab({ locale, profile, updateProfileField }: ClientTabSharedProps) {
   const serviceTypes = list(locale, 'options.leadServiceTypes');
+  const clientStatuses = list(locale, 'options.clientStatus');
+
+  function humanizeRawValue(value: string): string {
+    return value
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+
+  function clientStatusLabel(value: string): string {
+    const key = `labels.clientStatus.${value}`;
+    const translated = t(locale, key);
+    return translated === key ? humanizeRawValue(value) : translated;
+  }
 
   function updateLinkedRef(index: number, value: string) {
     const next = [...profile.currentTripLinkedRefs];
@@ -23,6 +38,14 @@ export function CurrentTripsTab({ locale, profile, updateProfileField }: ClientT
       <h3>{t(locale, 'clients.sections.currentTrips')}</h3>
       <div className="field"><label>{t(locale, 'clients.fields.currentTripDestination')}</label><input value={profile.currentTripDestination} onChange={(event) => updateProfileField('currentTripDestination', event.target.value)} /></div>
       <div className="profile-grid-2">
+        <div className="field">
+          <label>{t(locale, 'clients.fields.clientStatus')}</label>
+          <select value={profile.clientStatus} onChange={(event) => updateProfileField('clientStatus', event.target.value)}>
+            {clientStatuses.map((status) => (
+              <option key={status} value={status}>{clientStatusLabel(status)}</option>
+            ))}
+          </select>
+        </div>
         <div className="field"><label>{t(locale, 'clients.fields.currentTripDate')}</label><input type="date" value={profile.currentTripDate} onChange={(event) => updateProfileField('currentTripDate', event.target.value)} /></div>
         <div className="field"><label>{t(locale, 'clients.fields.currentTripTravelers')}</label><input value={profile.currentTripTravelers} onChange={(event) => updateProfileField('currentTripTravelers', event.target.value)} /></div>
       </div>

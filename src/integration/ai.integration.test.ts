@@ -444,3 +444,161 @@ test('ai metrics keeps mock mode when AI_PROVIDER is explicitly set to mock', as
     restoreProvider();
   }
 });
+
+test('agent can generate itinerary workflow draft', async () => {
+  const { server, baseUrl } = await startIntegrationServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/ai/itinerary/generate`, {
+      method: 'POST',
+      headers: integrationTestHeaders('agent'),
+      body: JSON.stringify({
+        destination: 'Oaxaca',
+        durationDays: 3,
+        interests: ['gastronomía', 'arte'],
+        guestProfile: {
+          travelerCount: 2,
+          mobilityNotes: 'sin escaleras largas'
+        }
+      })
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      data: {
+        schemaVersion: string;
+        destination: string;
+        durationDays: number;
+        days: Array<{ dayIndex: number; activities: Array<{ title: string }> }>;
+      };
+    };
+
+    assert.equal(payload.data.schemaVersion, 'ai-itinerary.v1');
+    assert.equal(payload.data.destination, 'Oaxaca');
+    assert.equal(payload.data.durationDays, 3);
+    assert.equal(payload.data.days.length, 3);
+    assert.ok(payload.data.days.every((day) => day.activities.length >= 1));
+  } finally {
+    await stopIntegrationServer(server);
+  }
+});
+
+test('itinerary generate rejects invalid payload', async () => {
+  const { server, baseUrl } = await startIntegrationServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/ai/itinerary/generate`, {
+      method: 'POST',
+      headers: integrationTestHeaders('agent'),
+      body: JSON.stringify({
+        destination: '',
+        durationDays: 0,
+        interests: []
+      })
+    });
+
+    assert.equal(response.status, 400);
+    const payload = (await response.json()) as { errors: string[] };
+    assert.ok(payload.errors.length >= 1);
+  } finally {
+    await stopIntegrationServer(server);
+  }
+});
+
+test('agent can transform itinerary tone', async () => {
+  const { server, baseUrl } = await startIntegrationServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/ai/itinerary/tone-transform`, {
+      method: 'POST',
+      headers: integrationTestHeaders('agent'),
+      body: JSON.stringify({
+        sourceText: 'Día 1 llegada y recorrido local con guía privado.',
+        targetTone: 'luxury_inspiring'
+      })
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      data: { transformedText: string; targetTone: string };
+    };
+    assert.equal(payload.data.targetTone, 'luxury_inspiring');
+    assert.ok(payload.data.transformedText.includes('Propuesta premium'));
+  } finally {
+    await stopIntegrationServer(server);
+  }
+});
+
+test('agent can validate itinerary logic and receive warnings', async () => {
+  const { server, baseUrl } = await startIntegrationServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/ai/itinerary/validate-logic`, {
+      method: 'POST',
+      headers: integrationTestHeaders('agent'),
+      body: JSON.stringify({
+        itinerary: {
+          destination: 'Oaxaca',
+          days: [
+            {
+              dayIndex: 1,
+              activities: [
+                {
+                  title: 'Tour histórico',
+                  startsAtLocal: '09:00',
+                  durationMinutes: 240,
+                  minAge: 18
+                },
+                {
+                  title: 'Experiencia gastronómica',
+                  startsAtLocal: '11:30',
+                  durationMinutes: 180
+                }
+              ]
+            }
+          ]
+        }
+      })
+    });
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      data: {
+        schemaVersion: string;
+        warnings: Array<{ code: string; severity: string; dayIndex?: number }>;
+      };
+    };
+
+    assert.equal(payload.data.schemaVersion, 'ai-itinerary-logic.v1');
+    assert.ok(payload.data.warnings.some((warning) => warning.code === 'ACTIVITY_TIME_OVERLAP'));
+    assert.ok(payload.data.warnings.some((warning) => warning.code === 'AGE_RESTRICTION_REVIEW'));
+  } finally {
+    await stopIntegrationServer(server);
+  }
+});
+
+test('external_dmc cannot run itinerary AI workflows', async () => {
+  const { server, baseUrl } = await startIntegrationServer();
+
+  try {
+    const response = await fetch(`${baseUrl}/ai/itinerary/validate-logic`, {
+      method: 'POST',
+      headers: integrationTestHeaders('external_dmc'),
+      body: JSON.stringify({
+        itinerary: {
+          destination: 'Oaxaca',
+          days: [
+            {
+              dayIndex: 1,
+              activities: [{ title: 'Actividad base' }]
+            }
+          ]
+        }
+      })
+    });
+
+    assert.equal(response.status, 403);
+  } finally {
+    await stopIntegrationServer(server);
+  }
+});

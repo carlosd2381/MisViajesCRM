@@ -7,6 +7,19 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 interface ClientsTableProps {
   locale: Locale;
   clients: Client[];
+  totalClientsCount: number;
+  clientListScope: 'researching' | 'quoted' | 'deposit_paid' | 'confirmed' | 'traveling' | 'returned' | 'closed' | 'all';
+  onClientListScopeChange: (scope: 'researching' | 'quoted' | 'deposit_paid' | 'confirmed' | 'traveling' | 'returned' | 'closed' | 'all') => void;
+  clientScopeCounts: {
+    researching: number;
+    quoted: number;
+    depositPaid: number;
+    confirmed: number;
+    traveling: number;
+    returned: number;
+    closed: number;
+    all: number;
+  };
   searchTerm: string;
   onSearchTermChange: (value: string) => void;
   selectedClientId: string | null;
@@ -24,6 +37,10 @@ interface ClientsTableProps {
 export function ClientsTable({
   locale,
   clients,
+  totalClientsCount,
+  clientListScope,
+  onClientListScopeChange,
+  clientScopeCounts,
   searchTerm,
   onSearchTermChange,
   selectedClientId,
@@ -73,10 +90,16 @@ export function ClientsTable({
   const [visibleColumns, setVisibleColumns] = useState<ClientListColumnKey[]>(restoreVisibleColumns);
   const [columnGroupsExpanded, setColumnGroupsExpanded] = useState<Record<ClientColumnGroupKey, boolean>>(restoreColumnGroupsExpanded);
   const [showColumnsPanel, setShowColumnsPanel] = useState(false);
+  const [showClientExportMenu, setShowClientExportMenu] = useState(false);
+  const [showClientViewMenu, setShowClientViewMenu] = useState(false);
   const [columnsFilterTerm, setColumnsFilterTerm] = useState('');
   const [draggedColumnKey, setDraggedColumnKey] = useState<ClientListColumnKey | null>(null);
   const columnsPanelRef = useRef<HTMLDivElement | null>(null);
   const columnsToggleRef = useRef<HTMLButtonElement | null>(null);
+  const clientExportMenuRef = useRef<HTMLDivElement | null>(null);
+  const clientExportToggleRef = useRef<HTMLButtonElement | null>(null);
+  const clientViewMenuRef = useRef<HTMLDivElement | null>(null);
+  const clientViewToggleRef = useRef<HTMLButtonElement | null>(null);
 
   function humanizeRawValue(value: string): string {
     return value
@@ -119,6 +142,77 @@ export function ClientsTable({
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [showColumnsPanel]);
+
+  useEffect(() => {
+    if (!showClientExportMenu || typeof window === 'undefined') return;
+
+    const onPointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const clickedInsideMenu = Boolean(clientExportMenuRef.current?.contains(target));
+      const clickedToggleButton = Boolean(clientExportToggleRef.current?.contains(target));
+      if (clickedInsideMenu || clickedToggleButton) return;
+      setShowClientExportMenu(false);
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setShowClientExportMenu(false);
+    };
+
+    window.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [showClientExportMenu]);
+
+  useEffect(() => {
+    if (!showClientViewMenu || typeof window === 'undefined') return;
+
+    const onPointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const clickedInsideMenu = Boolean(clientViewMenuRef.current?.contains(target));
+      const clickedToggleButton = Boolean(clientViewToggleRef.current?.contains(target));
+      if (clickedInsideMenu || clickedToggleButton) return;
+      setShowClientViewMenu(false);
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setShowClientViewMenu(false);
+    };
+
+    window.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [showClientViewMenu]);
+
+  function clientScopeLabel(scope: ClientsTableProps['clientListScope']): string {
+    switch (scope) {
+      case 'researching':
+        return t(locale, 'clients.scopeResearching');
+      case 'quoted':
+        return t(locale, 'clients.scopeQuoted');
+      case 'deposit_paid':
+        return t(locale, 'clients.scopeDepositPaid');
+      case 'confirmed':
+        return t(locale, 'clients.scopeConfirmed');
+      case 'traveling':
+        return t(locale, 'clients.scopeTraveling');
+      case 'returned':
+        return t(locale, 'clients.scopeReturned');
+      case 'closed':
+        return t(locale, 'clients.scopeClosed');
+      default:
+        return t(locale, 'clients.scopeAll');
+    }
+  }
+
+  const activeClientScopeLabel = clientScopeLabel(clientListScope);
 
   function toggleVisibleColumn(columnKey: ClientListColumnKey) {
     setVisibleColumns((previous) => {
@@ -220,23 +314,170 @@ export function ClientsTable({
     .map((key) => clientsTableColumnsConfig.find((column) => column.key === key))
     .filter((column): column is (typeof clientsTableColumnsConfig)[number] => Boolean(column));
 
+  const clientExportColumnsConfig = [
+    { key: 'id' as const, label: t(locale, 'common.tableId'), value: (client: Client) => client.id },
+    { key: 'name' as const, label: t(locale, 'clients.tableName'), value: (client: Client) => `${client.firstName} ${client.paternalLastName}`.trim() },
+    { key: 'firstName' as const, label: t(locale, 'clients.fields.firstName'), value: (client: Client) => client.firstName ?? '' },
+    { key: 'paternalLastName' as const, label: t(locale, 'clients.fields.paternalLastName'), value: (client: Client) => client.paternalLastName ?? '' },
+    { key: 'maternalLastName' as const, label: t(locale, 'clients.fields.maternalLastName'), value: (client: Client) => client.maternalLastName ?? '' },
+    { key: 'leadOrigin' as const, label: t(locale, 'clients.tableLeadOrigin'), value: (client: Client) => client.leadId ? client.leadId.slice(0, 8) : t(locale, 'clients.manual') },
+    { key: 'contact' as const, label: t(locale, 'clients.tableContact'), value: (client: Client) => client.contacts?.[0]?.value ?? '' },
+    { key: 'email' as const, label: t(locale, 'leads.email'), value: (client: Client) => client.contacts?.find((contact) => contact.type === 'email')?.value ?? '' },
+    { key: 'phone' as const, label: t(locale, 'leads.phone'), value: (client: Client) => client.contacts?.find((contact) => contact.type === 'cell' || contact.type === 'home' || contact.type === 'office' || contact.type === 'whatsapp_primary')?.value ?? '' },
+    {
+      key: 'preferredContactMethod' as const,
+      label: t(locale, 'clients.fields.preferredContactMethod'),
+      value: (client: Client) => {
+        const preferredContactMethod = client.travelPreferences?.preferredContactMethod;
+        return typeof preferredContactMethod === 'string' && preferredContactMethod.trim() ? contactMethodLabel(preferredContactMethod) : '';
+      }
+    },
+    { key: 'companyName' as const, label: t(locale, 'clients.fields.company'), value: (client: Client) => client.companyName ?? '' },
+    { key: 'jobTitle' as const, label: t(locale, 'clients.fields.jobTitle'), value: (client: Client) => client.jobTitle ?? '' },
+    { key: 'birthDate' as const, label: t(locale, 'clients.fields.birthDate'), value: (client: Client) => client.birthDate ?? '' },
+  ];
+
+  const visibleClientExportColumns = visibleColumns
+    .map((key) => clientExportColumnsConfig.find((column) => column.key === key))
+    .filter((column): column is (typeof clientExportColumnsConfig)[number] => Boolean(column));
+
+  const canExportVisibleClientCsv = clients.length > 0 && visibleClientExportColumns.length > 0;
+  const canExportAllClientCsv = clients.length > 0;
+
+  function csvEscape(value: unknown): string {
+    const maxCsvCellLength = 2000;
+    const rawText = value == null ? '' : String(value);
+    const normalizedText = rawText
+      .replace(/\r\n|\r|\n/g, ' | ')
+      .replace(/\t/g, ' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+    const cappedText = normalizedText.length > maxCsvCellLength
+      ? `${normalizedText.slice(0, maxCsvCellLength - 1)}…`
+      : normalizedText;
+    const sanitizedForSpreadsheet = /^[=+\-@]/.test(cappedText.trimStart())
+      ? `'${cappedText}`
+      : cappedText;
+    return `"${sanitizedForSpreadsheet.replace(/"/g, '""')}"`;
+  }
+
+  function exportClientsToCsv(scope: 'visible' | 'all') {
+    const scopedColumns = scope === 'all' ? clientExportColumnsConfig : visibleClientExportColumns;
+    if (clients.length === 0 || scopedColumns.length === 0) return;
+
+    const rows = clients.map((client) => scopedColumns.map((column) => column.value(client)));
+    const header = scopedColumns.map((column) => column.label);
+    const csvContent = [header, ...rows].map((row) => row.map((cell) => csvEscape(cell)).join(',')).join('\n');
+    const utf8Bom = '\uFEFF';
+    const blob = new Blob([utf8Bom, csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const exportedAtIso = new Date().toISOString();
+    const exportDateStamp = exportedAtIso.slice(0, 10);
+    const exportTimeStamp = exportedAtIso.slice(11, 19).replace(/:/g, '-');
+    const localeStamp = locale.replace(/[^a-zA-Z0-9-]/g, '-');
+    const scopeStamp = `${clients.length}-of-${totalClientsCount}`;
+    const columnStamp = scope === 'all' ? 'all-columns' : 'visible-columns';
+    link.href = url;
+    link.download = `${t(locale, 'clients.exportFilenamePrefix')}-${localeStamp}-${exportDateStamp}_${exportTimeStamp}-${scopeStamp}-${columnStamp}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <section className="card">
-      <h2>{t(locale, 'clients.tableTitle')}</h2>
-      <div className="btn-row">
+      <div className="leads-list-header">
+        <h2>{t(locale, 'clients.tableTitle')}</h2>
+        <div className="leads-list-header-actions">
+          <span className="leads-list-count">{clients.length} {t(locale, 'clients.tableTitle').toLowerCase()}</span>
+          <div className="icon-menu-wrap" ref={clientExportMenuRef}>
+            <button
+              ref={clientExportToggleRef}
+              type="button"
+              className="ghost icon-btn"
+              onClick={() => setShowClientExportMenu((previous) => !previous)}
+              aria-label={t(locale, 'clients.exportVisible')}
+              aria-expanded={showClientExportMenu}
+              title={t(locale, 'clients.exportVisible')}
+            >
+              ⬇
+            </button>
+            {showClientExportMenu ? (
+              <div className="icon-menu">
+                <button type="button" className="ghost icon-menu-item" onClick={() => { exportClientsToCsv('visible'); setShowClientExportMenu(false); }} disabled={!canExportVisibleClientCsv}>
+                  {t(locale, 'clients.exportVisible')}
+                </button>
+                <button type="button" className="ghost icon-menu-item" onClick={() => { exportClientsToCsv('all'); setShowClientExportMenu(false); }} disabled={!canExportAllClientCsv}>
+                  {t(locale, 'clients.exportAll')}
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+      <div className="btn-row leads-actions-row list-primary-toolbar">
         <input
           value={searchTerm}
           onChange={(event) => onSearchTermChange(event.target.value)}
           placeholder={t(locale, 'common.searchPlaceholder')}
         />
         <button type="button" onClick={onStartNewProfile}>{t(locale, 'common.actions.addNew')}</button>
-        <button ref={columnsToggleRef} type="button" className="ghost" onClick={() => setShowColumnsPanel((previous) => !previous)} aria-pressed={showColumnsPanel}>{t(locale, 'common.visibleColumns')}</button>
+        <div className="icon-menu-wrap view-menu-wrap" ref={clientViewMenuRef}>
+          <button
+            ref={clientViewToggleRef}
+            type="button"
+            className="ghost view-menu-toggle"
+            onClick={() => setShowClientViewMenu((previous) => !previous)}
+            aria-expanded={showClientViewMenu}
+          >
+            {`${t(locale, 'clients.viewLabel')}: ${activeClientScopeLabel} (${clients.length})`}
+          </button>
+          {showClientViewMenu ? (
+            <div className="icon-menu view-menu">
+              <button type="button" className="ghost icon-menu-item" onClick={() => { onClientListScopeChange('researching'); setShowClientViewMenu(false); }}>
+                <span className="menu-item-check" aria-hidden="true">{clientListScope === 'researching' ? '✓' : ''}</span>
+                <span className="menu-item-label">{`${t(locale, 'clients.scopeResearching')} (${clientScopeCounts.researching})`}</span>
+              </button>
+              <button type="button" className="ghost icon-menu-item" onClick={() => { onClientListScopeChange('quoted'); setShowClientViewMenu(false); }}>
+                <span className="menu-item-check" aria-hidden="true">{clientListScope === 'quoted' ? '✓' : ''}</span>
+                <span className="menu-item-label">{`${t(locale, 'clients.scopeQuoted')} (${clientScopeCounts.quoted})`}</span>
+              </button>
+              <button type="button" className="ghost icon-menu-item" onClick={() => { onClientListScopeChange('deposit_paid'); setShowClientViewMenu(false); }}>
+                <span className="menu-item-check" aria-hidden="true">{clientListScope === 'deposit_paid' ? '✓' : ''}</span>
+                <span className="menu-item-label">{`${t(locale, 'clients.scopeDepositPaid')} (${clientScopeCounts.depositPaid})`}</span>
+              </button>
+              <button type="button" className="ghost icon-menu-item" onClick={() => { onClientListScopeChange('confirmed'); setShowClientViewMenu(false); }}>
+                <span className="menu-item-check" aria-hidden="true">{clientListScope === 'confirmed' ? '✓' : ''}</span>
+                <span className="menu-item-label">{`${t(locale, 'clients.scopeConfirmed')} (${clientScopeCounts.confirmed})`}</span>
+              </button>
+              <button type="button" className="ghost icon-menu-item" onClick={() => { onClientListScopeChange('traveling'); setShowClientViewMenu(false); }}>
+                <span className="menu-item-check" aria-hidden="true">{clientListScope === 'traveling' ? '✓' : ''}</span>
+                <span className="menu-item-label">{`${t(locale, 'clients.scopeTraveling')} (${clientScopeCounts.traveling})`}</span>
+              </button>
+              <button type="button" className="ghost icon-menu-item" onClick={() => { onClientListScopeChange('returned'); setShowClientViewMenu(false); }}>
+                <span className="menu-item-check" aria-hidden="true">{clientListScope === 'returned' ? '✓' : ''}</span>
+                <span className="menu-item-label">{`${t(locale, 'clients.scopeReturned')} (${clientScopeCounts.returned})`}</span>
+              </button>
+              <button type="button" className="ghost icon-menu-item" onClick={() => { onClientListScopeChange('closed'); setShowClientViewMenu(false); }}>
+                <span className="menu-item-check" aria-hidden="true">{clientListScope === 'closed' ? '✓' : ''}</span>
+                <span className="menu-item-label">{`${t(locale, 'clients.scopeClosed')} (${clientScopeCounts.closed})`}</span>
+              </button>
+              <button type="button" className="ghost icon-menu-item" onClick={() => { onClientListScopeChange('all'); setShowClientViewMenu(false); }}>
+                <span className="menu-item-check" aria-hidden="true">{clientListScope === 'all' ? '✓' : ''}</span>
+                <span className="menu-item-label">{`${t(locale, 'clients.scopeAll')} (${clientScopeCounts.all})`}</span>
+              </button>
+            </div>
+          ) : null}
+        </div>
         <button type="button" className="ghost" onClick={onRefreshClients}>{t(locale, 'common.actions.refresh')}</button>
       </div>
+      <p className="muted leads-scope-count">{t(locale, 'clients.scopeCount').replace('{visible}', String(clients.length)).replace('{total}', String(totalClientsCount))}</p>
       <div className="leads-grid-layout">
         <div className="leads-grid-main">
           <table className="leads-grid-table">
-            <thead><tr>{selectedColumns.map((column) => <th key={column.key}>{column.label}</th>)}<th>{t(locale, 'common.tableAction')}</th></tr></thead>
+            <thead><tr>{selectedColumns.map((column) => <th key={column.key}>{column.label}</th>)}<th><div className="table-header-actions"><span>{t(locale, 'common.tableAction')}</span><button ref={columnsToggleRef} type="button" className="ghost icon-btn table-header-gear" onClick={() => setShowColumnsPanel((previous) => !previous)} aria-pressed={showColumnsPanel} aria-label={t(locale, 'common.visibleColumns')} title={t(locale, 'common.visibleColumns')}>⚙</button></div></th></tr></thead>
             <tbody>
               {clients.length === 0 ? <tr><td colSpan={selectedColumns.length + 1}>{t(locale, 'clients.noClients')}</td></tr> : clients.map((client) => (
                 <tr key={client.id} onClick={() => onViewClient(client.id)} className={`clickable-row ${selectedClientId === client.id ? 'selected' : ''}`}>

@@ -1,6 +1,7 @@
 export const ITINERARY_STATUS = [
   'draft',
   'sent',
+  'revised',
   'accepted',
   'paid',
   'completed',

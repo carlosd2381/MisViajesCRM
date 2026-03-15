@@ -862,6 +862,7 @@ export function SuppliersView({
           type="button"
           onClick={() => {
             onStartCreateSupplier();
+            setActiveTab('classification');
             setActivePage('create');
           }}
         >
@@ -969,7 +970,7 @@ export function SuppliersView({
           </div>
         </div>
       ) : null}
-      <p className="muted">{t(locale, 'suppliers.scopeCount').replace('{visible}', String(filteredSuppliers.length)).replace('{total}', String(suppliers.length))}</p>
+      <p className="muted leads-scope-count">{t(locale, 'suppliers.scopeCount').replace('{visible}', String(filteredSuppliers.length)).replace('{total}', String(suppliers.length))}</p>
       <div className="leads-grid-layout">
         <div className="leads-grid-main">
           <table ref={suppliersTableRef} className="leads-grid-table">
