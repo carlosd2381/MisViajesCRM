@@ -1,118 +1,6 @@
 export type Locale = 'es-MX' | 'en-US';
 
-export type ViewKey = 'dashboard' | 'leads' | 'clients' | 'itineraries' | 'suppliers' | 'settings' | 'placeholder';
-
-export type ItineraryStatus = 'draft' | 'sent' | 'revised' | 'accepted' | 'paid' | 'completed' | 'cancelled';
-
-export interface Itinerary {
-  id: string;
-  clientId: string;
-  agentId: string;
-  title: string;
-  status: ItineraryStatus;
-  startDate?: string;
-  endDate?: string;
-  grossTotal: number;
-  netTotal: number;
-  markupAmount: number;
-  serviceFeeAmount: number;
-  agencyProfit: number;
-  currency: 'MXN' | 'USD' | 'EUR';
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ItineraryDay {
-  id: string;
-  itineraryId: string;
-  dayIndex: number;
-  dayDate?: string;
-  title: string;
-  summary?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export type ItineraryDayActivityCategory =
-  | 'flight'
-  | 'hotel'
-  | 'transfer'
-  | 'tour'
-  | 'dining'
-  | 'activity'
-  | 'insurance'
-  | 'fee'
-  | 'other';
-
-export interface ItineraryDayActivity {
-  id: string;
-  itineraryId: string;
-  itineraryDayId: string;
-  activityIndex: number;
-  title: string;
-  category: ItineraryDayActivityCategory;
-  descriptionEs?: string;
-  descriptionEn?: string;
-  startsAtLocal?: string;
-  durationMinutes?: number;
-  priceNet: number;
-  priceGross: number;
-  optionalEnabled: boolean;
-  mediaUrl?: string;
-  latitude?: number;
-  longitude?: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface DestinationLibraryItem {
-  id: string;
-  locationName: string;
-  category: 'activity' | 'hotel' | 'dining' | 'transfer' | 'other';
-  title: string;
-  description: string;
-  mediaUrl?: string;
-  coordinates: { latitude: number; longitude: number } | null;
-  contentSource: 'internal' | 'fallback';
-}
-
-export interface ProposalPublicationShare {
-  publicationId: string;
-  hash: string;
-  urlPath: string;
-  status: 'active' | 'revoked' | 'expired';
-  publishedAt: string;
-  expiresAt?: string;
-}
-
-export interface PortalProposalActionEvent {
-  id: string;
-  proposalPublicationId: string;
-  itineraryId: string;
-  action: 'approve' | 'request_revision' | 'open';
-  actorType: 'client' | 'agent' | 'system';
-  actorRef?: string;
-  message?: string;
-  createdAt: string;
-}
-
-export interface PortalProposalPublication {
-  id: string;
-  itineraryId: string;
-  hash: string;
-  status: 'active' | 'revoked' | 'expired';
-  publishedBy?: string;
-  publishedAt: string;
-  expiresAt?: string;
-  revokedAt?: string;
-  lastViewedAt?: string;
-}
-
-export interface PortalProposalView {
-  publication: PortalProposalPublication;
-  itinerary: Itinerary;
-  actions: PortalProposalActionEvent[];
-}
+export type ViewKey = 'dashboard' | 'leads' | 'clients' | 'suppliers' | 'settings' | 'placeholder';
 
 export type ProfileTabKey =
   | 'contact'
@@ -321,7 +209,6 @@ export interface ClientProfileForm {
   emergencyEmail: string;
   vaccineInfo: string;
   currentTripDestination: string;
-  clientStatus: string;
   currentTripDate: string;
   currentTripTravelers: string;
   currentTripServices: string[];
