@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { t } from '../../i18n';
+import { loadViewPrefs, saveViewPrefs } from '../../view-prefs';
 import type { ClientsViewProps } from './types';
 import { ClientsTable } from './ClientsTable';
 import { ContactTab } from './tabs/ContactTab';
@@ -50,8 +51,44 @@ export function ClientsView({
   onForceDeleteClient,
   onStartNewProfile,
 }: ClientsViewProps) {
-  const [searchTerm, setSearchTerm] = useState('');
+  type ClientListScope = 'researching' | 'quoted' | 'deposit_paid' | 'confirmed' | 'traveling' | 'returned' | 'closed' | 'all';
+  type ClientsViewPrefs = {
+    searchTerm?: string;
+    clientListScope?: ClientListScope;
+  };
+  const CLIENTS_VIEW_PREFS_KEY = 'misviajescrm.web.clients.viewprefs';
+
+  function restoreSearchTerm(): string {
+    const prefs = loadViewPrefs<ClientsViewPrefs>(CLIENTS_VIEW_PREFS_KEY);
+    return typeof prefs?.searchTerm === 'string' ? prefs.searchTerm : '';
+  }
+
+  function restoreClientListScope(): ClientListScope {
+    const prefs = loadViewPrefs<ClientsViewPrefs>(CLIENTS_VIEW_PREFS_KEY);
+    const next = prefs?.clientListScope;
+    if (!next) return 'all';
+    if (['researching', 'quoted', 'deposit_paid', 'confirmed', 'traveling', 'returned', 'closed', 'all'].includes(next)) {
+      return next;
+    }
+    return 'all';
+  }
+
+  function clientStatusForScope(client: (typeof clients)[number]): ClientListScope {
+    const rawStatus = client.travelPreferences?.clientStatus;
+    if (typeof rawStatus !== 'string') return 'researching';
+    if (['researching', 'quoted', 'deposit_paid', 'confirmed', 'traveling', 'returned', 'closed'].includes(rawStatus)) {
+      return rawStatus as Exclude<ClientListScope, 'all'>;
+    }
+    return 'researching';
+  }
+
+  const [searchTerm, setSearchTerm] = useState(restoreSearchTerm);
+  const [clientListScope, setClientListScope] = useState<ClientListScope>(restoreClientListScope);
   const [activePage, setActivePage] = useState<'list' | 'detail' | 'create'>('list');
+  useEffect(() => {
+    saveViewPrefs(CLIENTS_VIEW_PREFS_KEY, { searchTerm, clientListScope });
+  }, [searchTerm, clientListScope]);
+
   const selectedClient = selectedClientId ? clients.find((client) => client.id === selectedClientId) ?? null : null;
   useEffect(() => {
     if (!selectedClientId) return;
@@ -60,14 +97,31 @@ export function ClientsView({
 
   const filteredClients = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    if (!term) return clients;
-    return clients.filter((client) =>
+    return clients.filter((client) => {
+      if (clientListScope !== 'all' && clientStatusForScope(client) !== clientListScope) {
+        return false;
+      }
+      if (!term) return true;
+      return (
       client.id.toLowerCase().includes(term)
       || client.firstName.toLowerCase().includes(term)
       || client.paternalLastName.toLowerCase().includes(term)
       || (client.contacts?.[0]?.value ?? '').toLowerCase().includes(term)
-    );
-  }, [clients, searchTerm]);
+      );
+    });
+  }, [clients, searchTerm, clientListScope]);
+
+  const clientScopeCounts = useMemo(() => {
+    const researching = clients.filter((client) => clientStatusForScope(client) === 'researching').length;
+    const quoted = clients.filter((client) => clientStatusForScope(client) === 'quoted').length;
+    const depositPaid = clients.filter((client) => clientStatusForScope(client) === 'deposit_paid').length;
+    const confirmed = clients.filter((client) => clientStatusForScope(client) === 'confirmed').length;
+    const traveling = clients.filter((client) => clientStatusForScope(client) === 'traveling').length;
+    const returned = clients.filter((client) => clientStatusForScope(client) === 'returned').length;
+    const closed = clients.filter((client) => clientStatusForScope(client) === 'closed').length;
+    const all = clients.length;
+    return { researching, quoted, depositPaid, confirmed, traveling, returned, closed, all };
+  }, [clients]);
 
   function renderProfileTabs() {
     return (
@@ -166,6 +220,10 @@ export function ClientsView({
     <ClientsTable
       locale={locale}
       clients={filteredClients}
+      totalClientsCount={clients.length}
+      clientListScope={clientListScope}
+      onClientListScopeChange={setClientListScope}
+      clientScopeCounts={clientScopeCounts}
       searchTerm={searchTerm}
       onSearchTermChange={setSearchTerm}
       selectedClientId={selectedClientId}
